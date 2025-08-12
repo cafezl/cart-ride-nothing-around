@@ -1,5 +1,5 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("cart ride around nothing -- Made by TOP G#0040 modify by azpzakking#8838", "Ocean")
+local Window = Library.CreateLib("cart ride around nothing -- Made by h7aq#0 on discord", "Ocean")
  
 -- Player's Settings
 local Player = Window:NewTab("Player")
@@ -186,3 +186,4 @@ CartSettingsSection:NewButton("Teleport to Checkpoint 3", "Teleports the cart to
     cart.PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
     cart.PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 end)
+

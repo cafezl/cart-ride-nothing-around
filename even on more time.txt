@@ -1,0 +1,188 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("cart ride around nothing -- Made by TOP G#0040 modify by azpzakking#8838", "Ocean")
+ 
+-- Player's Settings
+local Player = Window:NewTab("Player")
+local PlayerSection = Player:NewSection("Players Settings")
+ 
+PlayerSection:NewSlider("WalkSpeed", "Set Players WalkSpeed", 500, 0, function(s) -- 500 (MaxValue) | 0 (MinValue)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
+end)
+ 
+PlayerSection:NewButton("Reset WalkSpeed", "Resets WalkSpeed", function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+end)
+ 
+PlayerSection:NewToggle("Infinity Jump", "Jump Infinity, Pressing Space", function(state)
+    if state then
+_G.infinjump = true
+local Player = game:GetService("Players").LocalPlayer
+local Mouse = Player:GetMouse()
+Mouse.KeyDown:connect(function(k)
+if _G.infinjump then
+if k:byte() == 32 then
+Humanoid = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+Humanoid:ChangeState("Jumping")
+wait(0.1)
+Humanoid:ChangeState("Seated")
+end
+end
+end)
+local Player = game:GetService("Players").LocalPlayer
+local Mouse = Player:GetMouse()
+    else
+if _G.infinjump == true then
+_G.infinjump = false
+else
+_G.infinjump = true
+end
+end
+end)
+ 
+PlayerSection:NewButton("Click Teleport", "Click Anyware Then Teleport", function()
+    mouse = game.Players.LocalPlayer:GetMouse()
+tool = Instance.new("Tool")
+tool.RequiresHandle = false
+tool.Name = "ClickTP"
+tool.Activated:connect(function()
+local pos = mouse.Hit+Vector3.new(0,2.5,0)
+pos = CFrame.new(pos.X,pos.Y,pos.Z)
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = pos
+end)
+tool.Parent = game.Players.LocalPlayer.Backpack
+end)
+ 
+PlayerSection:NewTextBox("Goto", "Teleports To A Player", function(PlayerTeleportName)
+    local playerone = game.Players.LocalPlayer.Character
+    local playertwo = game.Workspace:FindFirstChild(PlayerTeleportName)
+    playerone.HumanoidRootPart.CFrame = playertwo.HumanoidRootPart.CFrame * CFrame.new(0,2,0)
+    end)
+ 
+PlayerSection:NewButton("Fly", "A simple fly command, press 'E' to toggle.", function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/TR011F4C3/PANDA/main/scripts/fly.lua", true))()
+end)
+ 
+-- Teleport Settings
+local Teleport = Window:NewTab("Teleport")
+local TeleportSection = Teleport:NewSection("Teleports")
+ 
+TeleportSection:NewButton("Spawn", "Teleports To Spawn!", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, 3.11, 38, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+end)
+ 
+TeleportSection:NewButton("Secret Badge", "Teleports To Secret Badge!", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(234.500259, 2.28650475, 296.495483, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+end)
+ 
+TeleportSection:NewButton("Cart Spawn Button", "Teleports To Cart Spawn Button!", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-33, 3.11, 21.5, -1, 0, 0, 0, 1, 0, 0, 0, -1)
+end)
+ 
+TeleportSection:NewButton("Auto Win", "Auto wins the game", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-430.898926, 165.25, 101.645676, 1, 1.51719295e-08, -1.24212969e-14, -1.51719295e-08, 1, -1.14675147e-09, 1.24038988e-14, 1.14675147e-09, 1)
+wait(4.1)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-430.898529, 163.273926, 131.145554, 1, -2.85942061e-08, 2.0407586e-07, 2.85942079e-08, 1, -1.07927356e-08, -2.0407586e-07, 1.07927409e-08, 1)
+wait(10)
+    game.Players.LocalPlayer.Character.Humanoid.Sit = true
+wait(33)
+    game.Players.LocalPlayer.Character.Humanoid.Sit = false
+wait(2)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-500.748535, -21.78265, -302.303406, 0, 0, 1, 0, -1, 0, 1, 0, -0)
+wait(0.1)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = true
+wait(1.3)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+wait(0.6)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-470.360138, -21.1945782, -302.303101, 0, 0, 1, 0, -1, 0, 1, 0, -0)
+wait(10)
+game.Players.LocalPlayer.Character.Humanoid.Sit = true
+wait(35)
+    game.Players.LocalPlayer.Character.Humanoid.Sit = false
+wait(0.5)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-421.770264, -44.2260475, -297.081909, 0.999515891, 6.59387993e-08, 0.0311128739, -6.60972859e-08, 1, 4.06536627e-09, -0.0311128739, -6.11987483e-09, 0.999515891)
+end)
+ 
+TeleportSection:NewButton("Tp to suffering team", "Tp to suffering team", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-416.844727, 163.402969, 171.087555, 0.0174489655, 5.45878223e-08, 0.99984777, -4.55684486e-08, 1, -5.38008926e-08, -0.99984777, -4.46227411e-08, 0.0174489655)
+end)
+ 
+--- Cart Settings Tab (Added) ---
+local CartSettings = Window:NewTab("Cart Settings")
+local CartSettingsSection = CartSettings:NewSection("Cart Control")
+ 
+local panicOn = false
+ 
+-- Helper function to get the cart model
+local function getCart()
+    local char = game.Players.LocalPlayer.Character
+    if not char then return nil end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum or not hum.SeatPart then return nil end
+    return hum.SeatPart.Parent
+end
+ 
+-- Panic Stop function
+CartSettingsSection:NewToggle("Panic Stop", "Toggles anchoring the cart to stop it.", function(state)
+    local cart = getCart()
+    if not cart then return end
+ 
+    panicOn = state
+ 
+    for _, part in ipairs(cart:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = state
+            if state then
+                part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            end
+        end
+    end
+end)
+ 
+-- Teleport Cart to Checkpoint 1
+CartSettingsSection:NewButton("Teleport to Checkpoint 1", "Teleports the cart to checkpoint 1.", function()
+    local cart = getCart()
+    if not cart or not cart.PrimaryPart then return end
+ 
+    -- Coordinates from the Auto Win script for Checkpoint 1, with a small height adjustment
+    local checkpoint1CFrame = CFrame.new(-430.898926, 164.75, 101.645676)
+ 
+    -- Apply a 90-degree rotation to the CFrame
+    local rotatedCFrame = checkpoint1CFrame * CFrame.Angles(0, math.rad(90), 0)
+ 
+    cart:SetPrimaryPartCFrame(rotatedCFrame)
+    cart.PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+    cart.PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+end)
+ 
+-- Teleport Cart to Checkpoint 2
+CartSettingsSection:NewButton("Teleport to Checkpoint 2", "Teleports the cart to checkpoint 2.", function()
+    local cart = getCart()
+    if not cart or not cart.PrimaryPart then return end
+ 
+    -- Coordinates from the user's provided screenshot
+    local checkpoint2CFrame = CFrame.new(511.88, 3.69, 306.59)
+ 
+    -- Apply a 270-degree rotation to the CFrame
+    local rotatedCFrame = checkpoint2CFrame * CFrame.Angles(0, math.rad(270), 0)
+ 
+    cart:SetPrimaryPartCFrame(rotatedCFrame)
+    cart.PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+    cart.PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+end)
+ 
+-- Teleport Cart to Checkpoint 3 (New)
+CartSettingsSection:NewButton("Teleport to Checkpoint 3", "Teleports the cart to checkpoint 3.", function()
+    local cart = getCart()
+    if not cart or not cart.PrimaryPart then return end
+ 
+    -- Coordinates from the user's provided screenshot
+    local checkpoint3CFrame = CFrame.new(171.09, 2.78, -410.31)
+ 
+    -- Apply a 90-degree rotation to the CFrame
+    local rotatedCFrame = checkpoint3CFrame * CFrame.Angles(0, math.rad(90), 0)
+ 
+    cart:SetPrimaryPartCFrame(rotatedCFrame)
+    cart.PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+    cart.PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+end)

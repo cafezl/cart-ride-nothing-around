@@ -1293,6 +1293,7 @@ local function findMenuGui()
 end
 
 local menuGui = findMenuGui()
+local commandsTabButton
 if not menuGui then
     warn(MENU_NAME .. ": nao foi possivel localizar a janela Kavo.")
     return
@@ -1668,22 +1669,32 @@ end
 
 runtimeCleanup.Event:Connect(destroyNothrilo)
 
+local CommandsTab = Window:NewTab("Comandos")
+commandsTabButton = menuGui:FindFirstChild("ComandosTabButton", true)
+local CommandsSection = CommandsTab:NewSection("Atalhos")
+CommandsSection:NewButton("V  •  Ligar ou desligar o voo", "Tecla V", function()
+    flyToggleControl:UpdateToggle("Voo do Veículo", not flyEnabled)
+end)
+CommandsSection:NewButton("L  •  Ligar ou desligar o ESP", "Tecla L", function()
+    espToggleControl:UpdateToggle("ESP", not espEnabled)
+end)
+CommandsSection:NewButton("K  •  Minimizar ou abrir o menu", "Tecla K", function()
+    setMenuVisible(false)
+end)
+CommandsSection:NewButton("X  •  Fechar o Nothrilo", "Tecla X", destroyNothrilo)
+
 local GuiTab = Window:NewTab("Interface")
 local GuiSection = GuiTab:NewSection("Interface")
 GuiSection:NewKeybind("Fechar Menu", "Tecla X fecha tudo do Nothrilo.", Enum.KeyCode.X, destroyNothrilo)
 replaceKeybindLeftIcon("Fechar Menu", "X")
 addShortcutBadge("Fechar Menu", "X")
 
-local CommandSection = GuiTab:NewSection("Comandos")
-CommandSection:NewLabel("V  •  Ligar ou desligar o voo")
-CommandSection:NewLabel("L  •  Ligar ou desligar o ESP")
-CommandSection:NewLabel("K  •  Minimizar ou abrir o menu")
-CommandSection:NewLabel("X  •  Fechar o Nothrilo")
-
 task.spawn(function()
     while running and not destroyed and menuGui.Parent and launcherGui.Parent do
         local rgb = Color3.fromHSV((os.clock() * 0.12) % 1, 0.85, 1)
-        Library:ChangeColor("SchemeColor", rgb)
+        if commandsTabButton and commandsTabButton.Parent then
+            commandsTabButton.BackgroundColor3 = rgb
+        end
         launcherStroke.Color = rgb
         launcherIcon.TextColor3 = rgb
         for index = #customKeybindIcons, 1, -1 do

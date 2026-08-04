@@ -227,6 +227,28 @@ local function refreshESPColor(player)
     end
 end
 
+local function refreshESPSize(player)
+    local objects = espObjects[player]
+    if not objects or not objects.Billboard or not objects.Billboard.Parent then
+        return
+    end
+
+    local localCharacter = LocalPlayer.Character
+    local localRoot = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
+    local targetRoot = objects.Billboard.Adornee
+    if not localRoot or not targetRoot or not targetRoot.Parent then
+        return
+    end
+
+    local distance = (localRoot.Position - targetRoot.Position).Magnitude
+    -- Perto: nome discreto. A partir de 90 studs ele aumenta aos poucos; no
+    -- maximo, so fica grande quando o jogador esta realmente distante.
+    local progress = math.clamp((distance - 90) / 510, 0, 1)
+    local width = math.floor(78 + (170 - 78) * progress)
+    local height = math.floor(16 + (36 - 16) * progress)
+    objects.Billboard.Size = UDim2.fromOffset(width, height)
+end
+
 local function addESP(player, character)
     if not espEnabled or player == LocalPlayer then return end
 
@@ -242,7 +264,7 @@ local function addESP(player, character)
     -- carregado pelo Roblox neste cliente.
     local billboard = Instance.new("BillboardGui")
     billboard.Name = ESP_TAG .. "Name"
-    billboard.Size = UDim2.fromOffset(145, 28)
+    billboard.Size = UDim2.fromOffset(78, 16)
     billboard.Adornee = root
     billboard.AlwaysOnTop = true
     billboard.LightInfluence = 0
@@ -275,6 +297,7 @@ local function addESP(player, character)
         Highlight = highlight,
     }
     refreshESPColor(player)
+    refreshESPSize(player)
 end
 
 local function disconnectESPPlayer(player)
@@ -364,10 +387,12 @@ local function setESP(enabled)
                     if not valid then
                         removeESP(player)
                         addESP(player, player.Character)
+                    else
+                        refreshESPSize(player)
                     end
                 end
             end
-            task.wait(1)
+            task.wait(0.5)
         end
     end)
 
@@ -802,6 +827,15 @@ local function findPlayerByPartialName(value)
         end
     end
 
+    -- Se nao for exato, prioriza o comeco do nome antes de procurar no meio.
+    for _, player in ipairs(Players:GetPlayers()) do
+        local name = player.Name:lower()
+        local displayName = player.DisplayName:lower()
+        if name:sub(1, #value) == value or displayName:sub(1, #value) == value then
+            return player
+        end
+    end
+
     for _, player in ipairs(Players:GetPlayers()) do
         local name = player.Name:lower()
         local displayName = player.DisplayName:lower()
@@ -976,29 +1010,39 @@ end)
 
 PlayerSection:NewTextBox("Ir até Jogador", "Digite o nome do jogador e aperte Enter.", function(name)
     local player = findPlayerByPartialName(name)
-    if not player or not player.Character then
-        notify("Goto", "Jogador não encontrado.")
+    if not player then
+        notify("Ir ate Jogador", "Jogador nao encontrado.")
         return
     end
 
-    local targetRoot = getRoot(player.Character)
-    if targetRoot then
-        teleportCharacter(targetRoot.CFrame * CFrame.new(0, 2, 0))
+    local targetRoot
+    local deadline = os.clock() + 2
+    repeat
+        local character = player.Character
+        targetRoot = character and character:FindFirstChild("HumanoidRootPart")
+        if targetRoot then break end
+        task.wait(0.2)
+    until os.clock() >= deadline
+
+    if not targetRoot then
+        notify("Ir ate Jogador", "O personagem ainda nao carregou.")
+        return
     end
+
+    teleportCharacter(targetRoot.CFrame * CFrame.new(0, 2, 0))
+    notify("Ir ate Jogador", "Teleportado para " .. player.DisplayName .. ".")
 end)
 
 local flyEnabled = false
-local flyToggle = PlayerSection:NewToggle("Voo do Veículo", "WASD move; Q desce e E sobe.", function(state)
-    flyEnabled = state
-    if state then
+PlayerSection:NewKeybind("Alternar Voo do Veículo", "Tecla V liga ou desliga o voo.", Enum.KeyCode.V, function()
+    flyEnabled = not flyEnabled
+    if flyEnabled then
         startVehicleFly()
+        notify("Voo do Veículo", "Ligado.")
     else
         stopFly()
+        notify("Voo do Veículo", "Desligado.")
     end
-end)
-
-PlayerSection:NewKeybind("Alternar Voo do Veículo", "Tecla V liga ou desliga o voo.", Enum.KeyCode.V, function()
-    flyToggle:UpdateToggle(nil, not flyEnabled)
 end)
 
 PlayerSection:NewToggle("ESP", "Destaca os outros jogadores na sua tela.", setESP)

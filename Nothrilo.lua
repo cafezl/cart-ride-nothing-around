@@ -178,7 +178,7 @@ end
 local function teleportCharacter(cframe)
     local root = getRoot()
     if not root then
-        notify("Teleport", "HumanoidRootPart não encontrado.")
+        notify("Teleporte", "HumanoidRootPart não encontrado.")
         return false
     end
 
@@ -610,7 +610,7 @@ end
 local function setPanicStop(enabled)
     local cart = getCurrentCart()
     if not cart then
-        notify("Cart", "Sente em um carrinho primeiro.")
+        notify("Carrinho", "Sente em um carrinho primeiro.")
         return
     end
 
@@ -632,7 +632,7 @@ end
 local function teleportCart(cframe)
     local cart = getCurrentCart()
     if not cart then
-        notify("Cart", "Sente em um carrinho primeiro.")
+        notify("Carrinho", "Sente em um carrinho primeiro.")
         return
     end
 
@@ -640,7 +640,7 @@ local function teleportCart(cframe)
         cart:PivotTo(cframe)
     end)
     if not ok then
-        notify("Cart", "Não foi possível mover este carrinho.")
+        notify("Carrinho", "Não foi possível mover este carrinho.")
     end
 end
 
@@ -967,6 +967,12 @@ end
 -- Interface no formato da primeira script
 -- ============================================================================
 
+-- Estas funcoes sao preenchidas depois que a biblioteca termina de montar a
+-- janela. Os callbacks dos campos de forca usam isso apenas quando o jogador
+-- aperta Enter, portanto a interface ja existe nessa hora.
+local getKavoTextBoxByLabel
+local restoreKavoTextBox
+
 local PlayerTab = Window:NewTab("Jogador")
 local PlayerSection = PlayerTab:NewSection("Configurações do Jogador")
 
@@ -1041,16 +1047,19 @@ PlayerSection:NewTextBox("Ir até Jogador", "Digite o nome do jogador e aperte E
 end)
 
 local flyEnabled = false
-PlayerSection:NewKeybind("Alternar Voo do Veículo", "Tecla V liga ou desliga o voo.", Enum.KeyCode.V, function()
-    flyEnabled = not flyEnabled
-    if flyEnabled then
+local function setVehicleFlyEnabled(enabled)
+    flyEnabled = enabled
+    if enabled then
         startVehicleFly()
         notify("Voo do Veículo", "Ligado.")
     else
         stopFly()
         notify("Voo do Veículo", "Desligado.")
     end
-end)
+end
+
+-- Usa o mesmo botao circular do ESP. A letra V continua sendo o atalho.
+local flyToggleControl = PlayerSection:NewToggle("Voo do Veículo (V)", "Use este botão ou a tecla V para ligar e desligar.", setVehicleFlyEnabled)
 
 PlayerSection:NewToggle("ESP", "Destaca os outros jogadores na sua tela.", setESP)
 
@@ -1067,7 +1076,7 @@ end)
 local TeleportTab = Window:NewTab("Teleporte")
 local TeleportSection = TeleportTab:NewSection("Teleportes")
 
-TeleportSection:NewButton("Inicio", "Teleporta para o inicio.", function()
+TeleportSection:NewButton("Início", "Teleporta para o início.", function()
     teleportCharacter(CFrame.new(1, 3.11, 38))
 end)
 
@@ -1084,7 +1093,7 @@ TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", funct
     local giver = misc and misc:FindFirstChild("Giver")
     local part = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart"))
     if not part then
-        notify("Teleport", "Misc.Giver não encontrado.")
+        notify("Teleporte", "Misc.Giver não encontrado.")
         return
     end
     teleportCharacter(part.CFrame * CFrame.new(0, 3, 0))
@@ -1117,6 +1126,7 @@ StabilizerSection:NewTextBox("Força Normal", "Força normal; aperte Enter para 
     local number = tonumber(value)
     if number and number > 0 then
         STABILIZER_CONFIG.NORMAL_FORCE = number
+        restoreKavoTextBox("Força Normal", number)
         notify("Estabilizador", "Força normal: " .. number)
     else
         notify("Estabilizador", "Digite um número maior que zero.")
@@ -1127,6 +1137,7 @@ StabilizerSection:NewTextBox("Força em Descidas", "Força em descidas; aperte E
     local number = tonumber(value)
     if number and number > 0 then
         STABILIZER_CONFIG.DOWNHILL_FORCE = number
+        restoreKavoTextBox("Força em Descidas", number)
         notify("Estabilizador", "Força de descida: " .. number)
     else
         notify("Estabilizador", "Digite um número maior que zero.")
@@ -1200,6 +1211,96 @@ menuGui.DescendantAdded:Connect(function(object)
         object.CornerRadius = UDim.new(0, 12)
     end
 end)
+
+-- A biblioteca usa "Type here!" em todos os campos. Localizamos cada caixa
+-- pelo titulo que esta ao lado dela para deixar a tela toda em portugues.
+getKavoTextBoxByLabel = function(labelText)
+    for _, element in ipairs(menuGui:GetDescendants()) do
+        if element:IsA("TextButton") and element.Name == "textboxElement" then
+            local title = element:FindFirstChild("togName")
+            local input = element:FindFirstChildOfClass("TextBox")
+            if title and title.Text == labelText and input then
+                return input
+            end
+        end
+    end
+    return nil
+end
+
+restoreKavoTextBox = function(labelText, value)
+    task.delay(0.22, function()
+        local input = getKavoTextBoxByLabel(labelText)
+        if input and input.Parent then
+            input.Text = tostring(value)
+        end
+    end)
+end
+
+local function configureKavoTextBox(labelText, placeholder, value)
+    local input = getKavoTextBoxByLabel(labelText)
+    if not input then return end
+    input.PlaceholderText = placeholder
+    if value ~= nil then
+        input.Text = tostring(value)
+    end
+end
+
+for _, object in ipairs(menuGui:GetDescendants()) do
+    if object:IsA("TextBox") and object.PlaceholderText == "Type here!" then
+        object.PlaceholderText = "Digite aqui..."
+    end
+end
+
+configureKavoTextBox("Ir até Jogador", "Nome ou começo do nome", nil)
+configureKavoTextBox("Velocidade do Voo", "Digite a velocidade", nil)
+configureKavoTextBox("Nome do Alvo", "Nome ou começo do nome", nil)
+configureKavoTextBox("Força Normal", "2500", 2500)
+configureKavoTextBox("Força em Descidas", "800", 800)
+
+-- A biblioteca desenha uma imagem com "E" para qualquer atalho. Para fechar
+-- o menu, trocamos somente essa imagem por um X e mantemos o atalho real X.
+local customKeybindIcons = {}
+local function replaceKeybindLeftIcon(labelText, iconText)
+    for _, element in ipairs(menuGui:GetDescendants()) do
+        if element:IsA("TextButton") and element.Name == "keybindElement" then
+            local title
+            local keyText
+            for _, child in ipairs(element:GetChildren()) do
+                if child:IsA("TextLabel") and child.Name == "togName" then
+                    if child.Position.X.Scale < 0.2 then
+                        title = child
+                    else
+                        keyText = child
+                    end
+                end
+            end
+
+            if title and title.Text == labelText then
+                local oldIcon = element:FindFirstChild("touch")
+                if oldIcon then oldIcon.Visible = false end
+                if keyText then keyText.Visible = false end
+
+                local icon = Instance.new("TextLabel")
+                icon.Name = "NothriloKeyIcon"
+                icon.Size = UDim2.fromOffset(21, 21)
+                icon.Position = UDim2.new(0.02, 0, 0.18, 0)
+                icon.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
+                icon.BorderSizePixel = 0
+                icon.Font = Enum.Font.GothamBold
+                icon.Text = iconText
+                icon.TextColor3 = Theme.SchemeColor
+                icon.TextSize = 12
+                icon.Parent = element
+
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 4)
+                corner.Parent = icon
+                table.insert(customKeybindIcons, icon)
+                return
+            end
+        end
+    end
+end
 
 local toastGui = Instance.new("ScreenGui")
 toastGui.Name = "NothriloNotifications"
@@ -1375,6 +1476,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         return
     end
 
+    if input.KeyCode == Enum.KeyCode.V then
+        flyToggleControl:UpdateToggle(nil, not flyEnabled)
+        return
+    end
+
     if input.KeyCode == Enum.KeyCode.K then
         setMenuVisible(not menuGui.Enabled)
     end
@@ -1406,6 +1512,7 @@ runtimeCleanup.Event:Connect(destroyNothrilo)
 local GuiTab = Window:NewTab("Interface")
 local GuiSection = GuiTab:NewSection("Interface")
 GuiSection:NewKeybind("Fechar Menu", "Tecla X fecha tudo do Nothrilo.", Enum.KeyCode.X, destroyNothrilo)
+replaceKeybindLeftIcon("Fechar Menu", "X")
 
 task.spawn(function()
     while running and not destroyed and menuGui.Parent and launcherGui.Parent do
@@ -1413,6 +1520,14 @@ task.spawn(function()
         Library:ChangeColor("SchemeColor", rgb)
         launcherStroke.Color = rgb
         launcherIcon.TextColor3 = rgb
+        for index = #customKeybindIcons, 1, -1 do
+            local icon = customKeybindIcons[index]
+            if icon and icon.Parent then
+                icon.TextColor3 = rgb
+            else
+                table.remove(customKeybindIcons, index)
+            end
+        end
         for index = #toastStrokes, 1, -1 do
             local stroke = toastStrokes[index]
             if stroke and stroke.Parent then

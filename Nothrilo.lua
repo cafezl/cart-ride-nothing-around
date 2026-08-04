@@ -231,6 +231,8 @@ local FLYING = false
 local vehicleFlySpeed = 1
 local flyKeyDown
 local flyKeyUp
+local flyHumanoid
+local flyAutoRotate
 local mouse = LocalPlayer:GetMouse()
 
 local function stopFly()
@@ -245,10 +247,17 @@ local function stopFly()
         flyKeyUp = nil
     end
 
-    local humanoid = getHumanoid()
+    local humanoid = flyHumanoid or getHumanoid()
     if humanoid then
         humanoid.PlatformStand = false
+        humanoid.AutoRotate = flyAutoRotate ~= nil and flyAutoRotate or true
+        pcall(function()
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, true)
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+        end)
     end
+    flyHumanoid = nil
+    flyAutoRotate = nil
 
     pcall(function()
         workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
@@ -265,6 +274,16 @@ local function startVehicleFly()
         notify("Vehicle Fly", "Personagem não encontrado.")
         return
     end
+
+    -- Evita a animacao de queda enquanto o BodyVelocity controla o personagem.
+    flyHumanoid = humanoid
+    flyAutoRotate = humanoid.AutoRotate
+    humanoid.AutoRotate = false
+    humanoid.PlatformStand = true
+    pcall(function()
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    end)
 
     local control = { F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0 }
     local lastControl = { F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0 }
@@ -967,6 +986,66 @@ toastLayout.Padding = UDim.new(0, 8)
 toastLayout.SortOrder = Enum.SortOrder.LayoutOrder
 toastLayout.Parent = toastContainer
 
+-- Arrastar funciona com mouse e com toque. O Kavo continua responsavel pelo
+-- restante da interface; isto so resolve a movimentacao no celular.
+local function enableDrag(target, handle, onDragEnd)
+    target.Active = true
+    handle.Active = true
+
+    local dragging = false
+    local dragInput
+    local dragStart
+    local startPosition
+    local wasDragged = false
+
+    local function updatePosition(input)
+        local delta = input.Position - dragStart
+        if delta.Magnitude > 6 then
+            wasDragged = true
+        end
+        target.Position = UDim2.new(
+            startPosition.X.Scale,
+            startPosition.X.Offset + delta.X,
+            startPosition.Y.Scale,
+            startPosition.Y.Offset + delta.Y
+        )
+    end
+
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1
+            and input.UserInputType ~= Enum.UserInputType.Touch then
+            return
+        end
+
+        dragging = true
+        wasDragged = false
+        dragStart = input.Position
+        startPosition = target.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                if onDragEnd then
+                    onDragEnd(wasDragged)
+                end
+            end
+        end)
+    end)
+
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            updatePosition(input)
+        end
+    end)
+end
+
 local launcherGui = Instance.new("ScreenGui")
 launcherGui.Name = "NothriloLauncher"
 launcherGui.ResetOnSpawn = false
@@ -976,15 +1055,15 @@ launcherGui.Parent = menuGui.Parent
 
 local launcher = Instance.new("TextButton")
 launcher.Name = "OpenNothriloMenu"
-launcher.Size = UDim2.fromOffset(150, 42)
-launcher.Position = UDim2.new(0, 16, 0.5, -21)
+launcher.Size = UDim2.fromOffset(178, 50)
+launcher.Position = UDim2.new(0, 16, 0.5, -25)
 launcher.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
 launcher.BorderSizePixel = 0
 launcher.AutoButtonColor = false
 launcher.Font = Enum.Font.GothamBold
-launcher.Text = "  Abrir " .. MENU_NAME
+launcher.Text = "    " .. string.upper(MENU_NAME)
 launcher.TextColor3 = Color3.fromRGB(255, 255, 255)
-launcher.TextSize = 14
+launcher.TextSize = 16
 launcher.TextXAlignment = Enum.TextXAlignment.Left
 launcher.Visible = false
 launcher.Parent = launcherGui
@@ -999,11 +1078,11 @@ launcherStroke.Parent = launcher
 
 local launcherIcon = Instance.new("TextLabel")
 launcherIcon.BackgroundTransparency = 1
-launcherIcon.Size = UDim2.fromOffset(30, 42)
-launcherIcon.Position = UDim2.fromOffset(4, 0)
+launcherIcon.Size = UDim2.fromOffset(38, 50)
+launcherIcon.Position = UDim2.fromOffset(6, 0)
 launcherIcon.Font = Enum.Font.GothamBold
-launcherIcon.Text = "●"
-launcherIcon.TextSize = 18
+launcherIcon.Text = "N"
+launcherIcon.TextSize = 20
 launcherIcon.Parent = launcher
 
 local function setMenuVisible(visible)
@@ -1034,9 +1113,21 @@ if header then
     minimize.MouseButton1Click:Connect(function()
         setMenuVisible(false)
     end)
+
+    enableDrag(main, header)
 end
 
-launcher.MouseButton1Click:Connect(function()
+local launcherLastDrag = 0
+enableDrag(launcher, launcher, function(wasDragged)
+    if wasDragged then
+        launcherLastDrag = os.clock()
+    end
+end)
+
+launcher.Activated:Connect(function()
+    if os.clock() - launcherLastDrag < 0.25 then
+        return
+    end
     setMenuVisible(true)
 end)
 

@@ -1079,7 +1079,7 @@ PlayerSection:NewButton("Redefinir Velocidade", "Volta a velocidade para 16.", f
 end)
 
 local infiniteJump = false
-PlayerSection:NewToggle("Pulo Infinito", "Permite pular enquanto estiver no ar.", function(state)
+local infiniteJumpToggleControl = PlayerSection:NewToggle("Pulo Infinito (P)", "Permite pular enquanto estiver no ar. Tecla P.", function(state)
     infiniteJump = state
 end)
 
@@ -1092,7 +1092,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
-PlayerSection:NewButton("Teleporte por Clique", "Cria a ferramenta de teleporte na mochila.", function()
+local function giveClickTeleportTool()
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
     if not backpack then return end
     if backpack:FindFirstChild("ClickTP") then
@@ -1107,7 +1107,10 @@ PlayerSection:NewButton("Teleporte por Clique", "Cria a ferramenta de teleporte 
         teleportCharacter(CFrame.new(mouse.Hit.Position + Vector3.new(0, 2.5, 0)))
     end)
     tool.Parent = backpack
-end)
+    notify("Teleporte por Clique", "Ferramenta criada. Clique no mapa para se teleportar.")
+end
+
+PlayerSection:NewButton("Teleporte por Clique (T)", "Cria a ferramenta de teleporte na mochila. Tecla T.", giveClickTeleportTool)
 
 PlayerSection:NewTextBox("Ir até Jogador", "Digite o nome do jogador e aperte Enter.", function(name)
     local player = findPlayerByPartialName(name)
@@ -1193,21 +1196,34 @@ TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", funct
     teleportCharacter(part.CFrame * CFrame.new(0, 3, 0))
 end)
 
+local CHECKPOINTS = {
+    [1] = CFrame.new(-430.898926, 164.75, 101.645676) * CFrame.Angles(0, math.rad(90), 0),
+    [2] = CFrame.new(511.88, 3.69, 306.59) * CFrame.Angles(0, math.rad(270), 0),
+    [3] = CFrame.new(171.09, 2.78, -410.31) * CFrame.Angles(0, math.rad(90), 0),
+}
+
+local function teleportToCheckpoint(number)
+    local destination = CHECKPOINTS[number]
+    if destination then
+        teleportCart(destination)
+    end
+end
+
 local CartTab = Window:NewTab("Carrinho")
 local CartSection = CartTab:NewSection("Controle do Carrinho")
 
 CartSection:NewToggle("Parada de Emergência", "Para e trava o carrinho; desligue para restaurar.", setPanicStop)
 
-CartSection:NewButton("Ir ao Checkpoint 1", "Move o carrinho para o checkpoint 1.", function()
-    teleportCart(CFrame.new(-430.898926, 164.75, 101.645676) * CFrame.Angles(0, math.rad(90), 0))
+CartSection:NewButton("Ir ao Checkpoint 1 (NumPad 1)", "Move o carrinho para o checkpoint 1. Atalho: NumPad 1.", function()
+    teleportToCheckpoint(1)
 end)
 
-CartSection:NewButton("Ir ao Checkpoint 2", "Move o carrinho para o checkpoint 2.", function()
-    teleportCart(CFrame.new(511.88, 3.69, 306.59) * CFrame.Angles(0, math.rad(270), 0))
+CartSection:NewButton("Ir ao Checkpoint 2 (NumPad 2)", "Move o carrinho para o checkpoint 2. Atalho: NumPad 2.", function()
+    teleportToCheckpoint(2)
 end)
 
-CartSection:NewButton("Ir ao Checkpoint 3", "Move o carrinho para o checkpoint 3.", function()
-    teleportCart(CFrame.new(171.09, 2.78, -410.31) * CFrame.Angles(0, math.rad(90), 0))
+CartSection:NewButton("Ir ao Checkpoint 3 (NumPad 3)", "Move o carrinho para o checkpoint 3. Atalho: NumPad 3.", function()
+    teleportToCheckpoint(3)
 end)
 
 local StabilizerSection = CartTab:NewSection("Estabilizador")
@@ -1641,6 +1657,33 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         return
     end
 
+    if input.KeyCode == Enum.KeyCode.P then
+        infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump)
+        return
+    end
+
+    if input.KeyCode == Enum.KeyCode.T then
+        giveClickTeleportTool()
+        return
+    end
+
+    -- KeypadOne/Two/Three correspondem apenas ao teclado numérico,
+    -- sem usar os números da fileira superior do teclado.
+    if input.KeyCode == Enum.KeyCode.KeypadOne then
+        teleportToCheckpoint(1)
+        return
+    end
+
+    if input.KeyCode == Enum.KeyCode.KeypadTwo then
+        teleportToCheckpoint(2)
+        return
+    end
+
+    if input.KeyCode == Enum.KeyCode.KeypadThree then
+        teleportToCheckpoint(3)
+        return
+    end
+
     if input.KeyCode == Enum.KeyCode.K then
         setMenuVisible(not menuGui.Enabled)
     end
@@ -1677,6 +1720,13 @@ CommandsSection:NewButton("V  •  Ligar ou desligar o voo", "Tecla V", function
 end)
 CommandsSection:NewButton("L  •  Ligar ou desligar o ESP", "Tecla L", function()
     espToggleControl:UpdateToggle("ESP", not espEnabled)
+end)
+CommandsSection:NewButton("P  •  Ligar ou desligar o pulo infinito", "Tecla P", function()
+    infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump)
+end)
+CommandsSection:NewButton("T  •  Criar o teleporte por clique", "Tecla T", giveClickTeleportTool)
+CommandsSection:NewButton("NumPad 1/2/3  •  Ir aos checkpoints", "Somente o teclado numérico", function()
+    notify("Checkpoints", "Use NumPad 1, 2 ou 3 para ir ao checkpoint correspondente.")
 end)
 CommandsSection:NewButton("K  •  Minimizar ou abrir o menu", "Tecla K", function()
     setMenuVisible(false)

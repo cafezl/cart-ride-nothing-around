@@ -149,7 +149,14 @@ if not libraryOk or type(LibraryOrError) ~= "table" then
     return
 end
 
-task.wait(0.9)
+-- Mantém a tela inicial visível por 10 segundos para dar tempo de fechar
+-- qualquer janela do executor antes de o Nothrilo abrir.
+for secondsLeft = 10, 1, -1 do
+    if startupStatus and startupStatus.Parent then
+        startupStatus.Text = "Carregando menu... " .. secondsLeft .. "s"
+    end
+    task.wait(1)
+end
 if startupGui and startupGui.Parent then startupGui:Destroy() end
 
 local Library = LibraryOrError

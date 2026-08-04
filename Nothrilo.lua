@@ -1086,7 +1086,7 @@ PlayerSection:NewButton("Redefinir Velocidade", "Volta a velocidade para 16.", f
 end)
 
 local infiniteJump = false
-local infiniteJumpToggleControl = PlayerSection:NewToggle("Pulo Infinito (P)", "Permite pular enquanto estiver no ar. Tecla P.", function(state)
+local infiniteJumpToggleControl = PlayerSection:NewToggle("Pulo Infinito", "Permite pular enquanto estiver no ar. Tecla P.", function(state)
     infiniteJump = state
 end)
 
@@ -1117,7 +1117,7 @@ local function giveClickTeleportTool()
     notify("Teleporte por Clique", "Ferramenta criada. Clique no mapa para se teleportar.")
 end
 
-PlayerSection:NewButton("Teleporte por Clique (T)", "Cria a ferramenta de teleporte na mochila. Tecla T.", giveClickTeleportTool)
+PlayerSection:NewButton("Teleporte por Clique", "Cria a ferramenta de teleporte na mochila. Tecla T.", giveClickTeleportTool)
 
 PlayerSection:NewTextBox("Ir até Jogador", "Digite o nome do jogador e aperte Enter.", function(name)
     local player = findPlayerByPartialName(name)
@@ -1221,15 +1221,15 @@ local CartSection = CartTab:NewSection("Controle do Carrinho")
 
 CartSection:NewToggle("Parada de Emergência", "Para e trava o carrinho; desligue para restaurar.", setPanicStop)
 
-CartSection:NewButton("Ir ao Checkpoint 1 (NumPad 1)", "Move o carrinho para o checkpoint 1. Atalho: NumPad 1.", function()
+CartSection:NewButton("Ir ao Checkpoint 1", "Move o carrinho para o checkpoint 1. Atalho: NumPad 1.", function()
     teleportToCheckpoint(1)
 end)
 
-CartSection:NewButton("Ir ao Checkpoint 2 (NumPad 2)", "Move o carrinho para o checkpoint 2. Atalho: NumPad 2.", function()
+CartSection:NewButton("Ir ao Checkpoint 2", "Move o carrinho para o checkpoint 2. Atalho: NumPad 2.", function()
     teleportToCheckpoint(2)
 end)
 
-CartSection:NewButton("Ir ao Checkpoint 3 (NumPad 3)", "Move o carrinho para o checkpoint 3. Atalho: NumPad 3.", function()
+CartSection:NewButton("Ir ao Checkpoint 3", "Move o carrinho para o checkpoint 3. Atalho: NumPad 3.", function()
     teleportToCheckpoint(3)
 end)
 
@@ -1433,10 +1433,10 @@ end
 -- nesse quadrinho fazem exatamente a mesma coisa.
 local function addShortcutBadge(labelText, keyText)
     for _, element in ipairs(menuGui:GetDescendants()) do
-        if element:IsA("TextButton") and (element.Name == "toggleElement" or element.Name == "keybindElement") then
+        if element:IsA("TextButton") then
             local title
             for _, child in ipairs(element:GetChildren()) do
-                if child:IsA("TextLabel") and child.Name == "togName" and child.Position.X.Scale < 0.2 then
+                if child:IsA("TextLabel") and child.Position.X.Scale < 0.2 then
                     title = child
                     break
                 end
@@ -1467,6 +1467,16 @@ local function addShortcutBadge(labelText, keyText)
                         flyToggleControl:UpdateToggle(nil, not flyEnabled)
                     elseif keyText == "L" then
                         espToggleControl:UpdateToggle(nil, not espEnabled)
+                    elseif keyText == "P" then
+                        infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump)
+                    elseif keyText == "T" then
+                        giveClickTeleportTool()
+                    elseif keyText == "1" then
+                        teleportToCheckpoint(1)
+                    elseif keyText == "2" then
+                        teleportToCheckpoint(2)
+                    elseif keyText == "3" then
+                        teleportToCheckpoint(3)
                     elseif keyText == "X" and destroyNothrilo then
                         destroyNothrilo()
                     end
@@ -1479,6 +1489,11 @@ end
 
 addShortcutBadge("Voo do Veículo", "V")
 addShortcutBadge("ESP", "L")
+addShortcutBadge("Pulo Infinito", "P")
+addShortcutBadge("Teleporte por Clique", "T")
+addShortcutBadge("Ir ao Checkpoint 1", "1")
+addShortcutBadge("Ir ao Checkpoint 2", "2")
+addShortcutBadge("Ir ao Checkpoint 3", "3")
 
 local toastGui = Instance.new("ScreenGui")
 toastGui.Name = "NothriloNotifications"

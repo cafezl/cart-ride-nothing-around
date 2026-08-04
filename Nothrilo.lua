@@ -1692,6 +1692,9 @@ addShortcutBadge("Fechar Menu", "X")
 task.spawn(function()
     while running and not destroyed and menuGui.Parent and launcherGui.Parent do
         local rgb = Color3.fromHSV((os.clock() * 0.12) % 1, 0.85, 1)
+        -- O tema inteiro continua RGB. Os atalhos usam NewButton, que fica
+        -- escuro mesmo quando a cor principal muda, para continuar legível.
+        Library:ChangeColor("SchemeColor", rgb)
         if commandsTabButton and commandsTabButton.Parent then
             commandsTabButton.BackgroundColor3 = rgb
         end

@@ -1339,6 +1339,72 @@ menuGui.DescendantAdded:Connect(function(object)
     end
 end)
 
+-- Alça no canto inferior direito: arraste com o mouse para aumentar ou
+-- diminuir somente a janela do menu, sem alterar o tamanho do jogo.
+local windowResizeInputChanged
+local function enableWindowResize()
+    local main = menuGui:FindFirstChild("Main")
+    if not main or not main:IsA("GuiObject") then return end
+
+    local grip = Instance.new("TextButton")
+    grip.Name = "NothriloResizeGrip"
+    grip.AnchorPoint = Vector2.new(1, 1)
+    grip.Position = UDim2.new(1, -5, 1, -5)
+    grip.Size = UDim2.fromOffset(18, 18)
+    grip.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
+    grip.BorderSizePixel = 0
+    grip.AutoButtonColor = false
+    grip.Font = Enum.Font.GothamBold
+    grip.Text = "↘"
+    grip.TextColor3 = Theme.SchemeColor
+    grip.TextSize = 13
+    grip.ZIndex = 20
+    grip.Parent = main
+
+    local gripCorner = Instance.new("UICorner")
+    gripCorner.CornerRadius = UDim.new(0, 5)
+    gripCorner.Parent = grip
+
+    local resizing = false
+    local resizeStart
+    local startSize
+    local minimumSize = Vector2.new(420, 260)
+
+    local function updateSize(input)
+        local camera = workspace.CurrentCamera
+        if not camera or not resizeStart or not startSize then return end
+
+        local delta = input.Position - resizeStart
+        local viewport = camera.ViewportSize
+        local maximumSize = Vector2.new(math.max(minimumSize.X, viewport.X - 24), math.max(minimumSize.Y, viewport.Y - 24))
+        local width = math.clamp(startSize.X + delta.X, minimumSize.X, maximumSize.X)
+        local height = math.clamp(startSize.Y + delta.Y, minimumSize.Y, maximumSize.Y)
+        main.Size = UDim2.fromOffset(width, height)
+    end
+
+    grip.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizing = true
+            resizeStart = input.Position
+            startSize = main.AbsoluteSize
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    resizing = false
+                end
+            end)
+        end
+    end)
+
+    windowResizeInputChanged = UserInputService.InputChanged:Connect(function(input)
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateSize(input)
+        end
+    end)
+end
+
+enableWindowResize()
+
 -- A biblioteca usa "Type here!" em todos os campos. Localizamos cada caixa
 -- pelo titulo que esta ao lado dela para deixar a tela toda em portugues.
 getKavoTextBoxByLabel = function(labelText)
@@ -1444,16 +1510,17 @@ local function addShortcutBadge(labelText, keyText)
 
             if title and title.Text == labelText then
                 local badge = Instance.new("TextButton")
+                local badgeWidth = keyText == "1/2/3" and 42 or 21
                 badge.Name = "NothriloShortcut_" .. keyText
-                badge.Size = UDim2.fromOffset(21, 21)
-                badge.Position = UDim2.new(0.84, 0, 0.18, 0)
+                badge.Size = UDim2.fromOffset(badgeWidth, 21)
+                badge.Position = UDim2.new(0.84, -(badgeWidth - 21), 0.18, 0)
                 badge.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
                 badge.BorderSizePixel = 0
                 badge.AutoButtonColor = false
                 badge.Font = Enum.Font.GothamBold
                 badge.Text = keyText
                 badge.TextColor3 = Theme.SchemeColor
-                badge.TextSize = 12
+                badge.TextSize = keyText == "1/2/3" and 9 or 12
                 badge.ZIndex = 3
                 badge.Parent = element
 
@@ -1477,6 +1544,10 @@ local function addShortcutBadge(labelText, keyText)
                         teleportToCheckpoint(2)
                     elseif keyText == "3" then
                         teleportToCheckpoint(3)
+                    elseif keyText == "1/2/3" then
+                        notify("Checkpoints", "Use NumPad 1, 2 ou 3 para ir ao checkpoint correspondente.")
+                    elseif keyText == "K" then
+                        setMenuVisible(false)
                     elseif keyText == "X" and destroyNothrilo then
                         destroyNothrilo()
                     end
@@ -1726,6 +1797,11 @@ destroyNothrilo = function()
     cleanupStabilizer()
     restorePanicStop()
 
+    if windowResizeInputChanged then
+        windowResizeInputChanged:Disconnect()
+        windowResizeInputChanged = nil
+    end
+
     if toastGui and toastGui.Parent then toastGui:Destroy() end
     if launcherGui and launcherGui.Parent then launcherGui:Destroy() end
     if menuGui and menuGui.Parent then menuGui:Destroy() end
@@ -1754,6 +1830,16 @@ CommandsSection:NewButton("K  •  Minimizar ou abrir o menu", "Tecla K", functi
     setMenuVisible(false)
 end)
 CommandsSection:NewButton("X  •  Fechar o Nothrilo", "Tecla X", destroyNothrilo)
+
+-- Repete os atalhos como quadrinhos no canto direito desta aba, mantendo
+-- exatamente o texto que já aparece em cada linha.
+addShortcutBadge("V  •  Ligar ou desligar o voo", "V")
+addShortcutBadge("L  •  Ligar ou desligar o ESP", "L")
+addShortcutBadge("P  •  Ligar ou desligar o pulo infinito", "P")
+addShortcutBadge("T  •  Criar o teleporte por clique", "T")
+addShortcutBadge("NumPad 1/2/3  •  Ir aos checkpoints", "1/2/3")
+addShortcutBadge("K  •  Minimizar ou abrir o menu", "K")
+addShortcutBadge("X  •  Fechar o Nothrilo", "X")
 
 local GuiTab = Window:NewTab("Interface")
 local GuiSection = GuiTab:NewSection("Interface")

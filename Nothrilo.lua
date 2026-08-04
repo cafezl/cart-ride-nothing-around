@@ -241,11 +241,18 @@ local function refreshESPSize(player)
     end
 
     local distance = (localRoot.Position - targetRoot.Position).Magnitude
-    -- Perto: nome discreto. A partir de 90 studs ele aumenta aos poucos; no
-    -- maximo, so fica grande quando o jogador esta realmente distante.
-    local progress = math.clamp((distance - 90) / 510, 0, 1)
-    local width = math.floor(78 + (170 - 78) * progress)
-    local height = math.floor(16 + (36 - 16) * progress)
+    -- Perto, o proprio nome normal do Roblox ja e suficiente. O segundo nome
+    -- do ESP so aparece longe, quando o nome normal tende a desaparecer.
+    local showDistance = 150
+    objects.Billboard.Enabled = distance >= showDistance
+    if not objects.Billboard.Enabled then
+        return
+    end
+
+    -- Apos aparecer, o nome cresce devagar e so fica grande muito longe.
+    local progress = math.clamp((distance - showDistance) / 450, 0, 1)
+    local width = math.floor(82 + (170 - 82) * progress)
+    local height = math.floor(18 + (36 - 18) * progress)
     objects.Billboard.Size = UDim2.fromOffset(width, height)
 end
 
@@ -260,11 +267,11 @@ local function addESP(player, character)
 
     removeESP(player)
 
-    -- O nome fica visivel a qualquer distancia enquanto o personagem tiver sido
-    -- carregado pelo Roblox neste cliente.
+    -- O contorno fica ativo; o segundo nome so aparece quando estiver distante.
     local billboard = Instance.new("BillboardGui")
     billboard.Name = ESP_TAG .. "Name"
     billboard.Size = UDim2.fromOffset(78, 16)
+    billboard.Enabled = false
     billboard.Adornee = root
     billboard.AlwaysOnTop = true
     billboard.LightInfluence = 0
@@ -1396,18 +1403,9 @@ end
 
 runtimeCleanup.Event:Connect(destroyNothrilo)
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if destroyed or gameProcessed or UserInputService:GetFocusedTextBox() then
-        return
-    end
-    if input.KeyCode == Enum.KeyCode.X then
-        destroyNothrilo()
-    end
-end)
-
 local GuiTab = Window:NewTab("Interface")
 local GuiSection = GuiTab:NewSection("Interface")
-GuiSection:NewButton("Fechar Menu", "Fecha tudo do Nothrilo. A tecla X também funciona.", destroyNothrilo)
+GuiSection:NewKeybind("Fechar Menu", "Tecla X fecha tudo do Nothrilo.", Enum.KeyCode.X, destroyNothrilo)
 
 task.spawn(function()
     while running and not destroyed and menuGui.Parent and launcherGui.Parent do

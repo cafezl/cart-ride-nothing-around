@@ -11,6 +11,7 @@ local LocalPlayer = Players.LocalPlayer
 local MENU_NAME = "Nothrilo 🇧🇷"
 local UI_TITLE = MENU_NAME .. " | Feito por Cafezl"
 local CoreGui = game:GetService("CoreGui")
+local destroyNothrilo
 
 -- Ao executar o loader de novo, encerra a instancia anterior antes de criar
 -- outra. Isso evita menus e atalhos duplicados na mesma partida.
@@ -43,7 +44,7 @@ end
 -- Limpa apenas janelas antigas deste proprio menu que tenham sobrado de uma
 -- versao anterior sem o controlador acima.
 for _, gui in ipairs(CoreGui:GetChildren()) do
-    if gui:IsA("ScreenGui") and (gui.Name == "NothriloLauncher" or gui.Name == "NothriloNotifications") then
+    if gui:IsA("ScreenGui") and (gui.Name == "NothriloLauncher" or gui.Name == "NothriloNotifications" or gui.Name == "NothriloLoading") then
         gui:Destroy()
     elseif gui:IsA("ScreenGui") then
         local main = gui:FindFirstChild("Main")
@@ -64,7 +65,94 @@ local Theme = {
     ElementColor = Color3.fromRGB(22, 22, 27),
 }
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+-- Tela curta de abertura propria, antes do menu. Ela tambem deixa claro quando
+-- o executor nao conseguiu baixar a biblioteca da interface.
+local function showStartupCard()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NothriloLoading"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 10050
+    gui.Parent = CoreGui
+
+    local card = Instance.new("Frame")
+    card.Name = "Card"
+    card.AnchorPoint = Vector2.new(0.5, 0.5)
+    card.Position = UDim2.fromScale(0.5, 0.5)
+    card.Size = UDim2.fromOffset(360, 108)
+    card.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+    card.BorderSizePixel = 0
+    card.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 16)
+    corner.Parent = card
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1.5
+    stroke.Color = Theme.SchemeColor
+    stroke.Parent = card
+
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.fromOffset(24, 20)
+    title.Size = UDim2.new(1, -48, 0, 24)
+    title.Font = Enum.Font.GothamBold
+    title.Text = MENU_NAME
+    title.TextColor3 = Color3.fromRGB(248, 248, 250)
+    title.TextSize = 18
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = card
+
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.BackgroundTransparency = 1
+    subtitle.Position = UDim2.fromOffset(24, 48)
+    subtitle.Size = UDim2.new(1, -48, 0, 18)
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Text = "Feito por Cafezl"
+    subtitle.TextColor3 = Color3.fromRGB(205, 205, 214)
+    subtitle.TextSize = 13
+    subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    subtitle.Parent = card
+
+    local status = Instance.new("TextLabel")
+    status.Name = "Status"
+    status.BackgroundTransparency = 1
+    status.Position = UDim2.fromOffset(24, 72)
+    status.Size = UDim2.new(1, -48, 0, 16)
+    status.Font = Enum.Font.Gotham
+    status.Text = "Carregando menu..."
+    status.TextColor3 = Theme.SchemeColor
+    status.TextSize = 12
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent = card
+
+    return gui, status
+end
+
+local startupGui, startupStatus = showStartupCard()
+local libraryOk, LibraryOrError = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+end)
+
+if not libraryOk or type(LibraryOrError) ~= "table" then
+    if startupStatus then
+        startupStatus.Text = "Não foi possível carregar. Tente rodar de novo."
+        startupStatus.TextColor3 = Color3.fromRGB(255, 100, 120)
+    end
+    warn(MENU_NAME .. ": falha ao carregar a biblioteca: " .. tostring(LibraryOrError))
+    task.wait(2.5)
+    if startupGui and startupGui.Parent then startupGui:Destroy() end
+    if runtime and runtime.Parent then runtime:Destroy() end
+    return
+end
+
+task.wait(0.9)
+if startupGui and startupGui.Parent then startupGui:Destroy() end
+
+local Library = LibraryOrError
 local Window = Library.CreateLib(UI_TITLE, Theme)
 
 local toastContainer
@@ -1059,9 +1147,9 @@ local function setVehicleFlyEnabled(enabled)
 end
 
 -- Usa o mesmo botao circular do ESP. A letra V continua sendo o atalho.
-local flyToggleControl = PlayerSection:NewToggle("Voo do Veículo (V)", "Use este botão ou a tecla V para ligar e desligar.", setVehicleFlyEnabled)
+local flyToggleControl = PlayerSection:NewToggle("Voo do Veículo", "Use este botão ou a tecla V para ligar e desligar.", setVehicleFlyEnabled)
 
-PlayerSection:NewToggle("ESP", "Destaca os outros jogadores na sua tela.", setESP)
+local espToggleControl = PlayerSection:NewToggle("ESP", "Destaca os outros jogadores na sua tela. Tecla L liga ou desliga.", setESP)
 
 PlayerSection:NewTextBox("Velocidade do Voo", "Digite a velocidade e aperte Enter.", function(value)
     local number = tonumber(value)
@@ -1071,6 +1159,12 @@ PlayerSection:NewTextBox("Velocidade do Voo", "Digite a velocidade e aperte Ente
     else
         notify("Voo do Veículo", "Digite um número maior que zero.")
     end
+end)
+
+PlayerSection:NewButton("Redefinir Velocidade do Voo", "Volta a velocidade do voo para 1.", function()
+    vehicleFlySpeed = 1
+    restoreKavoTextBox("Velocidade do Voo", 1)
+    notify("Voo do Veículo", "Velocidade redefinida para 1.")
 end)
 
 local TeleportTab = Window:NewTab("Teleporte")
@@ -1142,6 +1236,15 @@ StabilizerSection:NewTextBox("Força em Descidas", "Força em descidas; aperte E
     else
         notify("Estabilizador", "Digite um número maior que zero.")
     end
+end)
+
+StabilizerSection:NewButton("Redefinir Forças", "Volta as forças para 2500 e 800.", function()
+    STABILIZER_CONFIG.NORMAL_FORCE = 2500
+    STABILIZER_CONFIG.DOWNHILL_FORCE = 800
+    restoreKavoTextBox("Força Normal", 2500)
+    restoreKavoTextBox("Força em Descidas", 800)
+    refreshStabilizer()
+    notify("Estabilizador", "Forças redefinidas: 2500 e 800.")
 end)
 
 local KillerTab = Window:NewTab("Eliminador")
@@ -1301,6 +1404,57 @@ local function replaceKeybindLeftIcon(labelText, iconText)
         end
     end
 end
+
+-- Mostra a tecla ao lado dos tres pontinhos. O atalho do teclado e o toque
+-- nesse quadrinho fazem exatamente a mesma coisa.
+local function addShortcutBadge(labelText, keyText)
+    for _, element in ipairs(menuGui:GetDescendants()) do
+        if element:IsA("TextButton") and (element.Name == "toggleElement" or element.Name == "keybindElement") then
+            local title
+            for _, child in ipairs(element:GetChildren()) do
+                if child:IsA("TextLabel") and child.Name == "togName" and child.Position.X.Scale < 0.2 then
+                    title = child
+                    break
+                end
+            end
+
+            if title and title.Text == labelText then
+                local badge = Instance.new("TextButton")
+                badge.Name = "NothriloShortcut_" .. keyText
+                badge.Size = UDim2.fromOffset(21, 21)
+                badge.Position = UDim2.new(0.84, 0, 0.18, 0)
+                badge.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
+                badge.BorderSizePixel = 0
+                badge.AutoButtonColor = false
+                badge.Font = Enum.Font.GothamBold
+                badge.Text = keyText
+                badge.TextColor3 = Theme.SchemeColor
+                badge.TextSize = 12
+                badge.ZIndex = 3
+                badge.Parent = element
+
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 5)
+                corner.Parent = badge
+                table.insert(customKeybindIcons, badge)
+
+                badge.Activated:Connect(function()
+                    if keyText == "V" then
+                        flyToggleControl:UpdateToggle(nil, not flyEnabled)
+                    elseif keyText == "L" then
+                        espToggleControl:UpdateToggle(nil, not espEnabled)
+                    elseif keyText == "X" and destroyNothrilo then
+                        destroyNothrilo()
+                    end
+                end)
+                return
+            end
+        end
+    end
+end
+
+addShortcutBadge("Voo do Veículo", "V")
+addShortcutBadge("ESP", "L")
 
 local toastGui = Instance.new("ScreenGui")
 toastGui.Name = "NothriloNotifications"
@@ -1481,13 +1635,18 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         return
     end
 
+    if input.KeyCode == Enum.KeyCode.L then
+        espToggleControl:UpdateToggle(nil, not espEnabled)
+        return
+    end
+
     if input.KeyCode == Enum.KeyCode.K then
         setMenuVisible(not menuGui.Enabled)
     end
 end)
 
 local running = true
-local function destroyNothrilo()
+destroyNothrilo = function()
     if destroyed then return end
     destroyed = true
     running = false
@@ -1513,6 +1672,13 @@ local GuiTab = Window:NewTab("Interface")
 local GuiSection = GuiTab:NewSection("Interface")
 GuiSection:NewKeybind("Fechar Menu", "Tecla X fecha tudo do Nothrilo.", Enum.KeyCode.X, destroyNothrilo)
 replaceKeybindLeftIcon("Fechar Menu", "X")
+addShortcutBadge("Fechar Menu", "X")
+
+local CommandSection = GuiTab:NewSection("Comandos")
+CommandSection:NewLabel("V  •  Ligar ou desligar o voo")
+CommandSection:NewLabel("L  •  Ligar ou desligar o ESP")
+CommandSection:NewLabel("K  •  Minimizar ou abrir o menu")
+CommandSection:NewLabel("X  •  Fechar o Nothrilo")
 
 task.spawn(function()
     while running and not destroyed and menuGui.Parent and launcherGui.Parent do

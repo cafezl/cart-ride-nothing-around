@@ -151,6 +151,78 @@ local function teleportCharacter(cframe)
     return true
 end
 
+-- ESP local: marca os outros jogadores apenas na sua tela.
+local ESP_TAG = "NothriloESP"
+local espEnabled = false
+local espConnections = {}
+
+local function removeESP(player)
+    local character = player and player.Character
+    if not character then return end
+
+    local highlight = character:FindFirstChild(ESP_TAG)
+    if highlight then
+        highlight:Destroy()
+    end
+end
+
+local function addESP(player)
+    if not espEnabled or player == LocalPlayer then return end
+
+    local character = player.Character
+    if not character then return end
+
+    local highlight = character:FindFirstChild(ESP_TAG)
+    if not highlight then
+        highlight = Instance.new("Highlight")
+        highlight.Name = ESP_TAG
+        highlight.FillColor = Color3.fromRGB(117, 66, 255)
+        highlight.FillTransparency = 0.55
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.OutlineTransparency = 0
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = character
+    end
+
+    highlight.Adornee = character
+end
+
+local function watchESPPlayer(player)
+    if player == LocalPlayer then return end
+
+    addESP(player)
+    table.insert(espConnections, player.CharacterAdded:Connect(function()
+        task.wait(0.2)
+        addESP(player)
+    end))
+end
+
+local function setESP(enabled)
+    espEnabled = enabled
+
+    for _, connection in ipairs(espConnections) do
+        connection:Disconnect()
+    end
+    table.clear(espConnections)
+
+    if not enabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            removeESP(player)
+        end
+        notify("ESP", "Desligado.")
+        return
+    end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        watchESPPlayer(player)
+    end
+
+    table.insert(espConnections, Players.PlayerAdded:Connect(watchESPPlayer))
+
+    table.insert(espConnections, Players.PlayerRemoving:Connect(removeESP))
+    notify("ESP", "Ligado para os outros jogadores.")
+end
+
 -- ============================================================================
 -- Fly da segunda script
 -- ============================================================================
@@ -703,6 +775,8 @@ end)
 PlayerSection:NewKeybind("Toggle Vehicle Fly", "Tecla para ligar ou desligar o Vehicle Fly.", Enum.KeyCode.V, function()
     flyToggle:UpdateToggle(nil, not flyEnabled)
 end)
+
+PlayerSection:NewToggle("ESP", "Destaca os outros jogadores na sua tela.", setESP)
 
 PlayerSection:NewTextBox("VFly Speed", "Digite a velocidade e aperte Enter.", function(value)
     local number = tonumber(value)

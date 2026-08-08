@@ -1,10 +1,10 @@
 Exit code: 0
-Wall time: 1 seconds
-Total output lines: 2557
+Wall time: 1.2 seconds
+Total output lines: 2578
 Output:
 -- =============================================================================
--- Cafezitos V2 â˜• â€” Menu completo por Cafezl
--- VersÃ£o auditada: bugs corrigidos + novas funÃ§Ãµes
+-- Cafezitos V2 ☕ — Menu completo por Cafezl
+-- Versão auditada: bugs corrigidos + novas funções
 -- =============================================================================
 
 local Players        = game:GetService("Players")
@@ -14,15 +14,36 @@ local TweenService   = game:GetService("TweenService")
 local StarterGui     = game:GetService("StarterGui")
 
 local LocalPlayer  = Players.LocalPlayer
-local MENU_NAME    = "Cafezitos V2 â˜•"
+local MENU_NAME    = "Cafezitos V2 ☕"
 local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
--- PlayerGui funciona no Roblox Studio, no PC e no celular sem depender de executor.
-local CoreGui      = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Alguns ambientes bloqueiam GUI direto em CoreGui e outros usam gethui().
+-- Escolher o pai aqui evita o menu morrer antes mesmo de aparecer.
+local function getGuiParent()
+    if type(gethui) == "function" then
+        local ok, parent = pcall(gethui)
+        if ok and parent then return parent end
+    end
+
+    local ok, coreGui = pcall(function()
+        return game:GetService("CoreGui")
+    end)
+    if ok and coreGui then
+        local probe = Instance.new("ScreenGui")
+        local accepted = pcall(function() probe.Parent = coreGui end)
+        if probe.Parent then probe:Destroy() end
+        if accepted then return coreGui end
+    end
+
+    return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local CoreGui      = getGuiParent()
 local originalGravity = workspace.Gravity
 local destroyNothrilo
 local destroyed = false
 
--- Encerra instÃ¢ncia anterior (evita menus duplicados)
+-- Encerra instância anterior (evita menus duplicados)
 local previousRuntime = CoreGui:FindFirstChild("NothriloRuntime")
 if previousRuntime then
     local previousCleanup = previousRuntime:FindFirstChild("Cleanup")
@@ -40,7 +61,7 @@ local runtimeCleanup = Instance.new("BindableEvent")
 runtimeCleanup.Name   = "Cleanup"
 runtimeCleanup.Parent = runtime
 
--- Remove GUIs antigas do Rayfield ou versÃµes anteriores do Nothrilo
+-- Remove GUIs antigas do Rayfield ou versões anteriores do Nothrilo
 for _, gui in ipairs(CoreGui:GetChildren()) do
     if gui:IsA("ScreenGui") then
         if gui.Name:lower():find("rayfield", 1, true) then
@@ -62,7 +83,7 @@ for _, gui in ipairs(CoreGui:GetChildren()) do
     end
 end
 
--- Tema escuro â€” sÃ³ os detalhes passam pelo RGB
+-- Tema escuro — só os detalhes passam pelo RGB
 local Theme = {
     SchemeColor  = Color3.fromRGB(239, 180, 112), -- caramelo cremoso
     Background   = Color3.fromRGB(66, 41, 33),    -- cappuccino
@@ -137,7 +158,7 @@ local function showStartupCard()
     cup.BackgroundTransparency = 1
     cup.Position = UDim2.fromOffset(26, 48)
     cup.Size = UDim2.fromOffset(50, 50)
-    cup.Text = "â˜•"
+    cup.Text = "☕"
     cup.Font = Enum.Font.GothamBlack
     cup.TextSize = 36
     cup.TextColor3 = Theme.SchemeColor
@@ -181,7 +202,7 @@ local function showStartupCard()
 end
 
 -- =============================================================================
--- CAFÃ‰ UI â€” interface prÃ³pria, responsiva para PC e celular
+-- CAFÉ UI — interface própria, responsiva para PC e celular
 -- =============================================================================
 local CafeUI = { accent = Theme.SchemeColor, accentObjects = {} }
 
@@ -241,7 +262,7 @@ function CafeUI.CreateLib(title)
         BorderSizePixel = 0,
     }, gui)
 
-    -- Em alguns carregamentos a cÃ¢mera ainda nÃ£o existe no primeiro frame.
+    -- Em alguns carregamentos a câmera ainda não existe no primeiro frame.
     local camera = workspace.CurrentCamera
     if not camera then
         workspace:GetPropertyChangedSignal("CurrentCamera"):Wait()
@@ -277,7 +298,7 @@ function CafeUI.CreateLib(title)
     local cup = ui("TextLabel", {
         Name = "Cup", BackgroundTransparency = 1, Position = UDim2.fromOffset(18, 10),
         Size = UDim2.fromOffset(50, 50), Font = Enum.Font.GothamBlack,
-        Text = "â˜•", TextSize = 31, TextColor3 = Theme.SchemeColor,
+        Text = "☕", TextSize = 31, TextColor3 = Theme.SchemeColor,
     }, header)
     CafeUI:trackAccent(cup, "TextColor3")
     local titleLabel = ui("TextLabel", {
@@ -289,13 +310,13 @@ function CafeUI.CreateLib(title)
     ui("TextLabel", {
         BackgroundTransparency = 1, Position = UDim2.fromOffset(74, 39),
         Size = UDim2.new(1, -145, 0, 18), Font = Enum.Font.Gotham,
-        Text = "Cappuccino doce â€¢ simples de usar", TextColor3 = Color3.fromRGB(255, 223, 188),
+        Text = "Cappuccino doce • simples de usar", TextColor3 = Color3.fromRGB(255, 223, 188),
         TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left,
     }, header)
     local close = ui("TextButton", {
         Name = "close", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -18, 0.5, 0),
         Size = UDim2.fromOffset(38, 38), BackgroundColor3 = Color3.fromRGB(94, 48, 34),
-        BorderSizePixel = 0, Text = "Ã—", Font = Enum.Font.GothamBold,
+        BorderSizePixel = 0, Text = "×", Font = Enum.Font.GothamBold,
         TextColor3 = Theme.TextColor, TextSize = 25,
     }, header)
     corner(close, 12)
@@ -305,13 +326,13 @@ function CafeUI.CreateLib(title)
     local resize = ui("TextButton", {
         Name = "CoffeeResize", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -64, 0.5, 0),
         Size = UDim2.fromOffset(38, 38), BackgroundColor3 = Color3.fromRGB(255, 222, 181),
-        BorderSizePixel = 0, Text = "â†™", Font = Enum.Font.GothamBold,
+        BorderSizePixel = 0, Text = "↙", Font = Enum.Font.GothamBold,
         TextColor3 = Color3.fromRGB(89, 51, 37), TextSize = 20,
     }, header)
     corner(resize, 12)
     resize.Activated:Connect(function()
         compact = not compact
-        resize.Text = compact and "â†—" or "â†™"
+        resize.Text = compact and "↗" or "↙"
         tween(main, 0.25, { Size = compact and miniSize or normalSize }):Play()
     end)
 
@@ -332,17 +353,17 @@ function CafeUI.CreateLib(title)
     ui("TextLabel", {
         Name = "CoffeeWatermark", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.56),
         Size = UDim2.fromScale(0.9, 0.55), BackgroundTransparency = 1,
-        Text = "â˜•  C A F E Z I T O S  â˜•", Font = Enum.Font.GothamBlack,
+        Text = "☕  C A F E Z I T O S  ☕", Font = Enum.Font.GothamBlack,
         TextColor3 = Color3.fromRGB(255, 226, 193), TextTransparency = 0.91,
         TextSize = mobileLayout and 32 or 48, ZIndex = 0,
     }, pages)
 
     local window = { tabs = {}, activeTab = nil, gui = gui }
     local tabEmoji = {
-        ["Jogador"] = "ðŸ§‘", ["Teleporte"] = "ðŸ—ºï¸", ["Carrinho"] = "ðŸš‹",
-        ["Cart+"] = "âš¡", ["Extras"] = "âœ¨", ["Mapa"] = "ðŸ§­",
-        ["Eliminador"] = "ðŸŽ¯", ["Troll"] = "ðŸŽ­", ["Comandos"] = "â˜•",
-        ["Interface"] = "ðŸŽ¨",
+        ["Jogador"] = "🧑", ["Teleporte"] = "🗺️", ["Carrinho"] = "🚋",
+        ["Cart+"] = "⚡", ["Extras"] = "✨", ["Mapa"] = "🧭",
+        ["Eliminador"] = "🎯", ["Troll"] = "🎭", ["Comandos"] = "☕",
+        ["Interface"] = "🎨",
     }
     local function showTab(tab)
         for _, other in ipairs(window.tabs) do
@@ -357,7 +378,7 @@ function CafeUI.CreateLib(title)
         local button = ui("TextButton", {
             Name = name .. "TabButton", Size = UDim2.fromOffset(math.max(96, #name * 9 + 34), 44),
             BackgroundColor3 = Color3.fromRGB(67, 42, 31), BorderSizePixel = 0,
-            Text = (tabEmoji[name] or "â˜•") .. " " .. name, Font = Enum.Font.GothamBold, TextColor3 = Theme.TextColor, TextSize = 13,
+            Text = (tabEmoji[name] or "☕") .. " " .. name, Font = Enum.Font.GothamBold, TextColor3 = Theme.TextColor, TextSize = 13,
         }, tabBar)
         corner(button, 12)
         local page = ui("ScrollingFrame", {
@@ -399,7 +420,7 @@ function CafeUI.CreateLib(title)
             function api:NewButton(label, description, callback)
                 local frame = ui("TextButton", { Name = "buttonElement", Size = UDim2.new(1, 0, 0, 62), BackgroundColor3 = Theme.ElementColor, BorderSizePixel = 0, Text = "", AutoButtonColor = false }, section)
                 corner(frame, 12); labels(frame, label, description)
-                local action = ui("TextLabel", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(37, 37), BackgroundColor3 = Theme.SchemeColor, BorderSizePixel = 0, Text = "â€º", Font = Enum.Font.GothamBold, TextColor3 = Theme.Background, TextSize = 26 }, frame)
+                local action = ui("TextLabel", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(37, 37), BackgroundColor3 = Theme.SchemeColor, BorderSizePixel = 0, Text = "›", Font = Enum.Font.GothamBold, TextColor3 = Theme.Background, TextSize = 26 }, frame)
                 corner(action, 10); CafeUI:trackAccent(action, "BackgroundColor3")
                 frame.Activated:Connect(function() if callback then callback() end end)
                 return frame
@@ -413,13 +434,13 @@ function CafeUI.CreateLib(title)
                 local dot = ui("Frame", { Position = UDim2.fromOffset(3, 3), Size = UDim2.fromOffset(22, 22), BackgroundColor3 = Color3.fromRGB(180, 154, 132), BorderSizePixel = 0 }, knob); corner(dot, 11)
                 local state = false
                 local control = {}
-                function control:UpdateToggle(_, enabled)
-                    state = enabled and true or false
-                    tween(knob, 0.16, { BackgroundColor3 = state and CafeUI.accent or Color3.fromRGB(38, 24, 18) }):Play()
-                    tween(dot, 0.16, { Position = UDim2.fromOffset(state and 20 or 3, 3), BackgroundColor3 = state and Theme.Background or Color3.fromRGB(180, 154, 132) }):Play()
-                    if callback then callback(state) end
-                end
-…17000 tokens truncated…       if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
+                function cont…16988 tokens truncated…return
+end
+
+-- Arredonda todos os UICorner
+local function applyRoundedStyle(root)
+    for _, object in ipairs(root:GetDescendants()) do
+        if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
     end
 end
 applyRoundedStyle(menuGui)
@@ -460,11 +481,11 @@ for _, object in ipairs(menuGui:GetDescendants()) do
     end
 end
 
-configureKavoTextBox("Ir atÃ© Jogador",    "Nome ou comeÃ§o do nome", nil)
+configureKavoTextBox("Ir até Jogador",    "Nome ou começo do nome", nil)
 configureKavoTextBox("Velocidade do Voo", "Digite a velocidade",    nil)
-configureKavoTextBox("Nome do Alvo",      "Nome ou comeÃ§o do nome", nil)
-configureKavoTextBox("ForÃ§a Normal",      "2500", 2500)
-configureKavoTextBox("ForÃ§a em Descidas", "800",  800)
+configureKavoTextBox("Nome do Alvo",      "Nome ou começo do nome", nil)
+configureKavoTextBox("Força Normal",      "2500", 2500)
+configureKavoTextBox("Força em Descidas", "800",  800)
 
 -- Badges de atalho (quadrinhos com a tecla no canto direito de cada item)
 local customKeybindIcons = {}
@@ -554,7 +575,7 @@ local function replaceKeybindLeftIcon(labelText, iconText)
 end
 
 -- Badges das abas originais
-addShortcutBadge("Voo do VeÃ­culo",      "V")
+addShortcutBadge("Voo do Veículo",      "V")
 addShortcutBadge("ESP",                 "L")
 addShortcutBadge("Pulo Infinito",       "P")
 addShortcutBadge("Teleporte por Clique","T")
@@ -626,7 +647,7 @@ local function enableDrag(target, handle, onDragEnd)
     end)
 end
 
--- Launcher (botÃ£o para reabrir quando minimizado)
+-- Launcher (botão para reabrir quando minimizado)
 local launcherGui = Instance.new("ScreenGui")
 launcherGui.Name           = "NothriloLauncher"
 launcherGui.ResetOnSpawn   = false
@@ -656,13 +677,13 @@ launcherIcon.BackgroundTransparency = 1
 launcherIcon.Size     = UDim2.fromScale(1, 1)
 launcherIcon.Position = UDim2.fromOffset(0, 0)
 launcherIcon.Font     = Enum.Font.GothamBold
-launcherIcon.Text     = "â˜•"
+launcherIcon.Text     = "☕"
 launcherIcon.TextSize = 32
 launcherIcon.Parent   = launcher
 
 destroyed = false
 -- BUG CORRIGIDO: setMenuVisible precisava ser declarada antes de ser referenciada
--- nos callbacks de badge. Agora Ã© local forward-declared corretamente.
+-- nos callbacks de badge. Agora é local forward-declared corretamente.
 local setMenuVisible
 setMenuVisible = function(visible)
     if destroyed then return end
@@ -686,7 +707,7 @@ if header then
     minimize.BackgroundTransparency = 1
     minimize.AutoButtonColor  = false
     minimize.Font             = Enum.Font.GothamBold
-    minimize.Text             = "â€”"
+    minimize.Text             = "—"
     minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
     minimize.TextSize         = 20
     minimize.Parent           = header
@@ -733,7 +754,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- =============================================================================
--- DestruiÃ§Ã£o limpa
+-- Destruição limpa
 -- =============================================================================
 local running = true
 destroyNothrilo = function()
@@ -801,36 +822,36 @@ local function addCmd(label, desc, fn)
     addShortcutBadge(label, label:sub(1, 1))
 end
 
-CommandsSection:NewButton("V  â€¢  Voo do VeÃ­culo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
-CommandsSection:NewButton("L  â€¢  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
-CommandsSection:NewButton("P  â€¢  Pulo Infinito",        "Tecla P", function() infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump) end)
-CommandsSection:NewButton("T  â€¢  Teleporte por Clique", "Tecla T", giveClickTeleportTool)
-CommandsSection:NewButton("B  â€¢  Boost do Carrinho",    "Tecla B", function() boostToggleControl:UpdateToggle(nil, not boostActive) end)
-CommandsSection:NewButton("NumPad 1/2/3  â€¢  Checkpoints","Teclado numÃ©rico", function()
+CommandsSection:NewButton("V  •  Voo do Veículo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
+CommandsSection:NewButton("L  •  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
+CommandsSection:NewButton("P  •  Pulo Infinito",        "Tecla P", function() infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump) end)
+CommandsSection:NewButton("T  •  Teleporte por Clique", "Tecla T", giveClickTeleportTool)
+CommandsSection:NewButton("B  •  Boost do Carrinho",    "Tecla B", function() boostToggleControl:UpdateToggle(nil, not boostActive) end)
+CommandsSection:NewButton("NumPad 1/2/3  •  Checkpoints","Teclado numérico", function()
     notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
 end)
-CommandsSection:NewButton("K  â€¢  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
-CommandsSection:NewButton("X  â€¢  Fechar o Cafezitos",   "Tecla X", destroyNothrilo)
+CommandsSection:NewButton("K  •  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
+CommandsSection:NewButton("X  •  Fechar o Cafezitos",   "Tecla X", destroyNothrilo)
 
-addShortcutBadge("V  â€¢  Voo do VeÃ­culo",        "V")
-addShortcutBadge("L  â€¢  ESP",                   "L")
-addShortcutBadge("P  â€¢  Pulo Infinito",         "P")
-addShortcutBadge("T  â€¢  Teleporte por Clique",  "T")
-addShortcutBadge("B  â€¢  Boost do Carrinho",     "B")
-addShortcutBadge("NumPad 1/2/3  â€¢  Checkpoints","1/2/3")
-addShortcutBadge("K  â€¢  Minimizar / Abrir",     "K")
-addShortcutBadge("X  â€¢  Fechar o Cafezitos",    "X")
+addShortcutBadge("V  •  Voo do Veículo",        "V")
+addShortcutBadge("L  •  ESP",                   "L")
+addShortcutBadge("P  •  Pulo Infinito",         "P")
+addShortcutBadge("T  •  Teleporte por Clique",  "T")
+addShortcutBadge("B  •  Boost do Carrinho",     "B")
+addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
+addShortcutBadge("K  •  Minimizar / Abrir",     "K")
+addShortcutBadge("X  •  Fechar o Cafezitos",    "X")
 
 task.delay(0.3, function()
     if not menuGui or not menuGui.Parent then return end
-    addShortcutBadge("V  â€¢  Voo do VeÃ­culo",        "V")
-    addShortcutBadge("L  â€¢  ESP",                   "L")
-    addShortcutBadge("P  â€¢  Pulo Infinito",         "P")
-    addShortcutBadge("T  â€¢  Teleporte por Clique",  "T")
-    addShortcutBadge("B  â€¢  Boost do Carrinho",     "B")
-    addShortcutBadge("NumPad 1/2/3  â€¢  Checkpoints","1/2/3")
-    addShortcutBadge("K  â€¢  Minimizar / Abrir",     "K")
-    addShortcutBadge("X  â€¢  Fechar o Cafezitos",    "X")
+    addShortcutBadge("V  •  Voo do Veículo",        "V")
+    addShortcutBadge("L  •  ESP",                   "L")
+    addShortcutBadge("P  •  Pulo Infinito",         "P")
+    addShortcutBadge("T  •  Teleporte por Clique",  "T")
+    addShortcutBadge("B  •  Boost do Carrinho",     "B")
+    addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
+    addShortcutBadge("K  •  Minimizar / Abrir",     "K")
+    addShortcutBadge("X  •  Fechar o Cafezitos",    "X")
 end)
 
 -- =============================================================================
@@ -848,7 +869,7 @@ addShortcutBadge("Fechar Menu", "X")
 -- =============================================================================
 task.spawn(function()
     while running and not destroyed and menuGui.Parent and launcherGui.Parent do
-        -- Pulso caramelo: mantÃ©m o tema cafÃ© sem virar arco-Ã­ris.
+        -- Pulso caramelo: mantém o tema café sem virar arco-íris.
         local pulse = (math.sin(os.clock() * 1.2) + 1) * 0.5
         local rgb = Color3.fromRGB(
             math.floor(188 + 38 * pulse),
@@ -875,5 +896,5 @@ task.spawn(function()
     end
 end)
 
-notify(MENU_NAME, "Feito por Cafezl  â€¢  K minimiza e reabre o menu.")
+notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")
 

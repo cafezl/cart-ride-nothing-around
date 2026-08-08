@@ -44,7 +44,7 @@ end
 -- Limpa apenas janelas antigas deste proprio menu que tenham sobrado de uma
 -- versao anterior sem o controlador acima.
 for _, gui in ipairs(CoreGui:GetChildren()) do
-    if gui:IsA("ScreenGui") and (gui.Name == "NothriloLauncher" or gui.Name == "NothriloNotifications" or gui.Name == "NothriloLoading") then
+    if gui:IsA("ScreenGui") and (gui.Name == "NothriloLauncher" or gui.Name == "NothriloNotifications" or gui.Name == "NothriloLoading" or gui.Name == "NothriloMobileFly") then
         gui:Destroy()
     elseif gui:IsA("ScreenGui") then
         local main = gui:FindFirstChild("Main")
@@ -513,9 +513,98 @@ local flyHumanoid
 local flyAutoRotate
 local flyPlatformStand
 local mouse = LocalPlayer:GetMouse()
+local flyTouchUp = 0
+local flyTouchDown = 0
+local flyMobileGui
+
+-- No celular o direcional normal movimenta o voo. Estes dois botoes servem
+-- apenas para subir e descer, sem mudar a aparencia do menu principal.
+local function showMobileFlyControls(visible)
+    if not UserInputService.TouchEnabled then return end
+
+    if flyMobileGui and flyMobileGui.Parent then
+        flyMobileGui.Enabled = visible
+        return
+    end
+    if not visible then return end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NothriloMobileFly"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 10020
+    gui.Parent = CoreGui
+    flyMobileGui = gui
+
+    local panel = Instance.new("Frame")
+    panel.Name = "ControlesDeVoo"
+    panel.AnchorPoint = Vector2.new(1, 0.5)
+    panel.Position = UDim2.new(1, -16, 0.5, 0)
+    panel.Size = UDim2.fromOffset(72, 124)
+    panel.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
+    panel.BackgroundTransparency = 0.12
+    panel.BorderSizePixel = 0
+    panel.Parent = gui
+
+    local panelCorner = Instance.new("UICorner")
+    panelCorner.CornerRadius = UDim.new(0, 14)
+    panelCorner.Parent = panel
+
+    local panelStroke = Instance.new("UIStroke")
+    panelStroke.Color = Theme.SchemeColor
+    panelStroke.Thickness = 1
+    panelStroke.Parent = panel
+
+    local title = Instance.new("TextLabel")
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.fromOffset(0, 6)
+    title.Size = UDim2.new(1, 0, 0, 18)
+    title.Font = Enum.Font.GothamBold
+    title.Text = "VOO"
+    title.TextColor3 = Color3.fromRGB(245, 245, 245)
+    title.TextSize = 11
+    title.Parent = panel
+
+    local function makeDirectionButton(symbol, y, setDirection)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.fromOffset(52, 38)
+        button.Position = UDim2.new(0.5, -26, 0, y)
+        button.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+        button.BorderSizePixel = 0
+        button.AutoButtonColor = false
+        button.Font = Enum.Font.GothamBold
+        button.Text = symbol
+        button.TextColor3 = Theme.SchemeColor
+        button.TextSize = 22
+        button.Parent = panel
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = button
+
+        button.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                setDirection(1)
+                button.BackgroundColor3 = Color3.fromRGB(48, 48, 58)
+            end
+        end)
+        button.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                setDirection(0)
+                button.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+            end
+        end)
+    end
+
+    makeDirectionButton("▲", 30, function(value) flyTouchUp = value end)
+    makeDirectionButton("▼", 74, function(value) flyTouchDown = value end)
+end
 
 local function stopFly()
     FLYING = false
+    flyTouchUp = 0
+    flyTouchDown = 0
+    showMobileFlyControls(false)
 
     if flyKeyDown then
         flyKeyDown:Disconnect()
@@ -563,7 +652,7 @@ local function startVehicleFly()
     -- Quando ja esta sentado, PlatformStand pode soltar o personagem do
     -- carrinho e impedir o Killer. Fora do carrinho ele evita a animacao de
     -- queda normalmente.
-    if not humanoid.SeatPart then
+    if not humanoid.SeatPart and not UserInputService.TouchEnabled then
         humanoid.PlatformStand = true
     end
     pcall(function()
@@ -575,6 +664,7 @@ local function startVehicleFly()
     local lastControl = { F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0 }
     local speed = 0
     FLYING = true
+    showMobileFlyControls(true)
 
     local bodyGyro = Instance.new("BodyGyro")
     bodyGyro.Name = "CafezlVehicleFlyGyro"
@@ -631,12 +721,19 @@ local function startVehicleFly()
         while FLYING and root.Parent and humanoid.Parent do
             task.wait()
 
-            local moving = control.L + control.R ~= 0
+            local keyboardMoving = control.L + control.R ~= 0
                 or control.F + control.B ~= 0
                 or control.Q + control.E ~= 0
+            local mobileDirection = humanoid.MoveDirection
+            local mobileMoving = UserInputService.TouchEnabled and (
+                Vector3.new(mobileDirection.X, 0, mobileDirection.Z).Magnitude > 0.05
+                or flyTouchUp ~= 0
+                or flyTouchDown ~= 0
+            )
+            local moving = keyboardMoving or mobileMoving
 
             speed = moving and 50 or 0
-            if moving then
+            if keyboardMoving then
                 lastControl = {
                     F = control.F,
                     B = control.B,
@@ -647,8 +744,8 @@ local function startVehicleFly()
                 }
             end
 
-            local current = moving and control or lastControl
-            if speed > 0 then
+            local current = keyboardMoving and control or lastControl
+            if keyboardMoving and speed > 0 then
                 local camera = workspace.CurrentCamera
                 bodyVelocity.Velocity = (
                     (camera.CFrame.LookVector * (current.F + current.B))
@@ -658,6 +755,9 @@ local function startVehicleFly()
                         0
                     )).Position - camera.CFrame.Position)
                 ) * speed
+            elseif mobileMoving and speed > 0 then
+                bodyVelocity.Velocity = Vector3.new(mobileDirection.X, 0, mobileDirection.Z) * (vehicleFlySpeed * speed)
+                    + Vector3.new(0, (flyTouchUp - flyTouchDown) * vehicleFlySpeed * speed, 0)
             else
                 bodyVelocity.Velocity = Vector3.zero
             end
@@ -719,8 +819,10 @@ local function setPanicStop(enabled)
                 part.AssemblyAngularVelocity = Vector3.zero
             end
         end
+        notify("Carrinho", "Parada de emergência ligada.")
     else
         restorePanicStop()
+        notify("Carrinho", "Parada de emergência desligada.")
     end
 end
 
@@ -734,7 +836,9 @@ local function teleportCart(cframe)
     local ok = pcall(function()
         cart:PivotTo(cframe)
     end)
-    if not ok then
+    if ok then
+        notify("Carrinho", "Carrinho movido para o checkpoint.")
+    else
         notify("Carrinho", "Não foi possível mover este carrinho.")
     end
 end
@@ -1082,12 +1186,14 @@ PlayerSection:NewButton("Redefinir Velocidade", "Volta a velocidade para 16.", f
     local humanoid = getHumanoid()
     if humanoid then
         humanoid.WalkSpeed = 16
+        notify("Velocidade", "Velocidade redefinida para 16.")
     end
 end)
 
 local infiniteJump = false
 local infiniteJumpToggleControl = PlayerSection:NewToggle("Pulo Infinito", "Permite pular enquanto estiver no ar. Tecla P.", function(state)
     infiniteJump = state
+    notify("Pulo Infinito", state and "Ligado." or "Desligado.")
 end)
 
 UserInputService.JumpRequest:Connect(function()
@@ -1181,15 +1287,21 @@ local TeleportTab = Window:NewTab("Teleporte")
 local TeleportSection = TeleportTab:NewSection("Teleportes")
 
 TeleportSection:NewButton("Início", "Teleporta para o início.", function()
-    teleportCharacter(CFrame.new(1, 3.11, 38))
+    if teleportCharacter(CFrame.new(1, 3.11, 38)) then
+        notify("Teleporte", "Teleportado para o início.")
+    end
 end)
 
 TeleportSection:NewButton("Botão de Carrinho", "Teleporta para o botão de carrinho.", function()
-    teleportCharacter(CFrame.new(-33, 3.11, 21.5) * CFrame.Angles(0, math.rad(180), 0))
+    if teleportCharacter(CFrame.new(-33, 3.11, 21.5) * CFrame.Angles(0, math.rad(180), 0)) then
+        notify("Teleporte", "Teleportado para o botão de carrinho.")
+    end
 end)
 
 TeleportSection:NewButton("Equipe Suffering", "Teleporta para o time Suffering.", function()
-    teleportCharacter(CFrame.new(-416.844727, 163.402969, 171.087555))
+    if teleportCharacter(CFrame.new(-416.844727, 163.402969, 171.087555)) then
+        notify("Teleporte", "Teleportado para a equipe Suffering.")
+    end
 end)
 
 TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", function()
@@ -1200,7 +1312,9 @@ TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", funct
         notify("Teleporte", "Misc.Giver não encontrado.")
         return
     end
-    teleportCharacter(part.CFrame * CFrame.new(0, 3, 0))
+    if teleportCharacter(part.CFrame * CFrame.new(0, 3, 0)) then
+        notify("Teleporte", "Teleportado para a sala secreta.")
+    end
 end)
 
 local CHECKPOINTS = {
@@ -1237,6 +1351,11 @@ local StabilizerSection = CartTab:NewSection("Estabilizador")
 StabilizerSection:NewToggle("Estabilizador do Carrinho", "Mantém o carrinho estável enquanto você está sentado.", function(state)
     stabilizer.enabled = state
     refreshStabilizer()
+    if state and getCurrentCart() then
+        notify("Estabilizador", "Ligado.")
+    elseif not state then
+        notify("Estabilizador", "Desligado.")
+    end
 end)
 
 StabilizerSection:NewTextBox("Força Normal", "Força normal; aperte Enter para aplicar.", function(value)
@@ -1339,72 +1458,6 @@ menuGui.DescendantAdded:Connect(function(object)
     end
 end)
 
--- Alça no canto inferior direito: arraste com o mouse para aumentar ou
--- diminuir somente a janela do menu, sem alterar o tamanho do jogo.
-local windowResizeInputChanged
-local function enableWindowResize()
-    local main = menuGui:FindFirstChild("Main")
-    if not main or not main:IsA("GuiObject") then return end
-
-    local grip = Instance.new("TextButton")
-    grip.Name = "NothriloResizeGrip"
-    grip.AnchorPoint = Vector2.new(1, 1)
-    grip.Position = UDim2.new(1, -5, 1, -5)
-    grip.Size = UDim2.fromOffset(18, 18)
-    grip.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
-    grip.BorderSizePixel = 0
-    grip.AutoButtonColor = false
-    grip.Font = Enum.Font.GothamBold
-    grip.Text = "↘"
-    grip.TextColor3 = Theme.SchemeColor
-    grip.TextSize = 13
-    grip.ZIndex = 20
-    grip.Parent = main
-
-    local gripCorner = Instance.new("UICorner")
-    gripCorner.CornerRadius = UDim.new(0, 5)
-    gripCorner.Parent = grip
-
-    local resizing = false
-    local resizeStart
-    local startSize
-    local minimumSize = Vector2.new(420, 260)
-
-    local function updateSize(input)
-        local camera = workspace.CurrentCamera
-        if not camera or not resizeStart or not startSize then return end
-
-        local delta = input.Position - resizeStart
-        local viewport = camera.ViewportSize
-        local maximumSize = Vector2.new(math.max(minimumSize.X, viewport.X - 24), math.max(minimumSize.Y, viewport.Y - 24))
-        local width = math.clamp(startSize.X + delta.X, minimumSize.X, maximumSize.X)
-        local height = math.clamp(startSize.Y + delta.Y, minimumSize.Y, maximumSize.Y)
-        main.Size = UDim2.fromOffset(width, height)
-    end
-
-    grip.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            resizing = true
-            resizeStart = input.Position
-            startSize = main.AbsoluteSize
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    resizing = false
-                end
-            end)
-        end
-    end)
-
-    windowResizeInputChanged = UserInputService.InputChanged:Connect(function(input)
-        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            updateSize(input)
-        end
-    end)
-end
-
-enableWindowResize()
-
 -- A biblioteca usa "Type here!" em todos os campos. Localizamos cada caixa
 -- pelo titulo que esta ao lado dela para deixar a tela toda em portugues.
 getKavoTextBoxByLabel = function(labelText)
@@ -1501,14 +1554,14 @@ local function addShortcutBadge(labelText, keyText)
     for _, element in ipairs(menuGui:GetDescendants()) do
         if element:IsA("TextButton") then
             local title
-            for _, child in ipairs(element:GetChildren()) do
-                if child:IsA("TextLabel") and child.Position.X.Scale < 0.2 then
+            for _, child in ipairs(element:GetDescendants()) do
+                if child:IsA("TextLabel") and child.Text == labelText then
                     title = child
                     break
                 end
             end
 
-            if title and title.Text == labelText then
+            if title and not element:FindFirstChild("NothriloShortcut_" .. keyText) then
                 local badge = Instance.new("TextButton")
                 local badgeWidth = keyText == "1/2/3" and 42 or 21
                 badge.Name = "NothriloShortcut_" .. keyText
@@ -1797,10 +1850,7 @@ destroyNothrilo = function()
     cleanupStabilizer()
     restorePanicStop()
 
-    if windowResizeInputChanged then
-        windowResizeInputChanged:Disconnect()
-        windowResizeInputChanged = nil
-    end
+    if flyMobileGui and flyMobileGui.Parent then flyMobileGui:Destroy() end
 
     if toastGui and toastGui.Parent then toastGui:Destroy() end
     if launcherGui and launcherGui.Parent then launcherGui:Destroy() end
@@ -1840,6 +1890,19 @@ addShortcutBadge("T  •  Criar o teleporte por clique", "T")
 addShortcutBadge("NumPad 1/2/3  •  Ir aos checkpoints", "1/2/3")
 addShortcutBadge("K  •  Minimizar ou abrir o menu", "K")
 addShortcutBadge("X  •  Fechar o Nothrilo", "X")
+
+-- A Kavo termina de posicionar os botoes um instante depois de cria-los.
+-- Repetir a procura garante os quadrinhos mesmo em executores mais lentos.
+task.delay(0.25, function()
+    if not menuGui or not menuGui.Parent then return end
+    addShortcutBadge("V  •  Ligar ou desligar o voo", "V")
+    addShortcutBadge("L  •  Ligar ou desligar o ESP", "L")
+    addShortcutBadge("P  •  Ligar ou desligar o pulo infinito", "P")
+    addShortcutBadge("T  •  Criar o teleporte por clique", "T")
+    addShortcutBadge("NumPad 1/2/3  •  Ir aos checkpoints", "1/2/3")
+    addShortcutBadge("K  •  Minimizar ou abrir o menu", "K")
+    addShortcutBadge("X  •  Fechar o Nothrilo", "X")
+end)
 
 local GuiTab = Window:NewTab("Interface")
 local GuiSection = GuiTab:NewSection("Interface")

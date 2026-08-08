@@ -1,6 +1,6 @@
 Exit code: 0
 Wall time: 0.8 seconds
-Total output lines: 2183
+Total output lines: 2240
 Output:
 -- =============================================================================
 -- Nothrilo ðŸ‡§ðŸ‡· â€” Menu completo por Cafezl
@@ -19,6 +19,7 @@ local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
 local CoreGui      = game:GetService("CoreGui")
 local originalGravity = workspace.Gravity
 local destroyNothrilo
+local destroyed = false
 
 -- Encerra instÃ¢ncia anterior (evita menus duplicados)
 local previousRuntime = CoreGui:FindFirstChild("NothriloRuntime")
@@ -521,19 +522,7 @@ local function showMobileFlyControls(visible)
         btn.BorderSizePixel   = 0
         btn.AutoButtonColor   = false
         btn.Font              = Enum.Font.GothamBold
-        btn.Text              = symbol
-        btn.…11672 tokens truncated…     local main   = gui:FindFirstChild("Main")
-            local header = main and main:FindFirstChild("MainHeader")
-            local title  = header and header:FindFirstChild("title")
-            if title and title.Text == UI_TITLE then return gui end
-        end
-    end
-    return nil
-end
-
-local menuGui = findMenuGui()
-local commandsTabButton
-if not menuGui then
+        btn.Text            …12255 tokens truncated…ot menuGui then
     warn(MENU_NAME .. ": nÃ£o foi possÃ­vel localizar a janela Kavo.")
     return
 end
@@ -782,7 +771,7 @@ launcherIcon.Text     = "N"
 launcherIcon.TextSize = 20
 launcherIcon.Parent   = launcher
 
-local destroyed = false
+destroyed = false
 -- BUG CORRIGIDO: setMenuVisible precisava ser declarada antes de ser referenciada
 -- nos callbacks de badge. Agora Ã© local forward-declared corretamente.
 local setMenuVisible
@@ -863,6 +852,16 @@ destroyNothrilo = function()
     destroyed    = true
     running      = false
     killerActive = false
+    infiniteJump = false
+
+    fakeLagSession = fakeLagSession + 1
+    if fakeLagHumanoid and fakeLagHumanoid.Parent then
+        fakeLagHumanoid.WalkSpeed = fakeLagWalkSpeed
+        fakeLagHumanoid.JumpPower = fakeLagJumpPower
+    end
+    fakeLagHumanoid, fakeLagWalkSpeed, fakeLagJumpPower = nil, nil, nil
+
+    if spinConn then spinConn:Disconnect() spinConn = nil end
 
     noclipEnabled = false
     restoreNoclip()

@@ -1,6 +1,6 @@
 Exit code: 0
-Wall time: 0.8 seconds
-Total output lines: 2551
+Wall time: 1 seconds
+Total output lines: 2557
 Output:
 -- =============================================================================
 -- Cafezitos V2 â˜• â€” Menu completo por Cafezl
@@ -241,7 +241,13 @@ function CafeUI.CreateLib(title)
         BorderSizePixel = 0,
     }, gui)
 
-    local viewport = workspace.CurrentCamera.ViewportSize
+    -- Em alguns carregamentos a cÃ¢mera ainda nÃ£o existe no primeiro frame.
+    local camera = workspace.CurrentCamera
+    if not camera then
+        workspace:GetPropertyChangedSignal("CurrentCamera"):Wait()
+        camera = workspace.CurrentCamera
+    end
+    local viewport = camera.ViewportSize
     local mobileLayout = UserInputService.TouchEnabled or viewport.X < 700
     local normalSize = mobileLayout and UDim2.fromScale(0.92, 0.72) or UDim2.fromScale(0.64, 0.66)
     local miniSize = mobileLayout and UDim2.fromScale(0.84, 0.54) or UDim2.fromScale(0.48, 0.48)
@@ -413,12 +419,7 @@ function CafeUI.CreateLib(title)
                     tween(dot, 0.16, { Position = UDim2.fromOffset(state and 20 or 3, 3), BackgroundColor3 = state and Theme.Background or Color3.fromRGB(180, 154, 132) }):Play()
                     if callback then callback(state) end
                 end
-                frame.Activated:Connect(function() control:UpdateToggle(nil, not state) end)
-                return control
-            end
-
-            function api:NewTextBox(label, description, callback)
-                local frame = ui("TextBu…16939 tokens truncated…       if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
+…17000 tokens truncated…       if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
     end
 end
 applyRoundedStyle(menuGui)

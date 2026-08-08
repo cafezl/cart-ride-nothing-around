@@ -1,6 +1,6 @@
 Exit code: 0
 Wall time: 0.8 seconds
-Total output lines: 2497
+Total output lines: 2551
 Output:
 -- =============================================================================
 -- Cafezitos V2 â˜• â€” Menu completo por Cafezl
@@ -20,6 +20,7 @@ local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
 local CoreGui      = LocalPlayer:WaitForChild("PlayerGui")
 local originalGravity = workspace.Gravity
 local destroyNothrilo
+local destroyed = false
 
 -- Encerra instÃ¢ncia anterior (evita menus duplicados)
 local previousRuntime = CoreGui:FindFirstChild("NothriloRuntime")
@@ -417,23 +418,7 @@ function CafeUI.CreateLib(title)
             end
 
             function api:NewTextBox(label, description, callback)
-                local frame = ui("TextButton", { Name = "textbox…16411 tokens truncated…n return gui end
-        end
-    end
-    return nil
-end
-
-local menuGui = findMenuGui()
-local commandsTabButton
-if not menuGui then
-    warn(MENU_NAME .. ": nÃ£o foi possÃ­vel localizar a janela Kavo.")
-    return
-end
-
--- Arredonda todos os UICorner
-local function applyRoundedStyle(root)
-    for _, object in ipairs(root:GetDescendants()) do
-        if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
+                local frame = ui("TextBu…16939 tokens truncated…       if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
     end
 end
 applyRoundedStyle(menuGui)
@@ -674,7 +659,7 @@ launcherIcon.Text     = "â˜•"
 launcherIcon.TextSize = 32
 launcherIcon.Parent   = launcher
 
-local destroyed = false
+destroyed = false
 -- BUG CORRIGIDO: setMenuVisible precisava ser declarada antes de ser referenciada
 -- nos callbacks de badge. Agora Ã© local forward-declared corretamente.
 local setMenuVisible
@@ -755,6 +740,16 @@ destroyNothrilo = function()
     destroyed    = true
     running      = false
     killerActive = false
+    infiniteJump = false
+
+    fakeLagSession = fakeLagSession + 1
+    if fakeLagHumanoid and fakeLagHumanoid.Parent then
+        fakeLagHumanoid.WalkSpeed = fakeLagWalkSpeed
+        fakeLagHumanoid.JumpPower = fakeLagJumpPower
+    end
+    fakeLagHumanoid, fakeLagWalkSpeed, fakeLagJumpPower = nil, nil, nil
+
+    if spinConn then spinConn:Disconnect() spinConn = nil end
 
     noclipEnabled = false
     restoreNoclip()

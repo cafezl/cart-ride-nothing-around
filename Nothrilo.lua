@@ -1,10 +1,10 @@
 Exit code: 0
-Wall time: 0.9 seconds
-Total output lines: 2240
+Wall time: 1.3 seconds
+Total output lines: 2262
 Output:
 -- =============================================================================
--- Nothrilo ðŸ‡§ðŸ‡· â€” Menu completo por Cafezl
--- VersÃ£o auditada: bugs corrigidos + novas funÃ§Ãµes
+-- Nothrilo 🇧🇷 — Menu completo por Cafezl
+-- Versão auditada: bugs corrigidos + novas funções
 -- =============================================================================
 
 local Players        = game:GetService("Players")
@@ -14,14 +14,36 @@ local TweenService   = game:GetService("TweenService")
 local StarterGui     = game:GetService("StarterGui")
 
 local LocalPlayer  = Players.LocalPlayer
-local MENU_NAME    = "Nothrilo ðŸ‡§ðŸ‡·"
+local MENU_NAME    = "Nothrilo 🇧🇷"
 local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
-local CoreGui      = game:GetService("CoreGui")
+
+-- Alguns ambientes bloqueiam GUI direto em CoreGui e outros usam gethui().
+-- Escolher o pai aqui evita o menu morrer antes mesmo de aparecer.
+local function getGuiParent()
+    if type(gethui) == "function" then
+        local ok, parent = pcall(gethui)
+        if ok and parent then return parent end
+    end
+
+    local ok, coreGui = pcall(function()
+        return game:GetService("CoreGui")
+    end)
+    if ok and coreGui then
+        local probe = Instance.new("ScreenGui")
+        local accepted = pcall(function() probe.Parent = coreGui end)
+        if probe.Parent then probe:Destroy() end
+        if accepted then return coreGui end
+    end
+
+    return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local CoreGui      = getGuiParent()
 local originalGravity = workspace.Gravity
 local destroyNothrilo
 local destroyed = false
 
--- Encerra instÃ¢ncia anterior (evita menus duplicados)
+-- Encerra instância anterior (evita menus duplicados)
 local previousRuntime = CoreGui:FindFirstChild("NothriloRuntime")
 if previousRuntime then
     local previousCleanup = previousRuntime:FindFirstChild("Cleanup")
@@ -39,7 +61,7 @@ local runtimeCleanup = Instance.new("BindableEvent")
 runtimeCleanup.Name   = "Cleanup"
 runtimeCleanup.Parent = runtime
 
--- Remove GUIs antigas do Rayfield ou versÃµes anteriores do Nothrilo
+-- Remove GUIs antigas do Rayfield ou versões anteriores do Nothrilo
 for _, gui in ipairs(CoreGui:GetChildren()) do
     if gui:IsA("ScreenGui") then
         if gui.Name:lower():find("rayfield", 1, true) then
@@ -61,7 +83,7 @@ for _, gui in ipairs(CoreGui:GetChildren()) do
     end
 end
 
--- Tema escuro â€” sÃ³ os detalhes passam pelo RGB
+-- Tema escuro — só os detalhes passam pelo RGB
 local Theme = {
     SchemeColor  = Color3.fromRGB(255, 0, 170),
     Background   = Color3.fromRGB(8, 8, 10),
@@ -145,7 +167,7 @@ end)
 
 if not libraryOk or type(LibraryOrError) ~= "table" then
     if startupStatus then
-        startupStatus.Text      = "NÃ£o foi possÃ­vel carregar. Tente de novo."
+        startupStatus.Text      = "Não foi possível carregar. Tente de novo."
         startupStatus.TextColor3 = Color3.fromRGB(255, 100, 120)
     end
     warn(MENU_NAME .. ": falha ao carregar biblioteca: " .. tostring(LibraryOrError))
@@ -167,7 +189,7 @@ local Library = LibraryOrError
 local Window  = Library.CreateLib(UI_TITLE, Theme)
 
 -- =============================================================================
--- Sistema de notificaÃ§Ãµes (toasts)
+-- Sistema de notificações (toasts)
 -- =============================================================================
 local toastContainer
 local toastStrokes = {}
@@ -280,7 +302,7 @@ end
 local function teleportCharacter(cframe)
     local root = getRoot()
     if not root then
-        notify("Teleporte", "HumanoidRootPart nÃ£o encontrado.")
+        notify("Teleporte", "HumanoidRootPart não encontrado.")
         return false
     end
     root.CFrame = cframe
@@ -507,23 +529,16 @@ local function showMobileFlyControls(visible)
     local titleL = Instance.new("TextLabel")
     titleL.BackgroundTransparency = 1
     titleL.Position = UDim2.fromOffset(0, 6)
-    titleL.Size     = UDim2.new(1, 0, 0, 18)
-    titleL.Font     = Enum.Font.GothamBold
-    titleL.Text     = "VOO"
-    titleL.TextColor3 = Color3.fromRGB(245, 245, 245)
-    titleL.TextSize = 11
-    titleL.Parent   = panel
+    titleL.Size     …12291 tokens truncated…= UI_TITLE then return gui end
+        end
+    end
+    return nil
+end
 
-    local function makeBtn(symbol, y, setDir)
-        local btn = Instance.new("TextButton")
-        btn.Size              = UDim2.fromOffset(52, 38)
-        btn.Position          = UDim2.new(0.5, -26, 0, y)
-        btn.BackgroundColor3  = Color3.fromRGB(28, 28, 35)
-        btn.BorderSizePixel   = 0
-        btn.AutoButtonColor   = false
-        btn.Font              = Enum.Font.GothamBold
-        btn.Text            …12255 tokens truncated…ot menuGui then
-    warn(MENU_NAME .. ": nÃ£o foi possÃ­vel localizar a janela Kavo.")
+local menuGui = findMenuGui()
+local commandsTabButton
+if not menuGui then
+    warn(MENU_NAME .. ": não foi possível localizar a janela Kavo.")
     return
 end
 
@@ -571,11 +586,11 @@ for _, object in ipairs(menuGui:GetDescendants()) do
     end
 end
 
-configureKavoTextBox("Ir atÃ© Jogador",    "Nome ou comeÃ§o do nome", nil)
+configureKavoTextBox("Ir até Jogador",    "Nome ou começo do nome", nil)
 configureKavoTextBox("Velocidade do Voo", "Digite a velocidade",    nil)
-configureKavoTextBox("Nome do Alvo",      "Nome ou comeÃ§o do nome", nil)
-configureKavoTextBox("ForÃ§a Normal",      "2500", 2500)
-configureKavoTextBox("ForÃ§a em Descidas", "800",  800)
+configureKavoTextBox("Nome do Alvo",      "Nome ou começo do nome", nil)
+configureKavoTextBox("Força Normal",      "2500", 2500)
+configureKavoTextBox("Força em Descidas", "800",  800)
 
 -- Badges de atalho (quadrinhos com a tecla no canto direito de cada item)
 local customKeybindIcons = {}
@@ -662,7 +677,7 @@ local function replaceKeybindLeftIcon(labelText, iconText)
 end
 
 -- Badges das abas originais
-addShortcutBadge("Voo do VeÃ­culo",      "V")
+addShortcutBadge("Voo do Veículo",      "V")
 addShortcutBadge("ESP",                 "L")
 addShortcutBadge("Pulo Infinito",       "P")
 addShortcutBadge("Teleporte por Clique","T")
@@ -734,7 +749,7 @@ local function enableDrag(target, handle, onDragEnd)
     end)
 end
 
--- Launcher (botÃ£o para reabrir quando minimizado)
+-- Launcher (botão para reabrir quando minimizado)
 local launcherGui = Instance.new("ScreenGui")
 launcherGui.Name           = "NothriloLauncher"
 launcherGui.ResetOnSpawn   = false
@@ -773,7 +788,7 @@ launcherIcon.Parent   = launcher
 
 destroyed = false
 -- BUG CORRIGIDO: setMenuVisible precisava ser declarada antes de ser referenciada
--- nos callbacks de badge. Agora Ã© local forward-declared corretamente.
+-- nos callbacks de badge. Agora é local forward-declared corretamente.
 local setMenuVisible
 setMenuVisible = function(visible)
     if destroyed then return end
@@ -797,7 +812,7 @@ if header then
     minimize.BackgroundTransparency = 1
     minimize.AutoButtonColor  = false
     minimize.Font             = Enum.Font.GothamBold
-    minimize.Text             = "â€”"
+    minimize.Text             = "—"
     minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
     minimize.TextSize         = 20
     minimize.Parent           = header
@@ -844,7 +859,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- =============================================================================
--- DestruiÃ§Ã£o limpa
+-- Destruição limpa
 -- =============================================================================
 local running = true
 destroyNothrilo = function()
@@ -912,36 +927,36 @@ local function addCmd(label, desc, fn)
     addShortcutBadge(label, label:sub(1, 1))
 end
 
-CommandsSection:NewButton("V  â€¢  Voo do VeÃ­culo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
-CommandsSection:NewButton("L  â€¢  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
-CommandsSection:NewButton("P  â€¢  Pulo Infinito",        "Tecla P", function() infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump) end)
-CommandsSection:NewButton("T  â€¢  Teleporte por Clique", "Tecla T", giveClickTeleportTool)
-CommandsSection:NewButton("B  â€¢  Boost do Carrinho",    "Tecla B", function() boostToggleControl:UpdateToggle(nil, not boostActive) end)
-CommandsSection:NewButton("NumPad 1/2/3  â€¢  Checkpoints","Teclado numÃ©rico", function()
+CommandsSection:NewButton("V  •  Voo do Veículo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
+CommandsSection:NewButton("L  •  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
+CommandsSection:NewButton("P  •  Pulo Infinito",        "Tecla P", function() infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump) end)
+CommandsSection:NewButton("T  •  Teleporte por Clique", "Tecla T", giveClickTeleportTool)
+CommandsSection:NewButton("B  •  Boost do Carrinho",    "Tecla B", function() boostToggleControl:UpdateToggle(nil, not boostActive) end)
+CommandsSection:NewButton("NumPad 1/2/3  •  Checkpoints","Teclado numérico", function()
     notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
 end)
-CommandsSection:NewButton("K  â€¢  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
-CommandsSection:NewButton("X  â€¢  Fechar o Nothrilo",    "Tecla X", destroyNothrilo)
+CommandsSection:NewButton("K  •  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
+CommandsSection:NewButton("X  •  Fechar o Nothrilo",    "Tecla X", destroyNothrilo)
 
-addShortcutBadge("V  â€¢  Voo do VeÃ­culo",        "V")
-addShortcutBadge("L  â€¢  ESP",                   "L")
-addShortcutBadge("P  â€¢  Pulo Infinito",         "P")
-addShortcutBadge("T  â€¢  Teleporte por Clique",  "T")
-addShortcutBadge("B  â€¢  Boost do Carrinho",     "B")
-addShortcutBadge("NumPad 1/2/3  â€¢  Checkpoints","1/2/3")
-addShortcutBadge("K  â€¢  Minimizar / Abrir",     "K")
-addShortcutBadge("X  â€¢  Fechar o Nothrilo",     "X")
+addShortcutBadge("V  •  Voo do Veículo",        "V")
+addShortcutBadge("L  •  ESP",                   "L")
+addShortcutBadge("P  •  Pulo Infinito",         "P")
+addShortcutBadge("T  •  Teleporte por Clique",  "T")
+addShortcutBadge("B  •  Boost do Carrinho",     "B")
+addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
+addShortcutBadge("K  •  Minimizar / Abrir",     "K")
+addShortcutBadge("X  •  Fechar o Nothrilo",     "X")
 
 task.delay(0.3, function()
     if not menuGui or not menuGui.Parent then return end
-    addShortcutBadge("V  â€¢  Voo do VeÃ­culo",        "V")
-    addShortcutBadge("L  â€¢  ESP",                   "L")
-    addShortcutBadge("P  â€¢  Pulo Infinito",         "P")
-    addShortcutBadge("T  â€¢  Teleporte por Clique",  "T")
-    addShortcutBadge("B  â€¢  Boost do Carrinho",     "B")
-    addShortcutBadge("NumPad 1/2/3  â€¢  Checkpoints","1/2/3")
-    addShortcutBadge("K  â€¢  Minimizar / Abrir",     "K")
-    addShortcutBadge("X  â€¢  Fechar o Nothrilo",     "X")
+    addShortcutBadge("V  •  Voo do Veículo",        "V")
+    addShortcutBadge("L  •  ESP",                   "L")
+    addShortcutBadge("P  •  Pulo Infinito",         "P")
+    addShortcutBadge("T  •  Teleporte por Clique",  "T")
+    addShortcutBadge("B  •  Boost do Carrinho",     "B")
+    addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
+    addShortcutBadge("K  •  Minimizar / Abrir",     "K")
+    addShortcutBadge("X  •  Fechar o Nothrilo",     "X")
 end)
 
 -- =============================================================================
@@ -980,5 +995,5 @@ task.spawn(function()
     end
 end)
 
-notify(MENU_NAME, "Feito por Cafezl  â€¢  K minimiza e reabre o menu.")
+notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")
 

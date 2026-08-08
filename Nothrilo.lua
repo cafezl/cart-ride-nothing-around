@@ -35,18 +35,37 @@ local function getGuiParent()
 end
 
 local CoreGui      = getGuiParent()
+
+-- A Kavo sempre cria a janela em game.CoreGui, enquanto alguns executores
+-- retornam outro container em gethui(). Mantenha todos os locais possíveis
+-- para localizar e limpar a interface completa sem perder as abas finais.
+local guiRoots = {}
+local guiRootSet = {}
+local function addGuiRoot(root)
+    if root and not guiRootSet[root] then
+        guiRootSet[root] = true
+        table.insert(guiRoots, root)
+    end
+end
+
+addGuiRoot(CoreGui)
+pcall(function() addGuiRoot(game:GetService("CoreGui")) end)
+addGuiRoot(LocalPlayer:FindFirstChild("PlayerGui"))
+
 local originalGravity = workspace.Gravity
 local destroyNothrilo
 local destroyed = false
 
 -- Encerra instância anterior (evita menus duplicados)
-local previousRuntime = CoreGui:FindFirstChild("NothriloRuntime")
-if previousRuntime then
-    local previousCleanup = previousRuntime:FindFirstChild("Cleanup")
-    if previousCleanup and previousCleanup:IsA("BindableEvent") then
-        previousCleanup:Fire()
+for _, guiRoot in ipairs(guiRoots) do
+    local previousRuntime = guiRoot:FindFirstChild("NothriloRuntime")
+    if previousRuntime then
+        local previousCleanup = previousRuntime:FindFirstChild("Cleanup")
+        if previousCleanup and previousCleanup:IsA("BindableEvent") then
+            previousCleanup:Fire()
+        end
+        previousRuntime:Destroy()
     end
-    previousRuntime:Destroy()
 end
 
 local runtime = Instance.new("Folder")
@@ -58,22 +77,24 @@ runtimeCleanup.Name   = "Cleanup"
 runtimeCleanup.Parent = runtime
 
 -- Remove GUIs antigas do Rayfield ou versões anteriores do Nothrilo
-for _, gui in ipairs(CoreGui:GetChildren()) do
-    if gui:IsA("ScreenGui") then
-        if gui.Name:lower():find("rayfield", 1, true) then
-            gui:Destroy()
-        elseif gui.Name == "NothriloLauncher"
-            or gui.Name == "NothriloNotifications"
-            or gui.Name == "NothriloLoading"
-            or gui.Name == "NothriloMobileFly"
-        then
-            gui:Destroy()
-        else
-            local main   = gui:FindFirstChild("Main")
-            local header = main and main:FindFirstChild("MainHeader")
-            local title  = header and header:FindFirstChild("title")
-            if title and title.Text:find("Nothrilo", 1, true) then
+for _, guiRoot in ipairs(guiRoots) do
+    for _, gui in ipairs(guiRoot:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            if gui.Name:lower():find("rayfield", 1, true) then
                 gui:Destroy()
+            elseif gui.Name == "NothriloLauncher"
+                or gui.Name == "NothriloNotifications"
+                or gui.Name == "NothriloLoading"
+                or gui.Name == "NothriloMobileFly"
+            then
+                gui:Destroy()
+            else
+                local main   = gui:FindFirstChild("Main")
+                local header = main and main:FindFirstChild("MainHeader")
+                local title  = header and header:FindFirstChild("title")
+                if title and title:IsA("TextLabel") and title.Text:find("Nothrilo", 1, true) then
+                    gui:Destroy()
+                end
             end
         end
     end
@@ -1787,18 +1808,28 @@ end)
 -- Minimizar / reabrir + drag
 -- =============================================================================
 local function findMenuGui()
-    for _, gui in ipairs(CoreGui:GetChildren()) do
-        if gui:IsA("ScreenGui") then
-            local main   = gui:FindFirstChild("Main")
-            local header = main and main:FindFirstChild("MainHeader")
-            local title  = header and header:FindFirstChild("title")
-            if title and title.Text == UI_TITLE then return gui end
+    for _, guiRoot in ipairs(guiRoots) do
+        for _, gui in ipairs(guiRoot:GetChildren()) do
+            if gui:IsA("ScreenGui") then
+                local main   = gui:FindFirstChild("Main")
+                local header = main and main:FindFirstChild("MainHeader")
+                local title  = header and header:FindFirstChild("title")
+                if title and title:IsA("TextLabel") and title.Text == UI_TITLE then
+                    return gui
+                end
+            end
         end
     end
     return nil
 end
 
-local menuGui = findMenuGui()
+local menuGui
+local findDeadline = os.clock() + 3
+repeat
+    menuGui = findMenuGui()
+    if not menuGui then task.wait() end
+until menuGui or os.clock() >= findDeadline
+
 local commandsTabButton
 if not menuGui then
     warn(MENU_NAME .. ": não foi possível localizar a janela Kavo.")
@@ -1857,6 +1888,7 @@ configureKavoTextBox("Força em Descidas", "800",  800)
 
 -- Badges de atalho (quadrinhos com a tecla no canto direito de cada item)
 local customKeybindIcons = {}
+local setMenuVisible
 
 local function addShortcutBadge(labelText, keyText)
     for _, element in ipairs(menuGui:GetDescendants()) do
@@ -2050,9 +2082,6 @@ launcherIcon.TextSize = 20
 launcherIcon.Parent   = launcher
 
 destroyed = false
--- BUG CORRIGIDO: setMenuVisible precisava ser declarada antes de ser referenciada
--- nos callbacks de badge. Agora é local forward-declared corretamente.
-local setMenuVisible
 setMenuVisible = function(visible)
     if destroyed then return end
     menuGui.Enabled    = visible

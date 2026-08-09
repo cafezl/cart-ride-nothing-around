@@ -1073,6 +1073,9 @@ watchSeat()
 trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
     cleanupStabilizer()
     restorePanicStop()
+    fakeLagSession = fakeLagSession + 1
+    fakeLagActive = false
+    fakeLagHumanoid = nil
     if stopBoost then stopBoost() end
     if flyEnabled and flyToggleControl then
         flyToggleControl:UpdateToggle(nil, false)
@@ -1081,6 +1084,17 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
     end
     task.defer(resetCameraModes)
     task.defer(watchSeat, character)
+    task.delay(0.25, function()
+        if destroyed or fakeLagActive then return end
+        local humanoid = getHumanoid(character)
+        if not humanoid then return end
+        if desiredWalkSpeed then humanoid.WalkSpeed = desiredWalkSpeed end
+        if humanoid.UseJumpPower and desiredJumpPower then
+            humanoid.JumpPower = desiredJumpPower
+        elseif not humanoid.UseJumpPower and desiredJumpHeight then
+            humanoid.JumpHeight = desiredJumpHeight
+        end
+    end)
 end))
 
 -- =============================================================================

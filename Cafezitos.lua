@@ -35,45 +35,92 @@ local function getGuiParent()
 end
 
 local CoreGui      = getGuiParent()
-local originalGravity = workspace.Gravity
-local destroyNothrilo
-local destroyed = false
-
--- Encerra instância anterior (evita menus duplicados)
-local previousRuntime = CoreGui:FindFirstChild("NothriloRuntime")
-if previousRuntime then
-    local previousCleanup = previousRuntime:FindFirstChild("Cleanup")
-    if previousCleanup and previousCleanup:IsA("BindableEvent") then
-        previousCleanup:Fire()
+local guiRoots = {}
+local guiRootSet = {}
+local function addGuiRoot(root)
+    if root and not guiRootSet[root] then
+        guiRootSet[root] = true
+        table.insert(guiRoots, root)
     end
-    previousRuntime:Destroy()
+end
+addGuiRoot(CoreGui)
+pcall(function() addGuiRoot(game:GetService("CoreGui")) end)
+addGuiRoot(LocalPlayer:FindFirstChild("PlayerGui"))
+
+local destroyCafezitos
+local setMenuVisible
+local destroyed = false
+local runtimeConnections = {}
+
+local function trackConnection(connection)
+    if connection then table.insert(runtimeConnections, connection) end
+    return connection
 end
 
+local function disconnectRuntimeConnections()
+    for index = #runtimeConnections, 1, -1 do
+        local connection = runtimeConnections[index]
+        if connection then pcall(function() connection:Disconnect() end) end
+        runtimeConnections[index] = nil
+    end
+end
+
+-- Nothrilo e Cafezitos são duas skins da mesma suíte: abrir uma encerra a
+-- outra para não duplicar atalhos, ESP, forças e controladores de voo.
+for _, guiRoot in ipairs(guiRoots) do
+    for _, runtimeName in ipairs({ "CafezitosRuntime", "NothriloRuntime" }) do
+        local previousRuntime = guiRoot:FindFirstChild(runtimeName)
+        if previousRuntime then
+            local previousCleanup = previousRuntime:FindFirstChild("Cleanup")
+            if previousCleanup and previousCleanup:IsA("BindableEvent") then
+                previousCleanup:Fire()
+            end
+            previousRuntime:Destroy()
+        end
+    end
+end
+
+local originalGravity = workspace.Gravity
+
 local runtime = Instance.new("Folder")
-runtime.Name  = "NothriloRuntime"
+runtime.Name  = "CafezitosRuntime"
 runtime.Parent = CoreGui
 
 local runtimeCleanup = Instance.new("BindableEvent")
 runtimeCleanup.Name   = "Cleanup"
 runtimeCleanup.Parent = runtime
 
--- Remove GUIs antigas do Rayfield ou versões anteriores do Nothrilo
-for _, gui in ipairs(CoreGui:GetChildren()) do
-    if gui:IsA("ScreenGui") then
-        if gui.Name:lower():find("rayfield", 1, true) then
-            gui:Destroy()
-        elseif gui.Name == "NothriloLauncher"
-            or gui.Name == "NothriloNotifications"
-            or gui.Name == "NothriloLoading"
-            or gui.Name == "NothriloMobileFly"
-        then
-            gui:Destroy()
-        else
-            local main   = gui:FindFirstChild("Main")
-            local header = main and main:FindFirstChild("MainHeader")
-            local title  = header and header:FindFirstChild("title")
-            if title and title.Text:find("Nothrilo", 1, true) then
+trackConnection(runtimeCleanup.Event:Connect(function()
+    if destroyCafezitos then
+        destroyCafezitos()
+        return
+    end
+    destroyed = true
+    disconnectRuntimeConnections()
+    if runtime and runtime.Parent then runtime:Destroy() end
+end))
+
+-- Remove somente GUIs de versões anteriores do Cafezitos. Não toca no
+-- Nothrilo, no Rayfield nem em interfaces de outros scripts.
+local cafeGuiNames = {
+    CafezitosV2UI = true,
+    CafezitosLauncher = true,
+    CafezitosNotifications = true,
+    CafezitosLoading = true,
+    CafezitosMobileFly = true,
+}
+for _, guiRoot in ipairs(guiRoots) do
+    for _, gui in ipairs(guiRoot:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            if cafeGuiNames[gui.Name] then
                 gui:Destroy()
+            else
+                local main   = gui:FindFirstChild("Main")
+                local header = main and main:FindFirstChild("MainHeader")
+                local title  = header and header:FindFirstChild("title")
+                if title and title.Text:find("Cafezitos", 1, true) then
+                    gui:Destroy()
+                end
             end
         end
     end
@@ -93,7 +140,7 @@ local Theme = {
 -- =============================================================================
 local function showStartupCard()
     local gui  = Instance.new("ScreenGui")
-    gui.Name            = "NothriloLoading"
+    gui.Name            = "CafezitosLoading"
     gui.ResetOnSpawn    = false
     gui.IgnoreGuiInset  = true
     gui.DisplayOrder    = 10050
@@ -103,10 +150,14 @@ local function showStartupCard()
     card.Name            = "Card"
     card.AnchorPoint     = Vector2.new(0.5, 0.5)
     card.Position        = UDim2.fromScale(0.5, 0.5)
-    card.Size            = UDim2.fromOffset(390, 150)
+    card.Size            = UDim2.new(0.9, 0, 0, 150)
     card.BackgroundColor3 = Color3.fromRGB(43, 26, 19)
     card.BorderSizePixel = 0
     card.Parent          = gui
+    local cardSize = Instance.new("UISizeConstraint")
+    cardSize.MinSize = Vector2.new(270, 150)
+    cardSize.MaxSize = Vector2.new(390, 150)
+    cardSize.Parent = card
 
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 16)
@@ -261,13 +312,20 @@ function CafeUI.CreateLib(title)
     -- Em alguns carregamentos a câmera ainda não existe no primeiro frame.
     local camera = workspace.CurrentCamera
     if not camera then
-        workspace:GetPropertyChangedSignal("CurrentCamera"):Wait()
-        camera = workspace.CurrentCamera
+        local deadline = os.clock() + 3
+        repeat
+            task.wait()
+            camera = workspace.CurrentCamera
+        until camera or os.clock() >= deadline
     end
-    local viewport = camera.ViewportSize
-    local mobileLayout = UserInputService.TouchEnabled or viewport.X < 700
-    local normalSize = mobileLayout and UDim2.fromScale(0.92, 0.72) or UDim2.fromScale(0.64, 0.66)
-    local miniSize = mobileLayout and UDim2.fromScale(0.84, 0.54) or UDim2.fromScale(0.48, 0.48)
+    local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+    local function getResponsiveSizes(currentViewport)
+        local mobile = currentViewport.X < 700 or currentViewport.Y < 520
+        local normal = mobile and UDim2.fromScale(0.94, 0.84) or UDim2.fromScale(0.64, 0.66)
+        local mini = mobile and UDim2.fromScale(0.82, 0.62) or UDim2.fromScale(0.48, 0.48)
+        return mobile, normal, mini
+    end
+    local mobileLayout, normalSize, miniSize = getResponsiveSizes(viewport)
 
     local main = ui("Frame", {
         Name = "Main", AnchorPoint = Vector2.new(0.5, 0.5),
@@ -277,8 +335,9 @@ function CafeUI.CreateLib(title)
     corner(main, 22)
     local mainStroke = stroke(main, Color3.fromRGB(120, 74, 46), 1.5, 0.1)
     CafeUI:trackAccent(mainStroke, "Color")
-    ui("UISizeConstraint", {
-        MinSize = Vector2.new(285, 330), MaxSize = Vector2.new(780, 570),
+    local sizeConstraint = ui("UISizeConstraint", {
+        MinSize = mobileLayout and Vector2.new(250, 270) or Vector2.new(420, 350),
+        MaxSize = Vector2.new(780, 570),
     }, main)
 
     local header = ui("Frame", {
@@ -303,7 +362,7 @@ function CafeUI.CreateLib(title)
         Text = title, TextColor3 = Theme.TextColor, TextSize = 20,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, header)
-    ui("TextLabel", {
+    local watermark = ui("TextLabel", {
         BackgroundTransparency = 1, Position = UDim2.fromOffset(74, 39),
         Size = UDim2.new(1, -145, 0, 18), Font = Enum.Font.Gotham,
         Text = "Cappuccino doce • simples de usar", TextColor3 = Color3.fromRGB(255, 223, 188),
@@ -316,7 +375,9 @@ function CafeUI.CreateLib(title)
         TextColor3 = Theme.TextColor, TextSize = 25,
     }, header)
     corner(close, 12)
-    close.Activated:Connect(function() gui:Destroy() end)
+    close.Activated:Connect(function()
+        if destroyCafezitos then destroyCafezitos() else gui:Destroy() end
+    end)
 
     local compact = false
     local resize = ui("TextButton", {
@@ -353,6 +414,18 @@ function CafeUI.CreateLib(title)
         TextColor3 = Color3.fromRGB(255, 226, 193), TextTransparency = 0.91,
         TextSize = mobileLayout and 32 or 48, ZIndex = 0,
     }, pages)
+
+    local function updateResponsiveLayout()
+        local currentCamera = workspace.CurrentCamera
+        if not currentCamera then return end
+        mobileLayout, normalSize, miniSize = getResponsiveSizes(currentCamera.ViewportSize)
+        sizeConstraint.MinSize = mobileLayout and Vector2.new(250, 270) or Vector2.new(420, 350)
+        watermark.TextSize = mobileLayout and 30 or 48
+        main.Size = compact and miniSize or normalSize
+    end
+    if camera then
+        trackConnection(camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateResponsiveLayout))
+    end
 
     local window = { tabs = {}, activeTab = nil, gui = gui }
     local tabEmoji = {
@@ -407,15 +480,17 @@ function CafeUI.CreateLib(title)
                 corner(frame, 12)
                 return frame
             end
-            local function labels(frame, label, description)
-                local title = ui("TextLabel", { Name = "togName", BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 8), Size = UDim2.new(1, -28, 0, 20), Text = label, Font = Enum.Font.GothamBold, TextColor3 = Theme.TextColor, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left }, frame)
-                ui("TextLabel", { BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 30), Size = UDim2.new(1, -28, 0, 17), Text = description or "", Font = Enum.Font.Gotham, TextColor3 = Color3.fromRGB(255, 220, 185), TextSize = 12, TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left }, frame)
+            local function labels(frame, label, description, rightInset)
+                rightInset = rightInset or 0
+                local textWidth = -(28 + rightInset)
+                local title = ui("TextLabel", { Name = "togName", BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 8), Size = UDim2.new(1, textWidth, 0, 20), Text = label, Font = Enum.Font.GothamBold, TextColor3 = Theme.TextColor, TextSize = 15, TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left }, frame)
+                ui("TextLabel", { BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 30), Size = UDim2.new(1, textWidth, 0, 17), Text = description or "", Font = Enum.Font.Gotham, TextColor3 = Color3.fromRGB(255, 220, 185), TextSize = 12, TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left }, frame)
                 return title
             end
 
             function api:NewButton(label, description, callback)
                 local frame = ui("TextButton", { Name = "buttonElement", Size = UDim2.new(1, 0, 0, 62), BackgroundColor3 = Theme.ElementColor, BorderSizePixel = 0, Text = "", AutoButtonColor = false }, section)
-                corner(frame, 12); labels(frame, label, description)
+                corner(frame, 12); labels(frame, label, description, 108)
                 local action = ui("TextLabel", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(37, 37), BackgroundColor3 = Theme.SchemeColor, BorderSizePixel = 0, Text = "›", Font = Enum.Font.GothamBold, TextColor3 = Theme.Background, TextSize = 26 }, frame)
                 corner(action, 10); CafeUI:trackAccent(action, "BackgroundColor3")
                 frame.Activated:Connect(function() if callback then callback() end end)
@@ -424,7 +499,7 @@ function CafeUI.CreateLib(title)
 
             function api:NewToggle(label, description, callback)
                 local frame = ui("TextButton", { Name = "toggleElement", Size = UDim2.new(1, 0, 0, 62), BackgroundColor3 = Theme.ElementColor, BorderSizePixel = 0, Text = "", AutoButtonColor = false }, section)
-                corner(frame, 12); labels(frame, label, description)
+                corner(frame, 12); labels(frame, label, description, 108)
                 local knob = ui("Frame", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(49, 30), BackgroundColor3 = Color3.fromRGB(72, 44, 33), BorderSizePixel = 0 }, frame)
                 corner(knob, 14)
                 local dot = ui("Frame", { Position = UDim2.fromOffset(3, 3), Size = UDim2.fromOffset(22, 22), BackgroundColor3 = Color3.fromRGB(180, 154, 132), BorderSizePixel = 0 }, knob); corner(dot, 11)
@@ -442,36 +517,60 @@ function CafeUI.CreateLib(title)
 
             function api:NewTextBox(label, description, callback)
                 local frame = ui("TextButton", { Name = "textboxElement", Size = UDim2.new(1, 0, 0, 84), BackgroundColor3 = Theme.ElementColor, BorderSizePixel = 0, Text = "", AutoButtonColor = false }, section)
-                corner(frame, 12); labels(frame, label, description)
+                corner(frame, 12); labels(frame, label, description, 0)
                 local input = ui("TextBox", { Position = UDim2.new(0, 13, 1, -34), Size = UDim2.new(1, -26, 0, 27), BackgroundColor3 = Color3.fromRGB(78, 46, 34), BorderSizePixel = 0, PlaceholderText = "Digite aqui...", Text = "", ClearTextOnFocus = false, Font = Enum.Font.Gotham, TextColor3 = Theme.TextColor, PlaceholderColor3 = Color3.fromRGB(239, 196, 158), TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left }, frame)
                 corner(input, 7); addPadding(input, 8)
                 input.FocusLost:Connect(function(enter) if enter and callback then callback(input.Text) end end)
                 return input
             end
 
-            function api:NewSlider(label, description, maximum, minimum, callback)
-                local frame = card(84, "sliderElement"); labels(frame, label, description)
-                local value = minimum or 0
+            function api:NewSlider(label, description, maximum, minimum, defaultValue, callback)
+                -- Compatibilidade com chamadas antigas sem valor padrão.
+                if type(defaultValue) == "function" then
+                    callback = defaultValue
+                    defaultValue = minimum
+                end
+                maximum = maximum or 100
+                minimum = minimum or 0
+                local frame = card(84, "sliderElement"); labels(frame, label, description, 72)
+                local value = math.clamp(tonumber(defaultValue) or minimum, minimum, maximum)
                 local valueLabel = ui("TextLabel", { Position = UDim2.new(1, -64, 0, 8), Size = UDim2.fromOffset(50, 20), BackgroundTransparency = 1, Text = tostring(value), Font = Enum.Font.GothamBold, TextColor3 = Theme.SchemeColor, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Right }, frame); CafeUI:trackAccent(valueLabel, "TextColor3")
                 local bar = ui("TextButton", { Position = UDim2.new(0, 13, 1, -23), Size = UDim2.new(1, -26, 0, 9), BackgroundColor3 = Color3.fromRGB(78, 46, 34), BorderSizePixel = 0, Text = "" }, frame); corner(bar, 5)
-                local fill = ui("Frame", { Size = UDim2.new(0, 0, 1, 0), BackgroundColor3 = Theme.SchemeColor, BorderSizePixel = 0 }, bar); corner(fill, 4); CafeUI:trackAccent(fill, "BackgroundColor3")
+                local range = maximum - minimum
+                local initialPercent = range ~= 0 and ((value - minimum) / range) or 0
+                local fill = ui("Frame", { Size = UDim2.new(initialPercent, 0, 1, 0), BackgroundColor3 = Theme.SchemeColor, BorderSizePixel = 0 }, bar); corner(fill, 4); CafeUI:trackAccent(fill, "BackgroundColor3")
                 local dragging = false
+                local control = {}
+                function control:SetValue(nextValue, invokeCallback)
+                    nextValue = math.clamp(tonumber(nextValue) or minimum, minimum, maximum)
+                    value = nextValue
+                    local percent = range ~= 0 and ((value - minimum) / range) or 0
+                    fill.Size = UDim2.new(percent, 0, 1, 0)
+                    valueLabel.Text = tostring(value)
+                    if invokeCallback ~= false and callback then callback(value) end
+                end
+                function control:GetValue()
+                    return value
+                end
                 local function setFrom(input)
                     local percent = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-                    value = math.floor(((minimum or 0) + ((maximum or 100) - (minimum or 0)) * percent) + 0.5)
-                    fill.Size = UDim2.new(percent, 0, 1, 0); valueLabel.Text = tostring(value)
-                    if callback then callback(value) end
+                    control:SetValue(math.floor((minimum + range * percent) + 0.5), true)
                 end
                 bar.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true; setFrom(input) end end)
-                UserInputService.InputChanged:Connect(function(input) if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then setFrom(input) end end)
-                UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
+                trackConnection(UserInputService.InputChanged:Connect(function(input) if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then setFrom(input) end end))
+                trackConnection(UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end))
+                return control
             end
 
             function api:NewKeybind(label, description, keyCode, callback)
                 local frame = ui("TextButton", { Name = "keybindElement", Size = UDim2.new(1, 0, 0, 62), BackgroundColor3 = Theme.ElementColor, BorderSizePixel = 0, Text = "", AutoButtonColor = false }, section)
-                corner(frame, 12); labels(frame, label, description)
+                corner(frame, 12); labels(frame, label, description, 108)
                 local key = ui("TextLabel", { Name = "key", Position = UDim2.new(1, -49, 0.5, -13), Size = UDim2.fromOffset(37, 26), BackgroundColor3 = Color3.fromRGB(35, 21, 16), BorderSizePixel = 0, Text = keyCode.Name, Font = Enum.Font.GothamBold, TextColor3 = Theme.SchemeColor, TextSize = 11 }, frame); corner(key, 8); CafeUI:trackAccent(key, "TextColor3")
-                UserInputService.InputBegan:Connect(function(input, processed) if not processed and input.KeyCode == keyCode and callback then callback() end end)
+                trackConnection(UserInputService.InputBegan:Connect(function(input, processed)
+                    if destroyed or processed or UserInputService:GetFocusedTextBox() then return end
+                    if input.KeyCode == keyCode and callback then callback() end
+                end))
+                return frame
             end
             return api
         end
@@ -510,7 +609,7 @@ local function notify(title, text)
     end
 
     local card = Instance.new("Frame")
-    card.Name             = "NothriloToast"
+    card.Name             = "CafezitosToast"
     card.Size             = UDim2.new(1, 0, 0, 74)
     card.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
     card.BackgroundTransparency = 1
@@ -532,9 +631,9 @@ local function notify(title, text)
     icon.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
     icon.BackgroundTransparency = 1
     icon.Font             = Enum.Font.GothamBold
-    icon.Text             = "N"
+    icon.Text             = "☕"
     icon.TextColor3       = Color3.fromRGB(255, 255, 255)
-    icon.TextSize         = 18
+    icon.TextSize         = 22
     icon.TextTransparency = 1
     icon.Parent           = card
     Instance.new("UICorner", icon).CornerRadius = UDim.new(1, 0)
@@ -621,7 +720,7 @@ end
 -- =============================================================================
 -- ESP
 -- =============================================================================
-local ESP_TAG             = "NothriloESP"
+local ESP_TAG             = "CafezitosESP"
 local espEnabled          = false
 local espObjects          = {}
 local espPlayerConnections = {}
@@ -665,12 +764,11 @@ local function refreshESPSize(player)
     local targetRoot     = objects.Billboard.Adornee
     if not localRoot or not targetRoot or not targetRoot.Parent then return end
 
-    local distance     = (localRoot.Position - targetRoot.Position).Magnitude
-    local showDistance = 150
-    objects.Billboard.Enabled = distance >= showDistance
-    if not objects.Billboard.Enabled then return end
+    local distance = (localRoot.Position - targetRoot.Position).Magnitude
+    local scaleStartDistance = 150
+    objects.Billboard.Enabled = true
 
-    local progress = math.clamp((distance - showDistance) / 450, 0, 1)
+    local progress = math.clamp((distance - scaleStartDistance) / 450, 0, 1)
     objects.Billboard.Size = UDim2.fromOffset(
         math.floor(82  + (170 - 82)  * progress),
         math.floor(18  + (36  - 18)  * progress)
@@ -790,6 +888,52 @@ local function setESP(enabled)
     notify("ESP", "Ligado: nomes e contornos ativos.")
 end
 
+local flyEnabled = false
+local flyToggleControl
+local boostToggleControl
+local panicToggleControl
+local stopBoost
+local fakeLagActive = false
+local fakeLagSession = 0
+local fakeLagHumanoid
+local desiredWalkSpeed
+local desiredJumpPower
+local desiredJumpHeight
+local createdTools = {}
+
+local activeCameraMode
+local cameraModeStoppers = {}
+
+local function restoreDefaultCamera()
+    local camera = workspace.CurrentCamera
+    if not camera then return end
+    camera.CameraType = Enum.CameraType.Custom
+    local humanoid = getHumanoid()
+    if humanoid then camera.CameraSubject = humanoid end
+end
+
+local function claimCameraMode(mode)
+    if activeCameraMode == mode then return end
+    local previous = activeCameraMode
+    activeCameraMode = mode
+    local stopper = previous and cameraModeStoppers[previous]
+    if stopper then pcall(stopper) end
+end
+
+local function releaseCameraMode(mode)
+    if activeCameraMode ~= mode then return end
+    activeCameraMode = nil
+    restoreDefaultCamera()
+end
+
+local function resetCameraModes()
+    local previous = activeCameraMode
+    activeCameraMode = nil
+    local stopper = previous and cameraModeStoppers[previous]
+    if stopper then pcall(stopper) end
+    restoreDefaultCamera()
+end
+
 -- =============================================================================
 -- Voo (Vehicle Fly)
 -- =============================================================================
@@ -800,6 +944,7 @@ local flyKeyUp
 local flyHumanoid
 local flyAutoRotate
 local flyPlatformStand
+local flySession    = 0
 local mouse        = LocalPlayer:GetMouse()
 local flyTouchUp   = 0
 local flyTouchDown = 0
@@ -814,7 +959,7 @@ local function showMobileFlyControls(visible)
     if not visible then return end
 
     local gui = Instance.new("ScreenGui")
-    gui.Name           = "NothriloMobileFly"
+    gui.Name           = "CafezitosMobileFly"
     gui.ResetOnSpawn   = false
     gui.IgnoreGuiInset = true
     gui.DisplayOrder   = 10020
@@ -880,6 +1025,7 @@ local function showMobileFlyControls(visible)
 end
 
 local function stopFly()
+    flySession = flySession + 1
     FLYING     = false
     flyTouchUp = 0
     flyTouchDown = 0
@@ -890,8 +1036,8 @@ local function stopFly()
 
     local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if root then
-        local gyro = root:FindFirstChild("CafezlVehicleFlyGyro")
-        local velocity = root:FindFirstChild("CafezlVehicleFlyVelocity")
+        local gyro = root:FindFirstChild("CafezitosVehicleFlyGyro")
+        local velocity = root:FindFirstChild("CafezitosVehicleFlyVelocity")
         if gyro then gyro:Destroy() end
         if velocity then velocity:Destroy() end
     end
@@ -908,7 +1054,7 @@ local function stopFly()
     flyHumanoid     = nil
     flyAutoRotate   = nil
     flyPlatformStand = nil
-    pcall(function() workspace.CurrentCamera.CameraType = Enum.CameraType.Custom end)
+    releaseCameraMode("fly")
 end
 
 local function startVehicleFly()
@@ -918,8 +1064,10 @@ local function startVehicleFly()
     local humanoid  = getHumanoid(character)
     if not root or not humanoid then
         notify("Voo do Veículo", "Personagem não encontrado.")
-        return
+        return false
     end
+
+    claimCameraMode("fly")
 
     flyHumanoid      = humanoid
     flyAutoRotate    = humanoid.AutoRotate
@@ -935,18 +1083,20 @@ local function startVehicleFly()
 
     local control     = { F=0, B=0, L=0, R=0, Q=0, E=0 }
     local lastControl = { F=0, B=0, L=0, R=0, Q=0, E=0 }
+    flySession = flySession + 1
+    local session = flySession
     FLYING = true
     showMobileFlyControls(true)
 
     local bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.Name      = "CafezlVehicleFlyGyro"
+    bodyGyro.Name      = "CafezitosVehicleFlyGyro"
     bodyGyro.P         = 90000
     bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
     bodyGyro.CFrame    = root.CFrame
     bodyGyro.Parent    = root
 
     local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.Name     = "CafezlVehicleFlyVelocity"
+    bodyVelocity.Name     = "CafezitosVehicleFlyVelocity"
     bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
     bodyVelocity.Velocity = Vector3.zero
     bodyVelocity.Parent   = root
@@ -960,7 +1110,6 @@ local function startVehicleFly()
         elseif key == "e" then control.Q =  vehicleFlySpeed * 2
         elseif key == "q" then control.E = -vehicleFlySpeed * 2
         end
-        pcall(function() workspace.CurrentCamera.CameraType = Enum.CameraType.Track end)
     end)
 
     flyKeyUp = mouse.KeyUp:Connect(function(key)
@@ -975,8 +1124,11 @@ local function startVehicleFly()
     end)
 
     task.spawn(function()
-        while FLYING and root.Parent and humanoid.Parent do
+        while FLYING and session == flySession and root.Parent and humanoid.Parent do
             task.wait()
+
+            local camera = workspace.CurrentCamera
+            if not camera then break end
 
             local keyboardMoving = (control.L + control.R ~= 0)
                 or (control.F + control.B ~= 0)
@@ -995,14 +1147,13 @@ local function startVehicleFly()
 
             local cur = keyboardMoving and control or lastControl
             if keyboardMoving and spd > 0 then
-                local cam = workspace.CurrentCamera
                 bodyVelocity.Velocity = (
-                    (cam.CFrame.LookVector * (cur.F + cur.B))
-                    + ((cam.CFrame * CFrame.new(
+                    (camera.CFrame.LookVector * (cur.F + cur.B))
+                    + ((camera.CFrame * CFrame.new(
                         cur.L + cur.R,
                         (cur.F + cur.B + cur.Q + cur.E) * 0.2,
                         0
-                    )).Position - cam.CFrame.Position)
+                    )).Position - camera.CFrame.Position)
                 ) * spd
             elseif mobileMoving and spd > 0 then
                 bodyVelocity.Velocity =
@@ -1011,28 +1162,47 @@ local function startVehicleFly()
             else
                 bodyVelocity.Velocity = Vector3.zero
             end
-            bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+            bodyGyro.CFrame = camera.CFrame
         end
         if bodyGyro.Parent    then bodyGyro:Destroy()    end
         if bodyVelocity.Parent then bodyVelocity:Destroy() end
+        if session == flySession and FLYING then
+            if flyEnabled and flyToggleControl then
+                flyToggleControl:UpdateToggle(nil, false)
+            else
+                stopFly()
+            end
+        end
     end)
+    return true
+end
+
+cameraModeStoppers.fly = function()
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
 end
 
 -- =============================================================================
 -- Carrinho: helpers, parada, checkpoints, estabilizador
 -- =============================================================================
 local function findCartFromSeat(seat)
-    if not seat then return nil end
+    if not seat or not seat:IsA("BasePart") then return nil end
+    local assemblyRoot = seat.AssemblyRootPart
     local current = seat.Parent
     local fallback
     while current and current ~= workspace do
         if current:IsA("Model") then
             fallback = fallback or current
-            local partCount = 0
+            local assemblyParts = 0
             for _, object in ipairs(current:GetDescendants()) do
-                if object:IsA("BasePart") then
-                    partCount = partCount + 1
-                    if partCount >= 3 then return current end
+                if object:IsA("BasePart")
+                    and (not assemblyRoot or object.AssemblyRootPart == assemblyRoot)
+                then
+                    assemblyParts = assemblyParts + 1
+                    if assemblyParts >= 2 then return current end
                 end
             end
         end
@@ -1050,43 +1220,59 @@ end
 local function getCartPrimary(cart)
     if not cart then return nil end
     if cart.PrimaryPart then return cart.PrimaryPart end
-    local heaviest, heaviestMass = nil, 0
+    local humanoid = getHumanoid()
+    local seat = humanoid and humanoid.SeatPart
+    if seat and cart:IsAncestorOf(seat) and seat.AssemblyRootPart then
+        return seat.AssemblyRootPart
+    end
+    local firstUnanchored
     for _, part in ipairs(cart:GetDescendants()) do
-        if part:IsA("BasePart") and not part.Anchored and part.AssemblyMass > heaviestMass then
-            heaviest     = part
-            heaviestMass = part.AssemblyMass
+        if part:IsA("BasePart") and not part.Anchored then
+            firstUnanchored = firstUnanchored or part
+            if part.AssemblyRootPart == part then return part end
         end
     end
-    return heaviest
+    return firstUnanchored
 end
 
 local panicParts = {}
+local panicActive = false
 local function restorePanicStop()
     for part, wasAnchored in pairs(panicParts) do
         if part and part.Parent then part.Anchored = wasAnchored end
     end
     panicParts = {}
+    panicActive = false
 end
 
 local function setPanicStop(enabled)
+    if not enabled then
+        restorePanicStop()
+        notify("Carrinho", "Parada de emergência desligada.")
+        return
+    end
+
     local cart = getCurrentCart()
     if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return end
 
-    if enabled then
-        panicParts = {}
-        for _, part in ipairs(cart:GetDescendants()) do
-            if part:IsA("BasePart") then
-                panicParts[part]             = part.Anchored
-                part.Anchored                = true
-                part.AssemblyLinearVelocity  = Vector3.zero
-                part.AssemblyAngularVelocity = Vector3.zero
-            end
-        end
-        notify("Carrinho", "Parada de emergência ligada.")
-    else
-        restorePanicStop()
-        notify("Carrinho", "Parada de emergência desligada.")
+    if stopBoost then stopBoost() end
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
     end
+
+    -- Se a função for chamada novamente enquanto já está ativa, restaura o
+    -- snapshot anterior antes de capturar o novo estado.
+    restorePanicStop()
+    panicActive = true
+    for _, part in ipairs(cart:GetDescendants()) do
+        if part:IsA("BasePart") then
+            panicParts[part]             = part.Anchored
+            part.Anchored                = true
+            part.AssemblyLinearVelocity  = Vector3.zero
+            part.AssemblyAngularVelocity = Vector3.zero
+        end
+    end
+    notify("Carrinho", "Parada de emergência ligada.")
 end
 
 local function teleportCart(cframe)
@@ -1101,14 +1287,18 @@ local function teleportCart(cframe)
 end
 
 local STABILIZER_CONFIG = { NORMAL_FORCE = 2500, DOWNHILL_FORCE = 800 }
-local stabilizer = { enabled = false, cart = nil, forces = {}, heartbeat = nil }
+local stabilizer = { enabled = false, cart = nil, forces = {}, attachments = {}, heartbeat = nil }
 
 local function cleanupStabilizer()
     if stabilizer.heartbeat then stabilizer.heartbeat:Disconnect() stabilizer.heartbeat = nil end
     for _, force in ipairs(stabilizer.forces) do
         if force and force.Parent then force:Destroy() end
     end
+    for _, attachment in ipairs(stabilizer.attachments) do
+        if attachment and attachment.Parent then attachment:Destroy() end
+    end
     stabilizer.forces = {}
+    stabilizer.attachments = {}
     stabilizer.cart   = nil
 end
 
@@ -1141,24 +1331,26 @@ local function getWheels(cart)
 end
 
 local function applyStabilizer(cart)
-    if not cart or not cart.Parent then return end
     cleanupStabilizer()
+    if not cart or not cart.Parent then return end
 
     local wheels = getWheels(cart)
     if #wheels == 0 then notify("Estabilizador", "Nenhuma roda encontrada.") return end
 
     stabilizer.cart = cart
     for _, part in ipairs(wheels) do
-        local att = part:FindFirstChild("_CafezlStabilizer")
+        local att = part:FindFirstChild("_CafezitosStabilizer")
         if not att then
             att        = Instance.new("Attachment")
-            att.Name   = "_CafezlStabilizer"
+            att.Name   = "_CafezitosStabilizer"
             att.Parent = part
+            table.insert(stabilizer.attachments, att)
         end
         local force = Instance.new("VectorForce")
-        force.Name       = "CafezlStabilizerForce"
+        force.Name       = "CafezitosStabilizerForce"
         force.Attachment0 = att
         force.RelativeTo = Enum.ActuatorRelativeTo.World
+        force.ApplyAtCenterOfMass = true
         force.Force      = Vector3.zero
         force.Parent     = part
         table.insert(stabilizer.forces, force)
@@ -1168,14 +1360,15 @@ local function applyStabilizer(cart)
     stabilizer.heartbeat = RunService.Heartbeat:Connect(function()
         if not reference or not reference.Parent then cleanupStabilizer() return end
         local mag = 0
-        if stabilizer.enabled and not FLYING then
+        if stabilizer.enabled and not FLYING and not panicActive then
             mag = math.abs(reference.AssemblyLinearVelocity.Y) > 5
                 and STABILIZER_CONFIG.DOWNHILL_FORCE
                 or  STABILIZER_CONFIG.NORMAL_FORCE
         end
+        local perForce = mag * reference.AssemblyMass / math.max(1, #stabilizer.forces)
         for _, force in ipairs(stabilizer.forces) do
             if force and force.Parent then
-                force.Force = Vector3.new(0, -mag * force.Parent.AssemblyMass, 0)
+                force.Force = Vector3.new(0, -perForce, 0)
             end
         end
     end)
@@ -1191,19 +1384,49 @@ local function refreshStabilizer()
     end
 end
 
+local seatConnection
 local function watchSeat(character)
     local humanoid = getHumanoid(character)
     if not humanoid then return end
-    humanoid.Seated:Connect(function(isSeated, seat)
-        if not isSeated then cleanupStabilizer()
-        elseif stabilizer.enabled then applyStabilizer(findCartFromSeat(seat)) end
-    end)
+    if seatConnection then
+        seatConnection:Disconnect()
+        seatConnection = nil
+    end
+    seatConnection = trackConnection(humanoid.Seated:Connect(function(isSeated, seat)
+        if not isSeated then
+            cleanupStabilizer()
+            restorePanicStop()
+            if stopBoost then stopBoost() end
+            if boostToggleControl then
+                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+            end
+            if panicToggleControl then
+                task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+            end
+        elseif stabilizer.enabled then
+            applyStabilizer(findCartFromSeat(seat))
+        end
+    end))
+end
+
+local function teleportPlayerOrCart(cframe)
+    local cart = getCurrentCart()
+    if cart then return pcall(function() cart:PivotTo(cframe) end) end
+    return teleportCharacter(cframe)
 end
 watchSeat()
-LocalPlayer.CharacterAdded:Connect(function(character)
+trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
     cleanupStabilizer()
+    restorePanicStop()
+    if stopBoost then stopBoost() end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    task.defer(resetCameraModes)
     task.defer(watchSeat, character)
-end)
+end))
 
 -- =============================================================================
 -- Eliminador (Killer)
@@ -1212,16 +1435,13 @@ local function findNearestFreeVehicleSeat()
     local root = getRoot()
     if not root then return nil end
     local bestVS, bestVD = nil, math.huge
-    local bestS,  bestSD = nil, math.huge
     for _, inst in ipairs(workspace:GetDescendants()) do
-        if (inst:IsA("VehicleSeat") or inst:IsA("Seat")) and not inst.Occupant then
+        if inst:IsA("VehicleSeat") and not inst.Occupant then
             local dist = (root.Position - inst.Position).Magnitude
-            if inst:IsA("VehicleSeat") and dist < bestVD then bestVS = inst; bestVD = dist
-            elseif inst:IsA("Seat")   and dist < bestSD then bestS  = inst; bestSD = dist
-            end
+            if dist < bestVD then bestVS = inst; bestVD = dist end
         end
     end
-    return bestVS or bestS
+    return bestVS
 end
 
 local function findPlayerByPartialName(value)
@@ -1258,40 +1478,65 @@ local function sitOnVehicleSeat(seat)
     return false
 end
 
-local function moveToTarget(targetRoot, duration)
+local killerActive = false
+local killerSession = 0
+
+local function moveToTarget(targetRoot, duration, session)
     local root    = getRoot()
     local started = os.clock()
     while os.clock() - started < duration do
-        if not root or not root.Parent or not targetRoot or not targetRoot.Parent then break end
+        if destroyed or not killerActive or session ~= killerSession then return false end
+        if not root or not root.Parent or not targetRoot or not targetRoot.Parent then return false end
         local pos = targetRoot.Position - targetRoot.CFrame.LookVector * 1.2 + Vector3.new(0, 1.5, 0)
         root.CFrame = CFrame.lookAt(pos, targetRoot.Position)
         task.wait()
     end
+    return true
 end
 
-local killerActive = false
-local function finishKiller(message)
+local function finishKiller(message, session)
+    if session and session ~= killerSession then return end
+    killerSession = killerSession + 1
     local humanoid = getHumanoid()
     if humanoid then humanoid.Sit = false end
-    stopFly()
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
     killerActive = false
     if message then notify("Eliminador", message) end
 end
 
 local function executeKiller(partialName)
     if killerActive then notify("Eliminador", "Aguarde a tentativa atual terminar.") return end
+    local target = findPlayerByPartialName(partialName)
+    if not target or target == LocalPlayer then
+        notify("Eliminador", target == LocalPlayer and "Escolha outro jogador." or "Jogador não encontrado.")
+        return
+    end
+
+    killerSession = killerSession + 1
+    local session = killerSession
     killerActive = true
-    stopFly()
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    if stopBoost then stopBoost() end
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
 
     local seat = findNearestFreeVehicleSeat()
-    if not seat    then finishKiller("Não há carrinho livre por perto.") return end
-    if not sitOnVehicleSeat(seat) then finishKiller("Não foi possível sentar no carrinho.") return end
+    if not seat then finishKiller("Não há carrinho livre por perto.", session) return end
+    if not sitOnVehicleSeat(seat) then finishKiller("Não foi possível sentar no carrinho.", session) return end
+    if destroyed or session ~= killerSession then return end
 
-    startVehicleFly()
+    if not startVehicleFly() then finishKiller("Não foi possível iniciar o voo.", session) return end
     task.wait(0.15)
-
-    local target = findPlayerByPartialName(partialName)
-    if not target then finishKiller("Jogador não encontrado.") return end
+    if destroyed or session ~= killerSession then return end
 
     local targetRoot
     local deadline = os.clock() + 2
@@ -1300,21 +1545,26 @@ local function executeKiller(partialName)
         targetRoot = char and char:FindFirstChild("HumanoidRootPart")
         if targetRoot then break end
         task.wait(0.2)
-    until os.clock() >= deadline
+    until os.clock() >= deadline or destroyed or session ~= killerSession
 
-    if not targetRoot then finishKiller("Personagem do alvo não carregou.") return end
-    moveToTarget(targetRoot, 3)
-    finishKiller("Carrinho levado ao alvo.")
+    if not targetRoot then finishKiller("Personagem do alvo não carregou.", session) return end
+    local reached = moveToTarget(targetRoot, 3, session)
+    if session == killerSession then
+        finishKiller(reached and "Carrinho levado ao alvo." or "Tentativa cancelada.", session)
+    end
 end
+
+trackConnection(LocalPlayer.CharacterAdded:Connect(function()
+    killerSession = killerSession + 1
+    killerActive = false
+end))
 
 -- =============================================================================
 -- Variáveis adiantadas (usadas nos callbacks de atalho)
 -- =============================================================================
 local getKavoTextBoxByLabel
 local restoreKavoTextBox
-local flyEnabled   = false
 local infiniteJump = false
-local flyToggleControl
 local espToggleControl
 local infiniteJumpToggleControl
 
@@ -1324,14 +1574,18 @@ local infiniteJumpToggleControl
 local PlayerTab     = Window:NewTab("Jogador")
 local PlayerSection = PlayerTab:NewSection("Configurações do Jogador")
 
-PlayerSection:NewSlider("Velocidade", "Velocidade de caminhada (padrão 16).", 500, 0, function(value)
+local walkSpeedSlider = PlayerSection:NewSlider("Velocidade", "Velocidade de caminhada (padrão 16).", 500, 0, 16, function(value)
+    desiredWalkSpeed = value
     local h = getHumanoid()
-    if h then h.WalkSpeed = value end
+    if h and not fakeLagActive then h.WalkSpeed = value end
 end)
 
 PlayerSection:NewButton("Redefinir Velocidade", "Volta para 16.", function()
+    desiredWalkSpeed = 16
     local h = getHumanoid()
-    if h then h.WalkSpeed = 16; notify("Velocidade", "Redefinida para 16.") end
+    if h and not fakeLagActive then h.WalkSpeed = 16 end
+    walkSpeedSlider:SetValue(16, false)
+    notify("Velocidade", "Redefinida para 16.")
 end)
 
 infiniteJumpToggleControl = PlayerSection:NewToggle(
@@ -1343,11 +1597,11 @@ infiniteJumpToggleControl = PlayerSection:NewToggle(
 
 -- BUG CORRIGIDO: JumpRequest dispara bem, mas não estava verificando se
 -- o humanoid existia antes de chamar ChangeState
-UserInputService.JumpRequest:Connect(function()
+trackConnection(UserInputService.JumpRequest:Connect(function()
     if destroyed or not infiniteJump then return end
     local h = getHumanoid()
     if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
-end)
+end))
 
 local function giveClickTeleportTool()
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
@@ -1365,6 +1619,7 @@ local function giveClickTeleportTool()
         teleportCharacter(CFrame.new(mouse.Hit.Position + Vector3.new(0, 2.5, 0)))
     end)
     tool.Parent = backpack
+    table.insert(createdTools, tool)
     notify("Teleporte por Clique", "Ferramenta criada. Clique no mapa para teleportar.")
 end
 
@@ -1388,8 +1643,23 @@ end)
 
 local function setVehicleFlyEnabled(enabled)
     flyEnabled = enabled
-    if enabled then startVehicleFly(); notify("Voo do Veículo", "Ligado.")
-    else stopFly(); notify("Voo do Veículo", "Desligado.") end
+    if enabled then
+        if stopBoost then stopBoost() end
+        if boostToggleControl then
+            task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+        end
+        if startVehicleFly() then
+            notify("Voo do Veículo", "Ligado.")
+        else
+            flyEnabled = false
+            task.defer(function()
+                if flyToggleControl then flyToggleControl:UpdateToggle(nil, false) end
+            end)
+        end
+    else
+        stopFly()
+        notify("Voo do Veículo", "Desligado.")
+    end
 end
 
 flyToggleControl = PlayerSection:NewToggle(
@@ -1418,24 +1688,41 @@ end)
 local godEnabled = false
 local godConn
 local godRespawnConn
-PlayerSection:NewToggle("God Mode (local)", "Impede que sua vida caia abaixo de 1 localmente.", function(state)
-    godEnabled = state
+local godHumanoid
+local godOriginalMaxHealth
+local godOriginalHealth
+
+local function restoreGodHumanoid()
     if godConn then godConn:Disconnect() godConn = nil end
-    if not state then notify("God Mode", "Desligado.") return end
-
-    local function connectGod()
-        if godConn then godConn:Disconnect(); godConn = nil end
-        local h = getHumanoid()
-        if not h then return end
-        h.MaxHealth = math.huge
-        h.Health    = math.huge
-        godConn = h.HealthChanged:Connect(function()
-            if godEnabled and h and h.Parent and h.Health < 1 then
-                h.Health = h.MaxHealth
-            end
-        end)
+    local h = godHumanoid
+    if h and h.Parent and godOriginalMaxHealth then
+        h.MaxHealth = godOriginalMaxHealth
+        h.Health = math.clamp(godOriginalHealth or godOriginalMaxHealth, 1, godOriginalMaxHealth)
     end
+    godHumanoid, godOriginalMaxHealth, godOriginalHealth = nil, nil, nil
+end
 
+local function connectGod()
+    restoreGodHumanoid()
+    local h = getHumanoid()
+    if not h then return end
+    godHumanoid = h
+    godOriginalMaxHealth = h.MaxHealth
+    godOriginalHealth = h.Health
+    h.MaxHealth = math.huge
+    h.Health = math.huge
+    godConn = h.HealthChanged:Connect(function()
+        if godEnabled and h.Parent and h.Health < 1 then h.Health = h.MaxHealth end
+    end)
+end
+
+local function setGodMode(state)
+    godEnabled = state
+    if not state then
+        restoreGodHumanoid()
+        notify("God Mode", "Desligado.")
+        return
+    end
     connectGod()
     if not godRespawnConn then
         godRespawnConn = LocalPlayer.CharacterAdded:Connect(function()
@@ -1444,7 +1731,13 @@ PlayerSection:NewToggle("God Mode (local)", "Impede que sua vida caia abaixo de 
         end)
     end
     notify("God Mode", "Ligado (só funciona localmente).")
-end)
+end
+
+PlayerSection:NewToggle(
+    "God Mode (local)",
+    "Impede que sua vida caia abaixo de 1 localmente.",
+    setGodMode
+)
 
 -- Novo: Anti-AFK — previne kick por inatividade
 local antiAfkEnabled = false
@@ -1503,7 +1796,7 @@ TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", funct
     local giver = misc and misc:FindFirstChild("Giver")
     local part  = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart"))
     if not part then notify("Teleporte", "Misc.Giver não encontrado.") return end
-    if teleportCharacter(part.CFrame * CFrame.new(0, 3, 0)) then
+    if teleportPlayerOrCart(part.CFrame * CFrame.new(0, 3, 0)) then
         notify("Teleporte", "Teleportado para a sala secreta.")
     end
 end)
@@ -1525,7 +1818,11 @@ end
 local CartTab     = Window:NewTab("Carrinho")
 local CartSection = CartTab:NewSection("Controle do Carrinho")
 
-CartSection:NewToggle("Parada de Emergência", "Para e trava o carrinho.", setPanicStop)
+panicToggleControl = CartSection:NewToggle(
+    "Parada de Emergência",
+    "Para e trava o carrinho.",
+    setPanicStop
+)
 
 CartSection:NewButton("Ir ao Checkpoint 1", "NumPad 1.", function() teleportToCheckpoint(1) end)
 CartSection:NewButton("Ir ao Checkpoint 2", "NumPad 2.", function() teleportToCheckpoint(2) end)
@@ -1602,29 +1899,45 @@ local boostActive     = false
 local boostForce      = 500
 local boostConnection
 local boostBodyForce  = nil
+local boostAttachment
+local boostAttachmentCreated = false
+local boostCartRoot
 
-local function stopBoost()
+stopBoost = function()
     boostActive = false
     if boostConnection then boostConnection:Disconnect() boostConnection = nil end
     if boostBodyForce and boostBodyForce.Parent then
         boostBodyForce:Destroy()
-        boostBodyForce = nil
     end
+    if boostAttachmentCreated and boostAttachment and boostAttachment.Parent then
+        boostAttachment:Destroy()
+    end
+    boostBodyForce = nil
+    boostAttachment = nil
+    boostAttachmentCreated = false
+    boostCartRoot = nil
 end
 
 local function startBoost()
     stopBoost()
+    if panicActive or FLYING or killerActive then
+        notify("Boost", "Indisponível durante parada, voo ou Eliminador.")
+        return false
+    end
     local cart = getCurrentCart()
-    if not cart then notify("Boost", "Sente em um carrinho primeiro.") return end
+    if not cart then notify("Boost", "Sente em um carrinho primeiro.") return false end
     local primary = getCartPrimary(cart)
-    if not primary then notify("Boost", "Estrutura do carrinho não reconhecida.") return end
+    if not primary then notify("Boost", "Estrutura do carrinho não reconhecida.") return false end
+    boostCartRoot = primary.AssemblyRootPart or primary
 
     local attachment = primary:FindFirstChild("CafezitosBoostAttachment")
     if not attachment then
         attachment = Instance.new("Attachment")
         attachment.Name = "CafezitosBoostAttachment"
         attachment.Parent = primary
+        boostAttachmentCreated = true
     end
+    boostAttachment = attachment
 
     local bf = Instance.new("VectorForce")
     bf.Name = "CafezitosBoost"
@@ -1637,22 +1950,43 @@ local function startBoost()
 
     boostActive = true
     boostConnection = RunService.Heartbeat:Connect(function()
-        if not boostActive or not primary.Parent or not bf.Parent then stopBoost() return end
+        local currentCart = getCurrentCart()
+        local currentPrimary = currentCart and getCartPrimary(currentCart)
+        local currentRoot = currentPrimary and (currentPrimary.AssemblyRootPart or currentPrimary)
+        if not boostActive or panicActive or FLYING or killerActive
+            or not primary.Parent or not bf.Parent
+            or currentCart ~= cart or currentRoot ~= boostCartRoot
+        then
+            stopBoost()
+            if boostToggleControl then
+                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+            end
+            return
+        end
         bf.Force = Vector3.new(0, 0, -boostForce * primary.AssemblyMass * 60)
     end)
     notify("Boost", "Ligado — força " .. boostForce .. ".")
+    return true
 end
 
-local boostToggleControl
 boostToggleControl = BoostSection:NewToggle(
     "Boost do Carrinho", "Empurra pra frente. Tecla B.", function(state)
-        if state then startBoost() else stopBoost(); notify("Boost", "Desligado.") end
+        if state then
+            if not startBoost() then
+                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+            end
+        else
+            stopBoost()
+            notify("Boost", "Desligado.")
+        end
     end
 )
 
-BoostSection:NewSlider("Força do Boost", "Intensidade (padrão 500).", 3000, 0, function(value)
+BoostSection:NewSlider("Força do Boost", "Intensidade (padrão 500).", 3000, 0, 500, function(value)
     boostForce = value
-    if boostActive then stopBoost(); startBoost() end
+    if boostActive and not startBoost() then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
 end)
 
 -- Anti-Flip com cooldown correto
@@ -1669,7 +2003,7 @@ BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticame
     end
 
     antiFlipConn = RunService.Heartbeat:Connect(function()
-        if not antiFlipEnabled or antiFlipCooldown then return end
+        if not antiFlipEnabled or antiFlipCooldown or panicActive or FLYING or killerActive then return end
         local cart = getCurrentCart()
         if not cart then return end
         local primary = getCartPrimary(cart)
@@ -1704,7 +2038,7 @@ BoostSection:NewToggle("Freio Automático", "Trava ao detectar queda livre.", fu
     end
 
     autobrakeConn = RunService.Heartbeat:Connect(function()
-        if not autobrakeEnabled or autobrakeCooldown then return end
+        if not autobrakeEnabled or autobrakeCooldown or panicActive or FLYING or killerActive then return end
         local cart = getCurrentCart()
         if not cart then return end
         local primary = getCartPrimary(cart)
@@ -1712,6 +2046,12 @@ BoostSection:NewToggle("Freio Automático", "Trava ao detectar queda livre.", fu
 
         if primary.AssemblyLinearVelocity.Y < -35 then
             autobrakeCooldown = true
+            if boostActive then
+                stopBoost()
+                if boostToggleControl then
+                    task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+                end
+            end
             for _, part in ipairs(cart:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part.AssemblyLinearVelocity  = Vector3.zero
@@ -1746,7 +2086,7 @@ local function restoreNoclip()
     table.clear(noclipOriginal)
 end
 
-RunService.Stepped:Connect(function()
+trackConnection(RunService.Stepped:Connect(function()
     if not noclipEnabled then return end
     local character = LocalPlayer.Character
     if not character then return end
@@ -1758,7 +2098,7 @@ RunService.Stepped:Connect(function()
             part.CanCollide = false
         end
     end
-end)
+end))
 
 ExtrasSection:NewToggle("Noclip", "Atravessa paredes durante o teste.", function(enabled)
     noclipEnabled = enabled
@@ -1792,23 +2132,43 @@ ExtrasSection:NewToggle("Invisível (local)", "Só você se vê transparente.", 
     notify("Invisível", enabled and "Ligado (só você vê)." or "Desligado.")
 end)
 
-ExtrasSection:NewSlider("Jump Power", "Altura do pulo (padrão 50).", 300, 0, function(value)
+trackConnection(LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.25)
+    if invisEnabled and not destroyed then setLocalInvisible(true) end
+end))
+
+local jumpPowerSlider = ExtrasSection:NewSlider("Jump Power", "Altura do pulo (padrão 50).", 300, 0, 50, function(value)
     local h = getHumanoid()
-    if h then h.JumpPower = value end
+    if h then
+        if h.UseJumpPower then desiredJumpPower = value
+        else desiredJumpHeight = value end
+        if not fakeLagActive then
+            if h.UseJumpPower then h.JumpPower = value else h.JumpHeight = value end
+        end
+    end
 end)
 
 ExtrasSection:NewButton("Redefinir Jump Power", "Volta para 50.", function()
     local h = getHumanoid()
-    if h then h.JumpPower = 50; notify("Jump Power", "Redefinido para 50.") end
+    if h then
+        if h.UseJumpPower then desiredJumpPower = 50
+        else desiredJumpHeight = 7.2 end
+        if not fakeLagActive then
+            if h.UseJumpPower then h.JumpPower = 50 else h.JumpHeight = 7.2 end
+        end
+    end
+    jumpPowerSlider:SetValue(50, false)
+    notify("Jump Power", "Redefinido.")
 end)
 
-ExtrasSection:NewSlider("Gravidade", "Gravidade global (padrão 196.2).", 400, 0, function(value)
+local gravitySlider = ExtrasSection:NewSlider("Gravidade", "Gravidade global (padrão 196.2).", 400, 0, math.clamp(originalGravity, 0, 400), function(value)
     workspace.Gravity = value
 end)
 
-ExtrasSection:NewButton("Redefinir Gravidade", "Volta para 196.2.", function()
-    workspace.Gravity = 196.2
-    notify("Gravidade", "Redefinida para 196.2.")
+ExtrasSection:NewButton("Redefinir Gravidade", "Volta ao valor original do jogo.", function()
+    workspace.Gravity = originalGravity
+    gravitySlider:SetValue(math.clamp(originalGravity, 0, 400), false)
+    notify("Gravidade", "Valor original restaurado.")
 end)
 
 -- Salvar / restaurar posição (funciona pra jogador e carrinho)
@@ -1908,18 +2268,34 @@ end)
 local freecamActive = false
 local freecamConn
 local freecamSpeed  = 1
+local freecamToggleControl
 
-MapSection:NewToggle("Câmera Livre", "WASD move, Q/E sobe e desce.", function(state)
-    freecamActive = state
-    local camera  = workspace.CurrentCamera
+local function stopFreecam()
+    freecamActive = false
+    if freecamConn then freecamConn:Disconnect() freecamConn = nil end
+    releaseCameraMode("freecam")
+end
 
+cameraModeStoppers.freecam = function()
+    if freecamToggleControl then freecamToggleControl:UpdateToggle(nil, false)
+    else stopFreecam() end
+end
+
+freecamToggleControl = MapSection:NewToggle("Câmera Livre", "WASD move, Q/E sobe e desce.", function(state)
     if not state then
-        if freecamConn then freecamConn:Disconnect() freecamConn = nil end
-        camera.CameraType = Enum.CameraType.Custom
+        stopFreecam()
         notify("Câmera Livre", "Desligada.")
         return
     end
 
+    claimCameraMode("freecam")
+    freecamActive = true
+    local camera = workspace.CurrentCamera
+    if not camera then
+        stopFreecam()
+        task.defer(function() freecamToggleControl:UpdateToggle(nil, false) end)
+        return
+    end
     camera.CameraType = Enum.CameraType.Scriptable
     local cf = camera.CFrame
 
@@ -1936,12 +2312,13 @@ MapSection:NewToggle("Câmera Livre", "WASD move, Q/E sobe e desce.", function(s
             cf = CFrame.new(cf.Position + move * freecamSpeed) * (cf - cf.Position)
         end
         camera.CFrame = cf
+        camera.Focus = cf * CFrame.new(0, 0, -12)
     end)
 
     notify("Câmera Livre", "WASD move, Q/E sobe e desce. Desative para voltar.")
 end)
 
-MapSection:NewSlider("Velocidade da Câmera Livre", "Velocidade de movimento (1–10).", 10, 1, function(value)
+MapSection:NewSlider("Velocidade da Câmera Livre", "Velocidade de movimento (1–10).", 10, 1, 1, function(value)
     freecamSpeed = value
 end)
 
@@ -1982,10 +2359,20 @@ local TrollSection = TrollTab:NewSection("Diversão")
 -- Câmera giratória com duração ajustável
 local spinDuration = 5
 local spinConn
-TrollSection:NewButton("Câmera Giratória", "Gira a câmera por alguns segundos.", function()
+
+local function stopSpin(silent)
     if spinConn then spinConn:Disconnect() spinConn = nil end
-    local camera     = workspace.CurrentCamera
-    local origType   = camera.CameraType
+    releaseCameraMode("spin")
+    if not silent then notify("Troll", "Câmera voltou ao normal.") end
+end
+
+cameraModeStoppers.spin = function() stopSpin(true) end
+
+TrollSection:NewButton("Câmera Giratória", "Gira a câmera por alguns segundos.", function()
+    stopSpin(true)
+    claimCameraMode("spin")
+    local camera = workspace.CurrentCamera
+    if not camera then releaseCameraMode("spin") return end
     camera.CameraType = Enum.CameraType.Scriptable
     local startTime  = os.clock()
     local origin     = camera.CFrame
@@ -1993,56 +2380,62 @@ TrollSection:NewButton("Câmera Giratória", "Gira a câmera por alguns segundos
     spinConn = RunService.RenderStepped:Connect(function()
         local elapsed = os.clock() - startTime
         if elapsed >= spinDuration then
-            spinConn:Disconnect()
-            spinConn = nil
-            camera.CameraType = origType
-            notify("Troll", "Câmera voltou ao normal.")
+            stopSpin(false)
             return
         end
         local angle = elapsed * math.pi * 2
         camera.CFrame = CFrame.new(origin.Position)
             * CFrame.Angles(0, angle, 0)
             * CFrame.new(0, 0, -10)
+        camera.Focus = CFrame.new(origin.Position)
     end)
     notify("Troll", "Câmera girando por " .. spinDuration .. "s.")
 end)
 
-TrollSection:NewSlider("Duração Câmera (s)", "Segundos de giro.", 30, 1, function(value)
+TrollSection:NewSlider("Duração Câmera (s)", "Segundos de giro.", 30, 1, 5, function(value)
     spinDuration = value
 end)
 
 -- Fake Lag ajustável
 local fakeLagDuration = 2
-local fakeLagSession = 0
-local fakeLagHumanoid, fakeLagWalkSpeed, fakeLagJumpPower
+
+local function restoreFakeLag()
+    local h = fakeLagHumanoid
+    fakeLagActive = false
+    if h and h.Parent then
+        h.WalkSpeed = desiredWalkSpeed or 16
+        if h.UseJumpPower then h.JumpPower = desiredJumpPower or 50
+        else h.JumpHeight = desiredJumpHeight or 7.2 end
+    end
+    fakeLagHumanoid = nil
+end
+
 TrollSection:NewButton("Fake Lag", "Congela você por alguns segundos.", function()
     local h = getHumanoid()
     if not h then return end
-    if fakeLagHumanoid and fakeLagHumanoid.Parent then
-        fakeLagHumanoid.WalkSpeed = fakeLagWalkSpeed
-        fakeLagHumanoid.JumpPower = fakeLagJumpPower
+    if not fakeLagActive then
+        desiredWalkSpeed = desiredWalkSpeed or h.WalkSpeed
+        desiredJumpPower = desiredJumpPower or h.JumpPower
+        desiredJumpHeight = desiredJumpHeight or h.JumpHeight
+    elseif fakeLagHumanoid ~= h then
+        restoreFakeLag()
     end
     fakeLagSession = fakeLagSession + 1
     local session = fakeLagSession
-    local prevSpeed = h.WalkSpeed
-    local prevJump  = h.JumpPower
-    fakeLagHumanoid, fakeLagWalkSpeed, fakeLagJumpPower = h, prevSpeed, prevJump
+    fakeLagActive = true
+    fakeLagHumanoid = h
     h.WalkSpeed = 0
-    h.JumpPower = 0
+    if h.UseJumpPower then h.JumpPower = 0 else h.JumpHeight = 0 end
     notify("Troll", "Fake lag por " .. fakeLagDuration .. "s.")
     task.spawn(function()
         task.wait(fakeLagDuration)
         if session ~= fakeLagSession or destroyed then return end
-        if h and h.Parent then
-            h.WalkSpeed = prevSpeed
-            h.JumpPower = prevJump
-        end
-        fakeLagHumanoid, fakeLagWalkSpeed, fakeLagJumpPower = nil, nil, nil
+        restoreFakeLag()
         notify("Troll", "Fake lag encerrado.")
     end)
 end)
 
-TrollSection:NewSlider("Duração Fake Lag (s)", "Duração em segundos.", 15, 1, function(value)
+TrollSection:NewSlider("Duração Fake Lag (s)", "Duração em segundos.", 15, 1, 2, function(value)
     fakeLagDuration = value
 end)
 
@@ -2050,29 +2443,38 @@ end)
 local spectating  = false
 local spectateConn
 
+local function stopSpectate(silent)
+    spectating = false
+    if spectateConn then spectateConn:Disconnect() spectateConn = nil end
+    releaseCameraMode("spectate")
+    if not silent then notify("Spectate", "Parado.") end
+end
+
+cameraModeStoppers.spectate = function() stopSpectate(true) end
+
 TrollSection:NewTextBox("Spectate Jogador", "Nome do jogador. Enter para seguir.", function(value)
     local player = findPlayerByPartialName(value)
-    if not player then notify("Spectate", "Jogador não encontrado.") return end
-    if spectateConn then spectateConn:Disconnect() end
+    if not player or player == LocalPlayer then notify("Spectate", "Escolha outro jogador.") return end
+    stopSpectate(true)
+    claimCameraMode("spectate")
     spectating = true
     local camera = workspace.CurrentCamera
+    if not camera then stopSpectate(true) return end
     camera.CameraType = Enum.CameraType.Scriptable
 
     spectateConn = RunService.RenderStepped:Connect(function()
         if not spectating then return end
         local char = player.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
-        if not root then return end
+        if not root then stopSpectate(false) return end
         camera.CFrame = CFrame.new(root.Position + Vector3.new(0, 8, -14), root.Position)
+        camera.Focus = CFrame.new(root.Position)
     end)
     notify("Spectate", "Seguindo " .. player.DisplayName .. ".")
 end)
 
 TrollSection:NewButton("Parar Spectate", "Para de seguir.", function()
-    spectating = false
-    if spectateConn then spectateConn:Disconnect() spectateConn = nil end
-    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-    notify("Spectate", "Parado.")
+    stopSpectate(false)
 end)
 
 -- Teleporte aleatório — filtra partes visíveis e grandes
@@ -2097,12 +2499,15 @@ end)
 -- Minimizar / reabrir + drag
 -- =============================================================================
 local function findMenuGui()
-    for _, gui in ipairs(CoreGui:GetChildren()) do
-        if gui:IsA("ScreenGui") then
-            local main   = gui:FindFirstChild("Main")
-            local header = main and main:FindFirstChild("MainHeader")
-            local title  = header and header:FindFirstChild("title")
-            if title and title.Text == UI_TITLE then return gui end
+    for _, guiRoot in ipairs(guiRoots) do
+        for _, gui in ipairs(guiRoot:GetChildren()) do
+            if gui:IsA("ScreenGui") then
+                if gui.Name == "CafezitosV2UI" then return gui end
+                local main   = gui:FindFirstChild("Main", true)
+                local header = main and main:FindFirstChild("MainHeader")
+                local title  = header and header:FindFirstChild("title")
+                if title and title.Text == UI_TITLE then return gui end
+            end
         end
     end
     return nil
@@ -2111,8 +2516,11 @@ end
 local menuGui = findMenuGui()
 local commandsTabButton
 if not menuGui then
-    warn(MENU_NAME .. ": não foi possível localizar a janela Kavo.")
-    return
+    warn(MENU_NAME .. ": não foi possível localizar a janela principal.")
+    menuGui = Instance.new("ScreenGui")
+    menuGui.Name = "CafezitosFallbackHost"
+    menuGui.ResetOnSpawn = false
+    menuGui.Parent = CoreGui
 end
 
 -- Arredonda todos os UICorner
@@ -2122,9 +2530,9 @@ local function applyRoundedStyle(root)
     end
 end
 applyRoundedStyle(menuGui)
-menuGui.DescendantAdded:Connect(function(object)
+trackConnection(menuGui.DescendantAdded:Connect(function(object)
     if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
-end)
+end))
 
 -- Textbox helper: encontra pela label ao lado
 getKavoTextBoxByLabel = function(labelText)
@@ -2169,8 +2577,6 @@ configureKavoTextBox("Força em Descidas", "800",  800)
 local customKeybindIcons = {}
 
 local function addShortcutBadge(labelText, keyText)
-    -- Os badges antigos eram feitos para a Kavo e sobrepunham letras na Cafezitos.
-    if menuGui.Name == "CafezitosV2UI" then return end
     for _, element in ipairs(menuGui:GetDescendants()) do
         if element:IsA("TextButton") then
             local title
@@ -2180,12 +2586,13 @@ local function addShortcutBadge(labelText, keyText)
                 end
             end
 
-            if title and not element:FindFirstChild("NothriloShortcut_" .. keyText) then
+            if title and not element:FindFirstChild("CafezitosShortcut_" .. keyText) then
                 local badgeWidth = keyText == "1/2/3" and 42 or 21
                 local badge      = Instance.new("TextButton")
-                badge.Name           = "NothriloShortcut_" .. keyText
+                badge.Name           = "CafezitosShortcut_" .. keyText
                 badge.Size           = UDim2.fromOffset(badgeWidth, 21)
-                badge.Position       = UDim2.new(0.84, -(badgeWidth - 21), 0.18, 0)
+                badge.AnchorPoint    = Vector2.new(1, 0)
+                badge.Position       = UDim2.new(1, -66, 0, 9)
                 badge.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
                 badge.BorderSizePixel = 0
                 badge.AutoButtonColor = false
@@ -2208,8 +2615,8 @@ local function addShortcutBadge(labelText, keyText)
                     elseif keyText == "3"     then teleportToCheckpoint(3)
                     elseif keyText == "1/2/3" then notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
                     elseif keyText == "B"     then boostToggleControl:UpdateToggle(nil, not boostActive)
-                    elseif keyText == "K"     then setMenuVisible(false)
-                    elseif keyText == "X" and destroyNothrilo then destroyNothrilo()
+                    elseif keyText == "K" and setMenuVisible then setMenuVisible(false)
+                    elseif keyText == "X" and destroyCafezitos then destroyCafezitos()
                     end
                 end)
                 return
@@ -2234,7 +2641,7 @@ local function replaceKeybindLeftIcon(labelText, iconText)
                 if oldIcon  then oldIcon.Visible  = false end
                 if keyLabel then keyLabel.Visible = false end
                 local icon = Instance.new("TextLabel")
-                icon.Name             = "NothriloKeyIcon"
+                icon.Name             = "CafezitosKeyIcon"
                 icon.Size             = UDim2.fromOffset(21, 21)
                 icon.Position         = UDim2.new(0.02, 0, 0.18, 0)
                 icon.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
@@ -2264,7 +2671,7 @@ addShortcutBadge("Ir ao Checkpoint 3",  "3")
 
 -- Sistema de toast
 local toastGui = Instance.new("ScreenGui")
-toastGui.Name           = "NothriloNotifications"
+toastGui.Name           = "CafezitosNotifications"
 toastGui.ResetOnSpawn   = false
 toastGui.IgnoreGuiInset = true
 toastGui.DisplayOrder   = 10001
@@ -2320,14 +2727,14 @@ local function enableDrag(target, handle, onDragEnd)
         end
     end)
 
-    UserInputService.InputChanged:Connect(function(input)
+    trackConnection(UserInputService.InputChanged:Connect(function(input)
         if dragging and input == dragInput then updatePos(input) end
-    end)
+    end))
 end
 
 -- Launcher (botão para reabrir quando minimizado)
 local launcherGui = Instance.new("ScreenGui")
-launcherGui.Name           = "NothriloLauncher"
+launcherGui.Name           = "CafezitosLauncher"
 launcherGui.ResetOnSpawn   = false
 launcherGui.IgnoreGuiInset = true
 launcherGui.DisplayOrder   = 10000
@@ -2360,9 +2767,6 @@ launcherIcon.TextSize = 32
 launcherIcon.Parent   = launcher
 
 destroyed = false
--- BUG CORRIGIDO: setMenuVisible precisava ser declarada antes de ser referenciada
--- nos callbacks de badge. Agora é local forward-declared corretamente.
-local setMenuVisible
 setMenuVisible = function(visible)
     if destroyed then return end
     menuGui.Enabled    = visible
@@ -2405,7 +2809,7 @@ end)
 -- =============================================================================
 -- Atalhos de teclado globais
 -- =============================================================================
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
+trackConnection(UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if destroyed or gameProcessed or UserInputService:GetFocusedTextBox() then return end
 
     if input.KeyCode == Enum.KeyCode.V then
@@ -2427,29 +2831,28 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     elseif input.KeyCode == Enum.KeyCode.K then
         setMenuVisible(not menuGui.Enabled)
     elseif input.KeyCode == Enum.KeyCode.X then
-        destroyNothrilo()
+        destroyCafezitos()
     end
-end)
+end))
 
 -- =============================================================================
 -- Destruição limpa
 -- =============================================================================
 local running = true
-destroyNothrilo = function()
+destroyCafezitos = function()
     if destroyed then return end
     destroyed    = true
     running      = false
     killerActive = false
+    killerSession = killerSession + 1
     infiniteJump = false
+    disconnectRuntimeConnections()
 
     fakeLagSession = fakeLagSession + 1
-    if fakeLagHumanoid and fakeLagHumanoid.Parent then
-        fakeLagHumanoid.WalkSpeed = fakeLagWalkSpeed
-        fakeLagHumanoid.JumpPower = fakeLagJumpPower
-    end
-    fakeLagHumanoid, fakeLagWalkSpeed, fakeLagJumpPower = nil, nil, nil
-
-    if spinConn then spinConn:Disconnect() spinConn = nil end
+    restoreFakeLag()
+    stopSpin(true)
+    stopSpectate(true)
+    stopFreecam()
 
     noclipEnabled = false
     restoreNoclip()
@@ -2458,7 +2861,7 @@ destroyNothrilo = function()
 
     godEnabled = false
     if godRespawnConn then godRespawnConn:Disconnect(); godRespawnConn = nil end
-    if godConn then godConn:Disconnect(); godConn = nil end
+    restoreGodHumanoid()
 
     antiAfkEnabled = false
     if antiAfkConn then antiAfkConn:Disconnect(); antiAfkConn = nil end
@@ -2475,9 +2878,14 @@ destroyNothrilo = function()
 
     if antiFlipConn    then antiFlipConn:Disconnect()    antiFlipConn    = nil end
     if autobrakeConn   then autobrakeConn:Disconnect()   autobrakeConn   = nil end
-    if freecamConn     then freecamConn:Disconnect()     freecamConn     = nil end
-    if spectateConn    then spectateConn:Disconnect()    spectateConn    = nil end
-    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+    activeCameraMode = nil
+    restoreDefaultCamera()
+
+    for index = #createdTools, 1, -1 do
+        local tool = createdTools[index]
+        if tool and tool.Parent then tool:Destroy() end
+        createdTools[index] = nil
+    end
 
     if flyMobileGui and flyMobileGui.Parent then flyMobileGui:Destroy() end
     if toastGui     and toastGui.Parent     then toastGui:Destroy()     end
@@ -2485,8 +2893,6 @@ destroyNothrilo = function()
     if menuGui      and menuGui.Parent      then menuGui:Destroy()      end
     if runtime      and runtime.Parent      then runtime:Destroy()      end
 end
-
-runtimeCleanup.Event:Connect(destroyNothrilo)
 
 -- =============================================================================
 -- ABA: Comandos (atalhos listados)
@@ -2509,7 +2915,7 @@ CommandsSection:NewButton("NumPad 1/2/3  •  Checkpoints","Teclado numérico", 
     notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
 end)
 CommandsSection:NewButton("K  •  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
-CommandsSection:NewButton("X  •  Fechar o Cafezitos",   "Tecla X", destroyNothrilo)
+CommandsSection:NewButton("X  •  Fechar o Cafezitos",   "Tecla X", destroyCafezitos)
 
 addShortcutBadge("V  •  Voo do Veículo",        "V")
 addShortcutBadge("L  •  ESP",                   "L")
@@ -2538,9 +2944,9 @@ end)
 local GuiTab     = Window:NewTab("Interface")
 local GuiSection = GuiTab:NewSection("Interface")
 
-GuiSection:NewKeybind("Fechar Menu", "Tecla X fecha o Cafezitos.", Enum.KeyCode.X, destroyNothrilo)
-replaceKeybindLeftIcon("Fechar Menu", "X")
-addShortcutBadge("Fechar Menu", "X")
+-- O atalho X já é tratado pelo listener global. Aqui fica apenas o botão,
+-- evitando dois callbacks para a mesma tecla.
+GuiSection:NewButton("Fechar Menu", "Tecla X também fecha o Cafezitos.", destroyCafezitos)
 
 -- =============================================================================
 -- Loop RGB

@@ -7,9 +7,33 @@ local Players        = game:GetService("Players")
 local RunService     = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService   = game:GetService("TweenService")
-local StarterGui     = game:GetService("StarterGui")
+
+-- Token compartilhado entre execuções/skins. Se uma segunda execução começar
+-- enquanto esta ainda espera PlayerGui ou um frame de render, a antiga aborta.
+local suiteGuard = { environment = _G }
+if type(getgenv) == "function" then
+    local ok, environment = pcall(getgenv)
+    if ok and type(environment) == "table" then suiteGuard.environment = environment end
+end
+suiteGuard.generation = (tonumber(suiteGuard.environment.__CafezlSuiteGeneration) or 0) + 1
+local storedGeneration = pcall(function()
+    suiteGuard.environment.__CafezlSuiteGeneration = suiteGuard.generation
+end)
+if not storedGeneration then
+    -- Alguns ambientes expõem um getgenv somente-leitura. O _G continua
+    -- servindo como coordenador para impedir dois bootstraps simultâneos.
+    suiteGuard.environment = _G
+    suiteGuard.generation = (tonumber(_G.__CafezlSuiteGeneration) or 0) + 1
+    _G.__CafezlSuiteGeneration = suiteGuard.generation
+end
+local function isCurrentSuiteGeneration()
+    return suiteGuard.environment.__CafezlSuiteGeneration == suiteGuard.generation
+end
 
 local LocalPlayer  = Players.LocalPlayer
+if not LocalPlayer then
+    error("Cafezitos: Players.LocalPlayer não está disponível; execute no cliente.")
+end
 local MENU_NAME    = "Cafezitos V2 ☕"
 local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
 
@@ -31,10 +55,14 @@ local function getGuiParent()
         if accepted then return coreGui end
     end
 
-    return LocalPlayer:WaitForChild("PlayerGui")
+    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        or LocalPlayer:WaitForChild("PlayerGui", 5)
+    if playerGui then return playerGui end
+    error("Cafezitos: não foi possível encontrar um local permitido para a interface.")
 end
 
 local CoreGui      = getGuiParent()
+if not isCurrentSuiteGeneration() then return end
 local guiRoots = {}
 local guiRootSet = {}
 local function addGuiRoot(root)
@@ -251,7 +279,13 @@ end
 -- =============================================================================
 -- CAFÉ UI — interface própria, responsiva para PC e celular
 -- =============================================================================
-local CafeUI = { accent = Theme.SchemeColor, accentObjects = {} }
+local CafeUI = {
+    accent = Theme.SchemeColor,
+    accentObjects = {},
+    traceback = debug and debug.traceback or function(errorValue)
+        return tostring(errorValue)
+    end,
+}
 
 local function ui(className, properties, parent)
     local object = Instance.new(className)
@@ -309,15 +343,9 @@ function CafeUI.CreateLib(title)
         BorderSizePixel = 0,
     }, gui)
 
-    -- Em alguns carregamentos a câmera ainda não existe no primeiro frame.
+    -- A câmera pode ainda não existir no primeiro frame. O layout nasce com um
+    -- viewport seguro e será religado quando CurrentCamera aparecer.
     local camera = workspace.CurrentCamera
-    if not camera then
-        local deadline = os.clock() + 3
-        repeat
-            task.wait()
-            camera = workspace.CurrentCamera
-        until camera or os.clock() >= deadline
-    end
     local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
     local function getResponsiveSizes(currentViewport)
         local mobile = currentViewport.X < 700 or currentViewport.Y < 520
@@ -362,7 +390,7 @@ function CafeUI.CreateLib(title)
         Text = title, TextColor3 = Theme.TextColor, TextSize = 20,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, header)
-    local watermark = ui("TextLabel", {
+    ui("TextLabel", {
         BackgroundTransparency = 1, Position = UDim2.fromOffset(74, 39),
         Size = UDim2.new(1, -145, 0, 18), Font = Enum.Font.Gotham,
         Text = "Cappuccino doce • simples de usar", TextColor3 = Color3.fromRGB(255, 223, 188),
@@ -407,7 +435,7 @@ function CafeUI.CreateLib(title)
         BackgroundTransparency = 1, BorderSizePixel = 0,
     }, main)
 
-    ui("TextLabel", {
+    local watermark = ui("TextLabel", {
         Name = "CoffeeWatermark", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.56),
         Size = UDim2.fromScale(0.9, 0.55), BackgroundTransparency = 1,
         Text = "☕  C A F E Z I T O S  ☕", Font = Enum.Font.GothamBlack,
@@ -423,9 +451,22 @@ function CafeUI.CreateLib(title)
         watermark.TextSize = mobileLayout and 30 or 48
         main.Size = compact and miniSize or normalSize
     end
-    if camera then
-        trackConnection(camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateResponsiveLayout))
+    local viewportConnection
+    local function bindViewportCamera()
+        if viewportConnection then
+            viewportConnection:Disconnect()
+            viewportConnection = nil
+        end
+        camera = workspace.CurrentCamera
+        if camera then
+            viewportConnection = trackConnection(
+                camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateResponsiveLayout)
+            )
+            updateResponsiveLayout()
+        end
     end
+    bindViewportCamera()
+    trackConnection(workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera))
 
     local window = { tabs = {}, activeTab = nil, gui = gui }
     local tabEmoji = {
@@ -582,19 +623,60 @@ function CafeUI.CreateLib(title)
     return window
 end
 
-local startupGui, startupStatus = showStartupCard()
+local startup = {}
+startup.gui, startup.status = showStartupCard()
+startup.finished = false
+
+startup.fail = function(reason)
+    if startup.finished or destroyed then return end
+    warn(MENU_NAME .. " startup: " .. tostring(reason))
+    if startup.status and startup.status.Parent then
+        startup.status.Text = "Não foi possível abrir • veja o console"
+    end
+    task.delay(1.5, function()
+        if startup.finished or destroyed then return end
+        destroyed = true
+        disconnectRuntimeConnections()
+        for _, guiRoot in ipairs(guiRoots) do
+            for _, gui in ipairs(guiRoot:GetChildren()) do
+                if gui:IsA("ScreenGui") and (
+                    cafeGuiNames[gui.Name]
+                    or gui.Name == "CafezitosFallbackHost"
+                ) then
+                    gui:Destroy()
+                end
+            end
+        end
+        if runtime and runtime.Parent then runtime:Destroy() end
+    end)
+end
+
+-- Se uma exceção interromper o arquivo no meio da montagem, a tela de loading
+-- não fica presa para sempre.
+task.delay(10, function()
+    if not startup.finished and not destroyed and isCurrentSuiteGeneration() then
+        startup.fail("tempo limite durante a montagem")
+    end
+end)
 
 -- A UI é local: não baixa biblioteca externa e abre igual no PC e no mobile.
-if startupStatus then startupStatus.Text = "Moendo os grãos..." end
-task.wait(0.65)
-if startupStatus and startupStatus.Parent then startupStatus.Text = "Extraindo o espresso..." end
-task.wait(0.65)
-if startupStatus and startupStatus.Parent then startupStatus.Text = "Servindo a sua mesa..." end
-task.wait(0.65)
-if startupGui and startupGui.Parent then startupGui:Destroy() end
+if startup.status then startup.status.Text = "Montando a interface..." end
+task.wait()
+if destroyed or not runtime.Parent or not isCurrentSuiteGeneration() then return end
 
-local Library = CafeUI
-local Window  = Library.CreateLib(UI_TITLE, Theme)
+local Window
+do
+    local createOk, windowOrError = xpcall(function()
+        return CafeUI.CreateLib(UI_TITLE, Theme)
+    end, CafeUI.traceback)
+    if not createOk then
+        startup.fail(windowOrError)
+        return
+    end
+    Window = windowOrError
+end
+if Window.gui then Window.gui.Enabled = false end
+if startup.status and startup.status.Parent then startup.status.Text = "Montando funções e atalhos..." end
 
 -- =============================================================================
 -- Sistema de notificações (toasts)
@@ -688,23 +770,17 @@ end
 -- Helpers de personagem
 -- =============================================================================
 local function getCharacter()
-    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    return LocalPlayer.Character
 end
 
 local function getHumanoid(character)
-    character = character or getCharacter()
-    return character and (
-        character:FindFirstChildOfClass("Humanoid")
-        or character:WaitForChild("Humanoid", 5)
-    )
+    character = character or LocalPlayer.Character
+    return character and character:FindFirstChildOfClass("Humanoid")
 end
 
 local function getRoot(character)
-    character = character or getCharacter()
-    return character and (
-        character:FindFirstChild("HumanoidRootPart")
-        or character:WaitForChild("HumanoidRootPart", 5)
-    )
+    character = character or LocalPlayer.Character
+    return character and character:FindFirstChild("HumanoidRootPart")
 end
 
 local function teleportCharacter(cframe)
@@ -1211,18 +1287,73 @@ local function findCartFromSeat(seat)
     return fallback
 end
 
+-- O carrinho so muda quando o Humanoid senta/troca de assento. Manter esse
+-- snapshot evita repetir GetDescendants em todo Heartbeat dos controladores.
+local cartCache = {
+    humanoid = nil,
+    seat = nil,
+    cart = nil,
+    assemblyRoot = nil,
+    primary = nil,
+}
+
+local function clearCurrentCartCache()
+    cartCache.humanoid = nil
+    cartCache.seat = nil
+    cartCache.cart = nil
+    cartCache.assemblyRoot = nil
+    cartCache.primary = nil
+end
+
+local function cacheCurrentCart(humanoid, seat)
+    clearCurrentCartCache()
+    if not humanoid or not seat or not seat:IsA("BasePart") or not seat.Parent then
+        return nil
+    end
+    cartCache.humanoid = humanoid
+    cartCache.seat = seat
+    cartCache.assemblyRoot = seat.AssemblyRootPart
+    cartCache.cart = findCartFromSeat(seat)
+    cartCache.primary = cartCache.assemblyRoot
+        or (cartCache.cart and cartCache.cart.PrimaryPart)
+    return cartCache.cart
+end
+
 local function getCurrentCart()
     local humanoid = getHumanoid()
-    return humanoid and findCartFromSeat(humanoid.SeatPart) or nil
+    local seat = humanoid and humanoid.SeatPart
+    if not humanoid or not seat or not seat.Parent then
+        clearCurrentCartCache()
+        return nil
+    end
+
+    if cartCache.humanoid == humanoid
+        and cartCache.seat == seat
+        and cartCache.cart
+        and cartCache.cart.Parent
+        and cartCache.cart:IsAncestorOf(seat)
+        and (not cartCache.assemblyRoot or cartCache.assemblyRoot.Parent)
+        and cartCache.assemblyRoot == seat.AssemblyRootPart
+    then
+        return cartCache.cart
+    end
+    return cacheCurrentCart(humanoid, seat)
 end
 
 -- Retorna a parte principal do carrinho de forma robusta
 local function getCartPrimary(cart)
     if not cart then return nil end
-    if cart.PrimaryPart then return cart.PrimaryPart end
+    if cartCache.cart == cart and cartCache.primary and cartCache.primary.Parent then
+        return cartCache.primary
+    end
+    if cart.PrimaryPart then
+        if cartCache.cart == cart then cartCache.primary = cart.PrimaryPart end
+        return cart.PrimaryPart
+    end
     local humanoid = getHumanoid()
     local seat = humanoid and humanoid.SeatPart
     if seat and cart:IsAncestorOf(seat) and seat.AssemblyRootPart then
+        if cartCache.cart == cart then cartCache.primary = seat.AssemblyRootPart end
         return seat.AssemblyRootPart
     end
     local firstUnanchored
@@ -1232,6 +1363,7 @@ local function getCartPrimary(cart)
             if part.AssemblyRootPart == part then return part end
         end
     end
+    if cartCache.cart == cart then cartCache.primary = firstUnanchored end
     return firstUnanchored
 end
 
@@ -1386,7 +1518,12 @@ end
 
 local seatConnection
 local function watchSeat(character)
-    local humanoid = getHumanoid(character)
+    -- Este watcher roda em task.defer/CharacterAdded, nunca em Heartbeat.
+    -- Um unico wait limitado cobre personagens cujo Humanoid chega depois.
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    if not humanoid and character and character.Parent then
+        humanoid = character:WaitForChild("Humanoid", 5)
+    end
     if not humanoid then return end
     if seatConnection then
         seatConnection:Disconnect()
@@ -1394,6 +1531,7 @@ local function watchSeat(character)
     end
     seatConnection = trackConnection(humanoid.Seated:Connect(function(isSeated, seat)
         if not isSeated then
+            clearCurrentCartCache()
             cleanupStabilizer()
             restorePanicStop()
             if stopBoost then stopBoost() end
@@ -1403,8 +1541,9 @@ local function watchSeat(character)
             if panicToggleControl then
                 task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
             end
-        elseif stabilizer.enabled then
-            applyStabilizer(findCartFromSeat(seat))
+        else
+            local cart = cacheCurrentCart(humanoid, seat)
+            if stabilizer.enabled then applyStabilizer(cart) end
         end
     end))
 end
@@ -1414,8 +1553,19 @@ local function teleportPlayerOrCart(cframe)
     if cart then return pcall(function() cart:PivotTo(cframe) end) end
     return teleportCharacter(cframe)
 end
-watchSeat()
+do
+    local initialCharacter = LocalPlayer.Character
+    if initialCharacter then
+        task.defer(function()
+            if not destroyed and isCurrentSuiteGeneration() then
+                watchSeat(initialCharacter)
+            end
+        end)
+    end
+end
 trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
+    if destroyed or not isCurrentSuiteGeneration() then return end
+    clearCurrentCartCache()
     cleanupStabilizer()
     restorePanicStop()
     fakeLagSession = fakeLagSession + 1
@@ -1585,8 +1735,7 @@ local infiniteJumpToggleControl
 -- =============================================================================
 -- ABA: Jogador
 -- =============================================================================
-local PlayerTab     = Window:NewTab("Jogador")
-local PlayerSection = PlayerTab:NewSection("Configurações do Jogador")
+local PlayerSection = Window:NewTab("Jogador"):NewSection("Configurações do Jogador")
 
 local walkSpeedSlider = PlayerSection:NewSlider("Velocidade", "Velocidade de caminhada (padrão 16).", 500, 0, 16, function(value)
     desiredWalkSpeed = value
@@ -1784,8 +1933,7 @@ end)
 -- =============================================================================
 -- ABA: Teleporte
 -- =============================================================================
-local TeleportTab     = Window:NewTab("Teleporte")
-local TeleportSection = TeleportTab:NewSection("Teleportes")
+local TeleportSection = Window:NewTab("Teleporte"):NewSection("Teleportes")
 
 TeleportSection:NewButton("Início", "Teleporta para o início da trilha.", function()
     if teleportCharacter(CFrame.new(1, 3.11, 38)) then
@@ -1906,8 +2054,7 @@ end)
 -- =============================================================================
 -- ABA: Cart+ (boost, anti-flip, freio automático)
 -- =============================================================================
-local CartExtraTab  = Window:NewTab("Cart+")
-local BoostSection  = CartExtraTab:NewSection("Boost e Física")
+local BoostSection  = Window:NewTab("Cart+"):NewSection("Boost e Física")
 
 local boostActive     = false
 local boostForce      = 500
@@ -2083,8 +2230,7 @@ end)
 -- =============================================================================
 -- ABA: Extras (jogador)
 -- =============================================================================
-local ExtrasTab    = Window:NewTab("Extras")
-local ExtrasSection = ExtrasTab:NewSection("Movimento e Física")
+local ExtrasSection = Window:NewTab("Extras"):NewSection("Movimento e Física")
 
 -- Noclip corrigido: CanCollide precisa ser reposto a cada Stepped
 -- porque o motor físico reseta automaticamente
@@ -2204,8 +2350,7 @@ end)
 -- =============================================================================
 -- ABA: Mapa
 -- =============================================================================
-local MapTab     = Window:NewTab("Mapa")
-local MapSection = MapTab:NewSection("Exploração")
+local MapSection = Window:NewTab("Mapa"):NewSection("Exploração")
 
 -- Ir até parte por nome — busca com prioridade (exato > começo > contém)
 MapSection:NewTextBox("Ir até Parte", "Nome da parte no workspace. Enter.", function(value)
@@ -2339,8 +2484,7 @@ end)
 -- =============================================================================
 -- ABA: Eliminador
 -- =============================================================================
-local KillerTab     = Window:NewTab("Eliminador")
-local KillerSection = KillerTab:NewSection("Controle de Alvo")
+local KillerSection = Window:NewTab("Eliminador"):NewSection("Controle de Alvo")
 local targetName    = ""
 
 KillerSection:NewTextBox("Nome do Alvo", "Parte do nome. Enter.", function(value)
@@ -2356,7 +2500,7 @@ KillerSection:NewButton("Alcançar Alvo", "Usa o carrinho livre mais próximo.",
     task.spawn(function()
         local ok, err = xpcall(function()
             executeKiller(requested)
-        end, debug.traceback)
+        end, CafeUI.traceback)
         if not ok then
             warn(MENU_NAME .. " Killer: " .. err)
             if killerActive then finishKiller("Erro na tentativa. Tente de novo.") end
@@ -2367,8 +2511,7 @@ end)
 -- =============================================================================
 -- ABA: Troll
 -- =============================================================================
-local TrollTab     = Window:NewTab("Troll")
-local TrollSection = TrollTab:NewSection("Diversão")
+local TrollSection = Window:NewTab("Troll"):NewSection("Diversão")
 
 -- Câmera giratória com duração ajustável
 local spinDuration = 5
@@ -2549,15 +2692,24 @@ trackConnection(menuGui.DescendantAdded:Connect(function(object)
 end))
 
 -- Textbox helper: encontra pela label ao lado
-getKavoTextBoxByLabel = function(labelText)
-    for _, element in ipairs(menuGui:GetDescendants()) do
-        if element:IsA("TextButton") and element.Name == "textboxElement" then
-            local title = element:FindFirstChild("togName")
-            local input = element:FindFirstChildOfClass("TextBox")
-            if title and title.Text == labelText and input then return input end
+do
+local textBoxesByLabel = {}
+for _, element in ipairs(menuGui:GetDescendants()) do
+    if element:IsA("TextButton") and element.Name == "textboxElement" then
+        local title = element:FindFirstChild("togName")
+        local input = element:FindFirstChildOfClass("TextBox")
+        if title and input then
+            textBoxesByLabel[title.Text] = input
+            if input.PlaceholderText == "Type here!" then
+                input.PlaceholderText = "Digite aqui..."
+            end
         end
     end
-    return nil
+end
+
+getKavoTextBoxByLabel = function(labelText)
+    local input = textBoxesByLabel[labelText]
+    return input and input.Parent and input or nil
 end
 
 restoreKavoTextBox = function(labelText, value)
@@ -2574,33 +2726,38 @@ local function configureKavoTextBox(labelText, placeholder, value)
     if value ~= nil then input.Text = tostring(value) end
 end
 
--- Traduz placeholders para PT-BR
-for _, object in ipairs(menuGui:GetDescendants()) do
-    if object:IsA("TextBox") and object.PlaceholderText == "Type here!" then
-        object.PlaceholderText = "Digite aqui..."
-    end
-end
-
 configureKavoTextBox("Ir até Jogador",    "Nome ou começo do nome", nil)
 configureKavoTextBox("Velocidade do Voo", "Digite a velocidade",    nil)
 configureKavoTextBox("Nome do Alvo",      "Nome ou começo do nome", nil)
 configureKavoTextBox("Força Normal",      "2500", 2500)
 configureKavoTextBox("Força em Descidas", "800",  800)
+end
 
 -- Badges de atalho (quadrinhos com a tecla no canto direito de cada item)
 local customKeybindIcons = {}
+local shortcutElementsByLabel
 
-local function addShortcutBadge(labelText, keyText)
+local function rebuildShortcutElementIndex()
+    shortcutElementsByLabel = {}
     for _, element in ipairs(menuGui:GetDescendants()) do
         if element:IsA("TextButton") then
-            local title
-            for _, child in ipairs(element:GetDescendants()) do
-                if child:IsA("TextLabel") and child.Text == labelText then
-                    title = child; break
+            local title = element:FindFirstChild("togName")
+            if title and title:IsA("TextLabel") then
+                local list = shortcutElementsByLabel[title.Text]
+                if not list then
+                    list = {}
+                    shortcutElementsByLabel[title.Text] = list
                 end
+                table.insert(list, element)
             end
+        end
+    end
+end
 
-            if title and not element:FindFirstChild("CafezitosShortcut_" .. keyText) then
+local function addShortcutBadge(labelText, keyText)
+    if not shortcutElementsByLabel then rebuildShortcutElementIndex() end
+    for _, element in ipairs(shortcutElementsByLabel[labelText] or {}) do
+        if element.Parent and not element:FindFirstChild("CafezitosShortcut_" .. keyText) then
                 local badgeWidth = keyText == "1/2/3" and 42 or 21
                 local badge      = Instance.new("TextButton")
                 badge.Name           = "CafezitosShortcut_" .. keyText
@@ -2633,42 +2790,6 @@ local function addShortcutBadge(labelText, keyText)
                     elseif keyText == "X" and destroyCafezitos then destroyCafezitos()
                     end
                 end)
-                return
-            end
-        end
-    end
-end
-
-local function replaceKeybindLeftIcon(labelText, iconText)
-    if menuGui.Name == "CafezitosV2UI" then return end
-    for _, element in ipairs(menuGui:GetDescendants()) do
-        if element:IsA("TextButton") and element.Name == "keybindElement" then
-            local titleLabel, keyLabel
-            for _, child in ipairs(element:GetChildren()) do
-                if child:IsA("TextLabel") and child.Name == "togName" then
-                    if child.Position.X.Scale < 0.2 then titleLabel = child
-                    else keyLabel = child end
-                end
-            end
-            if titleLabel and titleLabel.Text == labelText then
-                local oldIcon = element:FindFirstChild("touch")
-                if oldIcon  then oldIcon.Visible  = false end
-                if keyLabel then keyLabel.Visible = false end
-                local icon = Instance.new("TextLabel")
-                icon.Name             = "CafezitosKeyIcon"
-                icon.Size             = UDim2.fromOffset(21, 21)
-                icon.Position         = UDim2.new(0.02, 0, 0.18, 0)
-                icon.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
-                icon.BorderSizePixel  = 0
-                icon.Font             = Enum.Font.GothamBold
-                icon.Text             = iconText
-                icon.TextColor3       = Theme.SchemeColor
-                icon.TextSize         = 12
-                icon.Parent           = element
-                Instance.new("UICorner", icon).CornerRadius = UDim.new(0, 4)
-                table.insert(customKeybindIcons, icon)
-                return
-            end
         end
     end
 end
@@ -2699,10 +2820,12 @@ toastContainer.Size               = UDim2.fromOffset(300, 300)
 toastContainer.BackgroundTransparency = 1
 toastContainer.Parent             = toastGui
 
-local toastLayout = Instance.new("UIListLayout")
-toastLayout.Padding    = UDim.new(0, 8)
-toastLayout.SortOrder  = Enum.SortOrder.LayoutOrder
-toastLayout.Parent     = toastContainer
+do
+    local toastLayout = Instance.new("UIListLayout")
+    toastLayout.Padding    = UDim.new(0, 8)
+    toastLayout.SortOrder  = Enum.SortOrder.LayoutOrder
+    toastLayout.Parent     = toastContainer
+end
 
 -- Drag helper (mouse e touch)
 local function enableDrag(target, handle, onDragEnd)
@@ -2767,62 +2890,64 @@ launcher.Visible          = false
 launcher.Parent           = launcherGui
 Instance.new("UICorner", launcher).CornerRadius = UDim.new(1, 0)
 
-local launcherStroke = Instance.new("UIStroke")
-launcherStroke.Thickness = 2.5
-launcherStroke.Parent    = launcher
+CafeUI.launcherStroke = Instance.new("UIStroke")
+CafeUI.launcherStroke.Thickness = 2.5
+CafeUI.launcherStroke.Parent    = launcher
 
-local launcherIcon = Instance.new("TextLabel")
-launcherIcon.BackgroundTransparency = 1
-launcherIcon.Size     = UDim2.fromScale(1, 1)
-launcherIcon.Position = UDim2.fromOffset(0, 0)
-launcherIcon.Font     = Enum.Font.GothamBold
-launcherIcon.Text     = "☕"
-launcherIcon.TextSize = 32
-launcherIcon.Parent   = launcher
+CafeUI.launcherIcon = Instance.new("TextLabel")
+CafeUI.launcherIcon.BackgroundTransparency = 1
+CafeUI.launcherIcon.Size     = UDim2.fromScale(1, 1)
+CafeUI.launcherIcon.Position = UDim2.fromOffset(0, 0)
+CafeUI.launcherIcon.Font     = Enum.Font.GothamBold
+CafeUI.launcherIcon.Text     = "☕"
+CafeUI.launcherIcon.TextSize = 32
+CafeUI.launcherIcon.Parent   = launcher
 
-destroyed = false
 setMenuVisible = function(visible)
     if destroyed then return end
     menuGui.Enabled    = visible
     launcher.Visible   = not visible
 end
 
-local main   = menuGui:FindFirstChild("Main")
-local header = main and main:FindFirstChild("MainHeader")
-local originalClose = header and header:FindFirstChild("close")
-if originalClose then
-    originalClose.Visible = false
-    originalClose.Active  = false
+do
+    local main   = menuGui:FindFirstChild("Main")
+    local header = main and main:FindFirstChild("MainHeader")
+    local originalClose = header and header:FindFirstChild("close")
+    if originalClose then
+        originalClose.Visible = false
+        originalClose.Active  = false
+    end
+
+    if header then
+        local minimize = Instance.new("TextButton")
+        minimize.Name             = "Minimize"
+        minimize.Size             = UDim2.fromOffset(28, 24)
+        minimize.Position         = UDim2.new(1, -34, 0, 2)
+        minimize.BackgroundTransparency = 1
+        minimize.AutoButtonColor  = false
+        minimize.Font             = Enum.Font.GothamBold
+        minimize.Text             = "—"
+        minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
+        minimize.TextSize         = 20
+        minimize.Parent           = header
+        minimize.MouseButton1Click:Connect(function() setMenuVisible(false) end)
+        enableDrag(main, header)
+    end
 end
 
-if header then
-    local minimize = Instance.new("TextButton")
-    minimize.Name             = "Minimize"
-    minimize.Size             = UDim2.fromOffset(28, 24)
-    minimize.Position         = UDim2.new(1, -34, 0, 2)
-    minimize.BackgroundTransparency = 1
-    minimize.AutoButtonColor  = false
-    minimize.Font             = Enum.Font.GothamBold
-    minimize.Text             = "—"
-    minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
-    minimize.TextSize         = 20
-    minimize.Parent           = header
-    minimize.MouseButton1Click:Connect(function() setMenuVisible(false) end)
-    enableDrag(main, header)
-end
-
-local launcherLastDrag = 0
+CafeUI.launcherLastDrag = 0
 enableDrag(launcher, launcher, function(wasDragged)
-    if wasDragged then launcherLastDrag = os.clock() end
+    if wasDragged then CafeUI.launcherLastDrag = os.clock() end
 end)
 launcher.Activated:Connect(function()
-    if os.clock() - launcherLastDrag < 0.25 then return end
+    if os.clock() - CafeUI.launcherLastDrag < 0.25 then return end
     setMenuVisible(true)
 end)
 
 -- =============================================================================
 -- Atalhos de teclado globais
 -- =============================================================================
+if destroyed or not runtime.Parent or not isCurrentSuiteGeneration() then return end
 trackConnection(UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if destroyed or gameProcessed or UserInputService:GetFocusedTextBox() then return end
 
@@ -2852,11 +2977,9 @@ end))
 -- =============================================================================
 -- Destruição limpa
 -- =============================================================================
-local running = true
 destroyCafezitos = function()
     if destroyed then return end
     destroyed    = true
-    running      = false
     killerActive = false
     killerSession = killerSession + 1
     infiniteJump = false
@@ -2911,14 +3034,9 @@ end
 -- =============================================================================
 -- ABA: Comandos (atalhos listados)
 -- =============================================================================
-local CommandsTab     = Window:NewTab("Comandos")
-commandsTabButton     = menuGui:FindFirstChild("ComandosTabButton", true)
-local CommandsSection = CommandsTab:NewSection("Atalhos")
-
-local function addCmd(label, desc, fn)
-    CommandsSection:NewButton(label, desc, fn)
-    addShortcutBadge(label, label:sub(1, 1))
-end
+do
+local CommandsSection = Window:NewTab("Comandos"):NewSection("Atalhos")
+commandsTabButton = menuGui:FindFirstChild("ComandosTabButton", true)
 
 CommandsSection:NewButton("V  •  Voo do Veículo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
 CommandsSection:NewButton("L  •  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
@@ -2931,6 +3049,9 @@ end)
 CommandsSection:NewButton("K  •  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
 CommandsSection:NewButton("X  •  Fechar o Cafezitos",   "Tecla X", destroyCafezitos)
 
+-- As linhas de Comandos acabaram de ser criadas; um único reindex substitui
+-- as várias varreduras integrais que existiam no boot.
+shortcutElementsByLabel = nil
 addShortcutBadge("V  •  Voo do Veículo",        "V")
 addShortcutBadge("L  •  ESP",                   "L")
 addShortcutBadge("P  •  Pulo Infinito",         "P")
@@ -2939,34 +3060,24 @@ addShortcutBadge("B  •  Boost do Carrinho",     "B")
 addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
 addShortcutBadge("K  •  Minimizar / Abrir",     "K")
 addShortcutBadge("X  •  Fechar o Cafezitos",    "X")
-
-task.delay(0.3, function()
-    if not menuGui or not menuGui.Parent then return end
-    addShortcutBadge("V  •  Voo do Veículo",        "V")
-    addShortcutBadge("L  •  ESP",                   "L")
-    addShortcutBadge("P  •  Pulo Infinito",         "P")
-    addShortcutBadge("T  •  Teleporte por Clique",  "T")
-    addShortcutBadge("B  •  Boost do Carrinho",     "B")
-    addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
-    addShortcutBadge("K  •  Minimizar / Abrir",     "K")
-    addShortcutBadge("X  •  Fechar o Cafezitos",    "X")
-end)
+end
 
 -- =============================================================================
 -- ABA: Interface
 -- =============================================================================
-local GuiTab     = Window:NewTab("Interface")
-local GuiSection = GuiTab:NewSection("Interface")
+do
+    local GuiSection = Window:NewTab("Interface"):NewSection("Interface")
 
--- O atalho X já é tratado pelo listener global. Aqui fica apenas o botão,
--- evitando dois callbacks para a mesma tecla.
-GuiSection:NewButton("Fechar Menu", "Tecla X também fecha o Cafezitos.", destroyCafezitos)
+    -- O atalho X já é tratado pelo listener global. Aqui fica apenas o botão,
+    -- evitando dois callbacks para a mesma tecla.
+    GuiSection:NewButton("Fechar Menu", "Tecla X também fecha o Cafezitos.", destroyCafezitos)
+end
 
 -- =============================================================================
 -- Loop RGB
 -- =============================================================================
 task.spawn(function()
-    while running and not destroyed and menuGui.Parent and launcherGui.Parent do
+    while not destroyed and menuGui.Parent and launcherGui.Parent do
         -- Pulso caramelo: mantém o tema café sem virar arco-íris.
         local pulse = (math.sin(os.clock() * 1.2) + 1) * 0.5
         local rgb = Color3.fromRGB(
@@ -2974,12 +3085,12 @@ task.spawn(function()
             math.floor(112 + 42 * pulse),
             math.floor(57 + 27 * pulse)
         )
-        Library:ChangeColor("SchemeColor", rgb)
+        CafeUI:ChangeColor("SchemeColor", rgb)
         if commandsTabButton and commandsTabButton.Parent then
             commandsTabButton.BackgroundColor3 = rgb
         end
-        launcherStroke.Color = rgb
-        launcherIcon.TextColor3 = rgb
+        CafeUI.launcherStroke.Color = rgb
+        CafeUI.launcherIcon.TextColor3 = rgb
         for i = #customKeybindIcons, 1, -1 do
             local icon = customKeybindIcons[i]
             if icon and icon.Parent then icon.TextColor3 = rgb
@@ -2994,4 +3105,8 @@ task.spawn(function()
     end
 end)
 
+startup.finished = true
+if Window.gui and Window.gui.Parent then Window.gui.Enabled = true end
+if startup.status and startup.status.Parent then startup.status.Text = "Pronto!" end
+if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
 notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")

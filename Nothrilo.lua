@@ -10,12 +10,36 @@ local TweenService   = game:GetService("TweenService")
 local StarterGui     = game:GetService("StarterGui")
 
 local LocalPlayer  = Players.LocalPlayer
+if not LocalPlayer then return end
 local MENU_NAME    = "Nothrilo 🇧🇷"
 local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
 
+-- Token compartilhado entre as skins. Uma execução nova invalida imediatamente
+-- qualquer bootstrap antigo que ainda esteja esperando PlayerGui/GUI.
+local suiteEnvironment = _G
+if type(getgenv) == "function" then
+    local ok, environment = pcall(getgenv)
+    if ok and type(environment) == "table" then suiteEnvironment = environment end
+end
+local suiteGeneration = (tonumber(suiteEnvironment.__CafezlSuiteGeneration) or 0) + 1
+do
+    local storedGeneration = pcall(function()
+        suiteEnvironment.__CafezlSuiteGeneration = suiteGeneration
+    end)
+    if not storedGeneration then
+        suiteEnvironment = _G
+        suiteGeneration = (tonumber(suiteEnvironment.__CafezlSuiteGeneration) or 0) + 1
+        suiteEnvironment.__CafezlSuiteGeneration = suiteGeneration
+    end
+end
+
+local function isCurrentSuiteGeneration()
+    return suiteEnvironment.__CafezlSuiteGeneration == suiteGeneration
+end
+
 -- Alguns ambientes bloqueiam GUI direto em CoreGui e outros usam gethui().
 -- Escolher o pai aqui evita o menu morrer antes mesmo de aparecer.
-local function getGuiParent()
+local CoreGui = (function()
     if type(gethui) == "function" then
         local ok, parent = pcall(gethui)
         if ok and parent then return parent end
@@ -31,26 +55,31 @@ local function getGuiParent()
         if accepted then return coreGui end
     end
 
-    return LocalPlayer:WaitForChild("PlayerGui")
+    return LocalPlayer:FindFirstChildOfClass("PlayerGui")
+        or LocalPlayer:FindFirstChild("PlayerGui")
+end)()
+if not isCurrentSuiteGeneration() then return end
+if not CoreGui then
+    warn(MENU_NAME .. ": PlayerGui/CoreGui ainda não está disponível.")
+    return
 end
 
-local CoreGui      = getGuiParent()
-
--- A Kavo sempre cria a janela em game.CoreGui, enquanto alguns executores
--- retornam outro container em gethui(). Mantenha todos os locais possíveis
--- para localizar e limpar a interface completa sem perder as abas finais.
+-- A UI clássica local usa o pai escolhido acima. Os outros roots entram apenas
+-- na descoberta/limpeza de versões antigas que ainda possam estar abertas.
 local guiRoots = {}
-local guiRootSet = {}
-local function addGuiRoot(root)
-    if root and not guiRootSet[root] then
-        guiRootSet[root] = true
-        table.insert(guiRoots, root)
+do
+    local guiRootSet = {}
+    local function addGuiRoot(root)
+        if root and not guiRootSet[root] then
+            guiRootSet[root] = true
+            table.insert(guiRoots, root)
+        end
     end
-end
 
-addGuiRoot(CoreGui)
-pcall(function() addGuiRoot(game:GetService("CoreGui")) end)
-addGuiRoot(LocalPlayer:FindFirstChild("PlayerGui"))
+    addGuiRoot(CoreGui)
+    pcall(function() addGuiRoot(game:GetService("CoreGui")) end)
+    addGuiRoot(LocalPlayer:FindFirstChild("PlayerGui"))
+end
 
 local destroyNothrilo
 local destroyed = false
@@ -83,25 +112,27 @@ local runtime = Instance.new("Folder")
 runtime.Name  = "NothriloRuntime"
 runtime.Parent = CoreGui
 
-local runtimeCleanup = Instance.new("BindableEvent")
-runtimeCleanup.Name   = "Cleanup"
-runtimeCleanup.Parent = runtime
+do
+    local runtimeCleanup = Instance.new("BindableEvent")
+    runtimeCleanup.Name   = "Cleanup"
+    runtimeCleanup.Parent = runtime
 
--- O handler existe desde o começo da inicialização. Se uma execução nova
--- chegar durante o carregamento, a instância incompleta também é descartada.
-trackConnection(runtimeCleanup.Event:Connect(function()
-    if destroyNothrilo then
-        destroyNothrilo()
-        return
-    end
-    destroyed = true
-    for index = #runtimeConnections, 1, -1 do
-        local connection = runtimeConnections[index]
-        pcall(function() connection:Disconnect() end)
-        runtimeConnections[index] = nil
-    end
-    if runtime and runtime.Parent then runtime:Destroy() end
-end))
+    -- O handler existe desde o começo da inicialização. Se uma execução nova
+    -- chegar durante o carregamento, a instância incompleta também é descartada.
+    trackConnection(runtimeCleanup.Event:Connect(function()
+        if destroyNothrilo then
+            destroyNothrilo()
+            return
+        end
+        destroyed = true
+        for index = #runtimeConnections, 1, -1 do
+            local connection = runtimeConnections[index]
+            pcall(function() connection:Disconnect() end)
+            runtimeConnections[index] = nil
+        end
+        if runtime and runtime.Parent then runtime:Destroy() end
+    end))
+end
 
 -- Remove somente GUIs antigas do próprio Nothrilo.
 for _, guiRoot in ipairs(guiRoots) do
@@ -137,7 +168,7 @@ local Theme = {
 -- =============================================================================
 -- Tela de carregamento
 -- =============================================================================
-local function showStartupCard()
+local startupGui, startupStatus = (function()
     local gui  = Instance.new("ScreenGui")
     gui.Name            = "NothriloLoading"
     gui.ResetOnSpawn    = false
@@ -201,44 +232,583 @@ local function showStartupCard()
     status.Parent    = card
 
     return gui, status
+end)()
+
+-- =============================================================================
+-- Classic UI local — API compatível com Kavo sem polling por controle
+-- =============================================================================
+-- A Kavo upstream abre um `while wait()` permanente para praticamente cada
+-- aba, seção e elemento. Neste menu isso passava de 80 loops simultâneos e
+-- continuava mesmo após destruir a ScreenGui. Esta implementação preserva a
+-- API e a estrutura visual usadas abaixo, mas atualiza cores apenas por evento.
+local ClassicUI = (function()
+local ClassicUI = {
+    gui = nil,
+    theme = Theme,
+    themeBindings = {},
+}
+
+local function classicCreate(className, properties, parent)
+    local object = Instance.new(className)
+    for property, value in pairs(properties or {}) do object[property] = value end
+    object.Parent = parent
+    return object
 end
 
-local startupGui, startupStatus = showStartupCard()
+local function classicCorner(parent, radius)
+    return classicCreate("UICorner", { CornerRadius = UDim.new(0, radius or 4) }, parent)
+end
 
-local libraryOk, LibraryOrError = pcall(function()
-    return loadstring(game:HttpGet(
-        "https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"
-    ))()
-end)
+local function classicBindTheme(object, property, themeKey)
+    table.insert(ClassicUI.themeBindings, {
+        object = object,
+        property = property,
+        themeKey = themeKey,
+    })
+    object[property] = ClassicUI.theme[themeKey]
+    return object
+end
 
-if not libraryOk or type(LibraryOrError) ~= "table" then
-    if startupStatus then
-        startupStatus.Text      = "Não foi possível carregar. Tente de novo."
-        startupStatus.TextColor3 = Color3.fromRGB(255, 100, 120)
+local function classicInvoke(name, callback, ...)
+    if not callback then return end
+    local args = table.pack(...)
+    local ok, err = xpcall(function()
+        callback(table.unpack(args, 1, args.n))
+    end, function(message)
+        if debug and type(debug.traceback) == "function" then
+            return debug.traceback(tostring(message), 2)
+        end
+        return tostring(message)
+    end)
+    if not ok then warn(("[%s/%s] %s"):format(MENU_NAME, name, tostring(err))) end
+end
+
+function ClassicUI:ChangeColor(themeKey, color)
+    if not self.theme[themeKey] then return end
+    self.theme[themeKey] = color
+    for index = #self.themeBindings, 1, -1 do
+        local binding = self.themeBindings[index]
+        if not binding.object or not binding.object.Parent then
+            table.remove(self.themeBindings, index)
+        elseif binding.themeKey == themeKey then
+            binding.object[binding.property] = color
+        end
     end
-    warn(MENU_NAME .. ": falha ao carregar biblioteca: " .. tostring(LibraryOrError))
-    task.wait(2.5)
+end
+
+function ClassicUI:ToggleUI()
+    if self.gui and self.gui.Parent then self.gui.Enabled = not self.gui.Enabled end
+end
+
+function ClassicUI.CreateLib(title, suppliedTheme)
+    ClassicUI.theme = suppliedTheme or Theme
+    table.clear(ClassicUI.themeBindings)
+
+    local gui = classicCreate("ScreenGui", {
+        Name = "NothriloClassicUI",
+        Enabled = false,
+        ResetOnSpawn = false,
+        IgnoreGuiInset = true,
+        DisplayOrder = 10000,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    }, CoreGui)
+    ClassicUI.gui = gui
+
+    local main = classicCreate("Frame", {
+        Name = "Main",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(525, 318),
+        BackgroundColor3 = ClassicUI.theme.Background,
+        BorderSizePixel = 0,
+        ClipsDescendants = true,
+    }, gui)
+    classicCorner(main, 5)
+    local mainStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.15 }, main)
+    classicBindTheme(mainStroke, "Color", "SchemeColor")
+
+    local uiScale = classicCreate("UIScale", { Scale = 1 }, main)
+    local function updateScale()
+        local camera = workspace.CurrentCamera
+        if not camera then return end
+        local viewport = camera.ViewportSize
+        uiScale.Scale = math.clamp(math.min((viewport.X - 20) / 525, (viewport.Y - 20) / 318), 0.58, 1)
+    end
+    updateScale()
+    local camera = workspace.CurrentCamera
+    if camera then
+        trackConnection(camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale))
+    end
+
+    local header = classicCreate("Frame", {
+        Name = "MainHeader",
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, main)
+    local titleLabel = classicCreate("TextLabel", {
+        Name = "title",
+        Position = UDim2.fromOffset(10, 0),
+        Size = UDim2.new(1, -48, 1, 0),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.Gotham,
+        Text = title,
+        TextColor3 = ClassicUI.theme.TextColor,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        RichText = true,
+    }, header)
+    classicBindTheme(titleLabel, "TextColor3", "TextColor")
+    local close = classicCreate("TextButton", {
+        Name = "close",
+        Position = UDim2.new(1, -30, 0, 0),
+        Size = UDim2.fromOffset(30, 30),
+        BackgroundTransparency = 1,
+        Text = "×",
+        Font = Enum.Font.GothamBold,
+        TextColor3 = ClassicUI.theme.TextColor,
+        TextSize = 20,
+    }, header)
+    close.Activated:Connect(function()
+        if destroyNothrilo then destroyNothrilo() elseif gui.Parent then gui:Destroy() end
+    end)
+
+    local side = classicCreate("Frame", {
+        Name = "MainSide",
+        Position = UDim2.fromOffset(0, 30),
+        Size = UDim2.new(0, 149, 1, -30),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, main)
+    local tabFrames = classicCreate("ScrollingFrame", {
+        Name = "tabFrames",
+        Position = UDim2.fromOffset(7, 5),
+        Size = UDim2.new(1, -14, 1, -10),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 2,
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        CanvasSize = UDim2.new(),
+    }, side)
+    classicBindTheme(tabFrames, "ScrollBarImageColor3", "SchemeColor")
+    classicCreate("UIListLayout", {
+        Name = "tabListing",
+        Padding = UDim.new(0, 1),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+    }, tabFrames)
+
+    local pages = classicCreate("Frame", {
+        Name = "pages",
+        Position = UDim2.fromOffset(149, 30),
+        Size = UDim2.new(1, -149, 1, -30),
+        BackgroundColor3 = ClassicUI.theme.Background,
+        BorderSizePixel = 0,
+    }, main)
+    local pageFolder = classicCreate("Folder", { Name = "Pages" }, pages)
+
+    local window = { tabs = {}, gui = gui }
+    local function showTab(selected)
+        for _, tab in ipairs(window.tabs) do
+            local active = tab == selected
+            tab.page.Visible = active
+            tab.button.BackgroundTransparency = active and 0 or 1
+        end
+    end
+
+    function window:NewTab(name)
+        local tabButton = classicCreate("TextButton", {
+            Name = name .. "TabButton",
+            Size = UDim2.new(1, 0, 0, 28),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            AutoButtonColor = false,
+            Font = Enum.Font.Gotham,
+            Text = name,
+            TextColor3 = ClassicUI.theme.TextColor,
+            TextSize = 14,
+        }, tabFrames)
+        classicCorner(tabButton, 5)
+        classicBindTheme(tabButton, "BackgroundColor3", "SchemeColor")
+        classicBindTheme(tabButton, "TextColor3", "TextColor")
+
+        local page = classicCreate("ScrollingFrame", {
+            Name = "Page",
+            Size = UDim2.fromScale(1, 1),
+            BackgroundColor3 = ClassicUI.theme.Background,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 4,
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            CanvasSize = UDim2.new(),
+            Visible = false,
+        }, pageFolder)
+        classicBindTheme(page, "ScrollBarImageColor3", "SchemeColor")
+        classicCreate("UIPadding", {
+            PaddingLeft = UDim.new(0, 8),
+            PaddingRight = UDim.new(0, 8),
+            PaddingTop = UDim.new(0, 8),
+            PaddingBottom = UDim.new(0, 8),
+        }, page)
+        classicCreate("UIListLayout", {
+            Name = "pageListing",
+            Padding = UDim.new(0, 6),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+        }, page)
+
+        local tab = { button = tabButton, page = page }
+        table.insert(self.tabs, tab)
+        tabButton.Activated:Connect(function() showTab(tab) end)
+        if #self.tabs == 1 then showTab(tab) end
+
+        function tab:NewSection(sectionName, hidden)
+            local sectionFrame = classicCreate("Frame", {
+                Name = "sectionFrame",
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+            }, page)
+            classicCreate("UIListLayout", {
+                Name = "sectionlistoknvm",
+                Padding = UDim.new(0, 4),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+            }, sectionFrame)
+
+            local sectionHead = classicCreate("Frame", {
+                Name = "sectionHead",
+                Size = UDim2.new(1, 0, 0, hidden and 0 or 32),
+                Visible = not hidden,
+                BorderSizePixel = 0,
+            }, sectionFrame)
+            classicCorner(sectionHead, 5)
+            classicBindTheme(sectionHead, "BackgroundColor3", "SchemeColor")
+            local sectionNameLabel = classicCreate("TextLabel", {
+                Name = "sectionName",
+                Position = UDim2.fromOffset(8, 0),
+                Size = UDim2.new(1, -16, 1, 0),
+                BackgroundTransparency = 1,
+                Font = Enum.Font.Gotham,
+                Text = sectionName,
+                TextColor3 = ClassicUI.theme.TextColor,
+                TextSize = 14,
+                TextXAlignment = Enum.TextXAlignment.Left,
+            }, sectionHead)
+            classicBindTheme(sectionNameLabel, "TextColor3", "TextColor")
+
+            local sectionInners = classicCreate("Frame", {
+                Name = "sectionInners",
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+            }, sectionFrame)
+            classicCreate("UIListLayout", {
+                Name = "sectionElListing",
+                Padding = UDim.new(0, 3),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+            }, sectionInners)
+
+            local api = {}
+            local function makeElement(name, height, label, description, rightInset)
+                local element = classicCreate("TextButton", {
+                    Name = name,
+                    Size = UDim2.new(1, 0, 0, height),
+                    BackgroundColor3 = ClassicUI.theme.ElementColor,
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    Text = "",
+                }, sectionInners)
+                classicCorner(element, 5)
+                local title = classicCreate("TextLabel", {
+                    Name = "togName",
+                    Position = UDim2.fromOffset(10, 4),
+                    Size = UDim2.new(1, -(20 + (rightInset or 0)), 0, 17),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.Gotham,
+                    Text = label,
+                    TextColor3 = ClassicUI.theme.TextColor,
+                    TextSize = 13,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                }, element)
+                classicBindTheme(title, "TextColor3", "TextColor")
+                if description and description ~= "" then
+                    local info = classicCreate("TextLabel", {
+                        Name = "description",
+                        Position = UDim2.fromOffset(10, 21),
+                        Size = UDim2.new(1, -(20 + (rightInset or 0)), 0, 14),
+                        BackgroundTransparency = 1,
+                        Font = Enum.Font.Gotham,
+                        Text = description,
+                        TextColor3 = Color3.fromRGB(170, 170, 180),
+                        TextSize = 10,
+                        TextTruncate = Enum.TextTruncate.AtEnd,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                    }, element)
+                end
+                element.MouseEnter:Connect(function()
+                    element.BackgroundColor3 = ClassicUI.theme.ElementColor:Lerp(Color3.new(1, 1, 1), 0.08)
+                end)
+                element.MouseLeave:Connect(function()
+                    element.BackgroundColor3 = ClassicUI.theme.ElementColor
+                end)
+                return element, title
+            end
+
+            function api:NewButton(label, description, callback)
+                local element = makeElement("buttonElement", 39, label, description, 42)
+                local arrow = classicCreate("TextLabel", {
+                    Name = "action",
+                    Position = UDim2.new(1, -35, 0, 0),
+                    Size = UDim2.fromOffset(30, 39),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamBold,
+                    Text = "›",
+                    TextSize = 22,
+                }, element)
+                classicBindTheme(arrow, "TextColor3", "SchemeColor")
+                element.Activated:Connect(function() classicInvoke(label, callback) end)
+                local control = {}
+                function control:UpdateButton(newTitle)
+                    local titleObject = element:FindFirstChild("togName")
+                    if titleObject and newTitle ~= nil then titleObject.Text = tostring(newTitle) end
+                end
+                return control
+            end
+
+            function api:NewToggle(label, description, callback)
+                local element, title = makeElement("toggleElement", 39, label, description, 62)
+                local switch = classicCreate("Frame", {
+                    Name = "switch",
+                    Position = UDim2.new(1, -48, 0.5, -10),
+                    Size = UDim2.fromOffset(38, 20),
+                    BackgroundColor3 = Color3.fromRGB(45, 45, 52),
+                    BorderSizePixel = 0,
+                }, element)
+                classicCorner(switch, 10)
+                local dot = classicCreate("Frame", {
+                    Name = "dot",
+                    Position = UDim2.fromOffset(3, 3),
+                    Size = UDim2.fromOffset(14, 14),
+                    BackgroundColor3 = Color3.fromRGB(190, 190, 198),
+                    BorderSizePixel = 0,
+                }, switch)
+                classicCorner(dot, 7)
+                local state = false
+                local control = {}
+                function control:UpdateToggle(newText, enabled)
+                    if newText ~= nil then title.Text = tostring(newText) end
+                    state = enabled == true
+                    switch.BackgroundColor3 = state and ClassicUI.theme.SchemeColor or Color3.fromRGB(45, 45, 52)
+                    dot.Position = UDim2.fromOffset(state and 21 or 3, 3)
+                    dot.BackgroundColor3 = state and ClassicUI.theme.Background or Color3.fromRGB(190, 190, 198)
+                    classicInvoke(label, callback, state)
+                end
+                element.Activated:Connect(function() control:UpdateToggle(nil, not state) end)
+                return control
+            end
+
+            function api:NewTextBox(label, description, callback)
+                local element = makeElement("textboxElement", 62, label, description, 0)
+                local input = classicCreate("TextBox", {
+                    Name = "TextBox",
+                    Position = UDim2.new(0, 9, 1, -25),
+                    Size = UDim2.new(1, -18, 0, 21),
+                    BackgroundColor3 = Color3.fromRGB(14, 14, 18),
+                    BorderSizePixel = 0,
+                    ClearTextOnFocus = false,
+                    PlaceholderText = "Type here!",
+                    Text = "",
+                    Font = Enum.Font.Gotham,
+                    TextColor3 = ClassicUI.theme.TextColor,
+                    PlaceholderColor3 = Color3.fromRGB(135, 135, 145),
+                    TextSize = 11,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                }, element)
+                classicCorner(input, 4)
+                classicCreate("UIPadding", {
+                    PaddingLeft = UDim.new(0, 6),
+                    PaddingRight = UDim.new(0, 6),
+                }, input)
+                input.FocusLost:Connect(function(enterPressed)
+                    if enterPressed then classicInvoke(label, callback, input.Text) end
+                end)
+                return input
+            end
+
+            function api:NewSlider(label, description, maximum, minimum, defaultValue, callback)
+                if type(defaultValue) == "function" then
+                    callback = defaultValue
+                    defaultValue = minimum
+                end
+                maximum = tonumber(maximum) or 100
+                minimum = tonumber(minimum) or 0
+                local element = makeElement("sliderElement", 55, label, description, 64)
+                local value = math.clamp(tonumber(defaultValue) or minimum, minimum, maximum)
+                local valueLabel = classicCreate("TextLabel", {
+                    Name = "value",
+                    Position = UDim2.new(1, -58, 0, 4),
+                    Size = UDim2.fromOffset(48, 17),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamBold,
+                    Text = tostring(value),
+                    TextSize = 11,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                }, element)
+                classicBindTheme(valueLabel, "TextColor3", "SchemeColor")
+                local bar = classicCreate("TextButton", {
+                    Name = "sliderBtn",
+                    Position = UDim2.new(0, 9, 1, -13),
+                    Size = UDim2.new(1, -18, 0, 7),
+                    BackgroundColor3 = Color3.fromRGB(45, 45, 52),
+                    BorderSizePixel = 0,
+                    Text = "",
+                }, element)
+                classicCorner(bar, 4)
+                local fill = classicCreate("Frame", {
+                    Name = "sliderDrag",
+                    Size = UDim2.new(
+                        maximum ~= minimum and ((value - minimum) / (maximum - minimum)) or 0,
+                        0,
+                        1,
+                        0
+                    ),
+                    BorderSizePixel = 0,
+                }, bar)
+                classicCorner(fill, 4)
+                classicBindTheme(fill, "BackgroundColor3", "SchemeColor")
+                local dragging = false
+                local range = maximum - minimum
+                local control = {}
+                function control:SetValue(nextValue, invokeCallback)
+                    value = math.clamp(tonumber(nextValue) or minimum, minimum, maximum)
+                    local percent = range ~= 0 and ((value - minimum) / range) or 0
+                    fill.Size = UDim2.new(percent, 0, 1, 0)
+                    valueLabel.Text = tostring(value)
+                    if invokeCallback ~= false then classicInvoke(label, callback, value) end
+                end
+                function control:GetValue() return value end
+                local function setFromInput(input)
+                    if bar.AbsoluteSize.X <= 0 then return end
+                    local percent = math.clamp(
+                        (input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
+                        0,
+                        1
+                    )
+                    control:SetValue(math.floor(minimum + (range * percent) + 0.5), true)
+                end
+                bar.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1
+                    or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = true
+                        setFromInput(input)
+                    end
+                end)
+                trackConnection(UserInputService.InputChanged:Connect(function(input)
+                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+                    or input.UserInputType == Enum.UserInputType.Touch) then
+                        setFromInput(input)
+                    end
+                end))
+                trackConnection(UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1
+                    or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = false
+                    end
+                end))
+                return control
+            end
+
+            function api:NewKeybind(label, description, keyCode, callback)
+                local element, title = makeElement("keybindElement", 39, label, description, 64)
+                local activeKey = keyCode or Enum.KeyCode.Unknown
+                local listening = false
+                local keyLabel = classicCreate("TextLabel", {
+                    Name = "togName",
+                    Position = UDim2.new(1, -58, 0.5, -10),
+                    Size = UDim2.fromOffset(48, 20),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamBold,
+                    Text = activeKey.Name,
+                    TextSize = 10,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                }, element)
+                classicBindTheme(keyLabel, "TextColor3", "SchemeColor")
+                element.Activated:Connect(function()
+                    listening = true
+                    keyLabel.Text = "..."
+                end)
+                trackConnection(UserInputService.InputBegan:Connect(function(input, processed)
+                    if destroyed then return end
+                    if listening then
+                        if input.KeyCode ~= Enum.KeyCode.Unknown then
+                            activeKey = input.KeyCode
+                            keyLabel.Text = activeKey.Name
+                            listening = false
+                        end
+                        return
+                    end
+                    if not processed and not UserInputService:GetFocusedTextBox()
+                    and input.KeyCode == activeKey then
+                        classicInvoke(label, callback)
+                    end
+                end))
+                local control = {}
+                function control:UpdateKeybind(newText, newKey)
+                    if newText ~= nil then title.Text = tostring(newText) end
+                    if newKey then activeKey = newKey; keyLabel.Text = activeKey.Name end
+                end
+                return control
+            end
+
+            return api
+        end
+
+        return tab
+    end
+
+    return window
+end
+
+return ClassicUI
+end)()
+
+local function bootstrapAlive()
+    return not destroyed
+        and isCurrentSuiteGeneration()
+        and runtime
+        and runtime.Parent ~= nil
+end
+
+local function abortBootstrap()
+    destroyed = true
+    for index = #runtimeConnections, 1, -1 do
+        local connection = runtimeConnections[index]
+        pcall(function() connection:Disconnect() end)
+        runtimeConnections[index] = nil
+    end
+    if ClassicUI.gui and ClassicUI.gui.Parent then ClassicUI.gui:Destroy() end
     if startupGui and startupGui.Parent then startupGui:Destroy() end
-    if runtime    and runtime.Parent    then runtime:Destroy()    end
-    return
-end
-
-for _, message in ipairs({ "Preparando funções...", "Montando abas...", "Pronto!" }) do
-    if startupStatus and startupStatus.Parent then startupStatus.Text = message end
-    task.wait(0.25)
-end
-if startupGui and startupGui.Parent then startupGui:Destroy() end
-
-local Library = LibraryOrError
-local windowOk, WindowOrError = pcall(function()
-    return Library.CreateLib(UI_TITLE, Theme)
-end)
-if not windowOk or not WindowOrError then
-    warn(MENU_NAME .. ": falha ao criar a janela: " .. tostring(WindowOrError))
     if runtime and runtime.Parent then runtime:Destroy() end
+end
+
+if startupStatus then startupStatus.Text = "Montando interface clássica local..." end
+if not bootstrapAlive() then
+    abortBootstrap()
     return
 end
-local Window = WindowOrError
+
+local Window
+do
+    local windowOk, windowOrError = pcall(function()
+        return ClassicUI.CreateLib(UI_TITLE, Theme)
+    end)
+    if not windowOk or not windowOrError or not bootstrapAlive() then
+        warn(MENU_NAME .. ": falha ao criar a janela local: " .. tostring(windowOrError))
+        abortBootstrap()
+        return
+    end
+    Window = windowOrError
+end
 
 -- =============================================================================
 -- Sistema de notificações (toasts)
@@ -332,23 +902,17 @@ end
 -- Helpers de personagem
 -- =============================================================================
 local function getCharacter()
-    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    return LocalPlayer.Character
 end
 
 local function getHumanoid(character)
     character = character or getCharacter()
-    return character and (
-        character:FindFirstChildOfClass("Humanoid")
-        or character:WaitForChild("Humanoid", 5)
-    )
+    return character and character:FindFirstChildOfClass("Humanoid")
 end
 
 local function getRoot(character)
     character = character or getCharacter()
-    return character and (
-        character:FindFirstChild("HumanoidRootPart")
-        or character:WaitForChild("HumanoidRootPart", 5)
-    )
+    return character and character:FindFirstChild("HumanoidRootPart")
 end
 
 local function teleportCharacter(cframe)
@@ -864,17 +1428,46 @@ local function findCartFromSeat(seat)
     return fallback
 end
 
+local cachedCartSeat
+local cachedCart
+local cachedCartAssemblyRoot
+
+local function cacheCartFromSeat(seat)
+    cachedCartSeat = seat
+    cachedCartAssemblyRoot = seat and seat.AssemblyRootPart or nil
+    cachedCart = seat and findCartFromSeat(seat) or nil
+    return cachedCart
+end
+
 local function getCurrentCart()
     local humanoid = getHumanoid()
-    return humanoid and findCartFromSeat(humanoid.SeatPart) or nil
+    local seat = humanoid and humanoid.SeatPart
+    if not seat then
+        cachedCartSeat = nil
+        cachedCart = nil
+        cachedCartAssemblyRoot = nil
+        return nil
+    end
+    if seat ~= cachedCartSeat
+        or not cachedCart
+        or not cachedCart.Parent
+        or not cachedCart:IsAncestorOf(seat)
+        or seat.AssemblyRootPart ~= cachedCartAssemblyRoot
+    then
+        return cacheCartFromSeat(seat)
+    end
+    return cachedCart
 end
 
 -- Retorna a parte principal do carrinho de forma robusta
 local function getCartPrimary(cart)
     if not cart then return nil end
     if cart.PrimaryPart then return cart.PrimaryPart end
-    local humanoid = getHumanoid()
-    local seat = humanoid and humanoid.SeatPart
+    local seat = cachedCartSeat
+    if not seat or not seat.Parent then
+        local humanoid = getHumanoid()
+        seat = humanoid and humanoid.SeatPart
+    end
     if seat and cart:IsAncestorOf(seat) and seat.AssemblyRootPart then
         return seat.AssemblyRootPart
     end
@@ -1046,15 +1639,17 @@ local function refreshStabilizer()
 end
 
 local seatConnection
-local function watchSeat(character)
-    local humanoid = getHumanoid(character)
+local function watchSeat(character, readyHumanoid)
+    local humanoid = readyHumanoid or getHumanoid(character)
     if not humanoid then return end
     if seatConnection then
         seatConnection:Disconnect()
         seatConnection = nil
     end
+    cacheCartFromSeat(humanoid.SeatPart)
     seatConnection = trackConnection(humanoid.Seated:Connect(function(isSeated, seat)
         if not isSeated then
+            cacheCartFromSeat(nil)
             cleanupStabilizer()
             restorePanicStop()
             if stopBoost then stopBoost() end
@@ -1064,13 +1659,38 @@ local function watchSeat(character)
             if panicToggleControl then
                 task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
             end
-        elseif stabilizer.enabled then
-            applyStabilizer(findCartFromSeat(seat))
+        else
+            local cart = cacheCartFromSeat(seat)
+            if stabilizer.enabled then applyStabilizer(cart) end
         end
     end))
 end
-watchSeat()
+
+local function watchSeatWhenReady(character, restoreDesiredSettings)
+    if not character then return end
+    task.spawn(function()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+            or character:WaitForChild("Humanoid", 5)
+        if destroyed or not isCurrentSuiteGeneration()
+            or not character.Parent or not humanoid or not humanoid:IsA("Humanoid")
+        then
+            return
+        end
+        watchSeat(character, humanoid)
+        if restoreDesiredSettings and not fakeLagActive then
+            if desiredWalkSpeed then humanoid.WalkSpeed = desiredWalkSpeed end
+            if humanoid.UseJumpPower and desiredJumpPower then
+                humanoid.JumpPower = desiredJumpPower
+            elseif not humanoid.UseJumpPower and desiredJumpHeight then
+                humanoid.JumpHeight = desiredJumpHeight
+            end
+        end
+    end)
+end
+
+watchSeatWhenReady(LocalPlayer.Character, false)
 trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
+    cacheCartFromSeat(nil)
     cleanupStabilizer()
     restorePanicStop()
     fakeLagSession = fakeLagSession + 1
@@ -1083,18 +1703,7 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
         stopFly()
     end
     task.defer(resetCameraModes)
-    task.defer(watchSeat, character)
-    task.delay(0.25, function()
-        if destroyed or fakeLagActive then return end
-        local humanoid = getHumanoid(character)
-        if not humanoid then return end
-        if desiredWalkSpeed then humanoid.WalkSpeed = desiredWalkSpeed end
-        if humanoid.UseJumpPower and desiredJumpPower then
-            humanoid.JumpPower = desiredJumpPower
-        elseif not humanoid.UseJumpPower and desiredJumpHeight then
-            humanoid.JumpHeight = desiredJumpHeight
-        end
-    end)
+    watchSeatWhenReady(character, true)
 end))
 
 -- =============================================================================
@@ -1248,10 +1857,9 @@ local infiniteJumpToggleControl
 -- =============================================================================
 -- ABA: Jogador
 -- =============================================================================
-local PlayerTab     = Window:NewTab("Jogador")
-local PlayerSection = PlayerTab:NewSection("Configurações do Jogador")
+local PlayerSection = Window:NewTab("Jogador"):NewSection("Configurações do Jogador")
 
-PlayerSection:NewSlider("Velocidade", "Velocidade de caminhada (padrão 16).", 500, 0, function(value)
+PlayerSection:NewSlider("Velocidade", "Velocidade de caminhada (padrão 16).", 500, 0, 16, function(value)
     desiredWalkSpeed = value
     local h = getHumanoid()
     if h and not fakeLagActive then h.WalkSpeed = value end
@@ -1446,8 +2054,7 @@ end)
 -- =============================================================================
 -- ABA: Teleporte
 -- =============================================================================
-local TeleportTab     = Window:NewTab("Teleporte")
-local TeleportSection = TeleportTab:NewSection("Teleportes")
+local TeleportSection = Window:NewTab("Teleporte"):NewSection("Teleportes")
 
 TeleportSection:NewButton("Início", "Teleporta para o início da trilha.", function()
     if teleportCharacter(CFrame.new(1, 3.11, 38)) then
@@ -1568,8 +2175,7 @@ end)
 -- =============================================================================
 -- ABA: Cart+ (boost, anti-flip, freio automático)
 -- =============================================================================
-local CartExtraTab  = Window:NewTab("Cart+")
-local BoostSection  = CartExtraTab:NewSection("Boost e Física")
+local BoostSection  = Window:NewTab("Cart+"):NewSection("Boost e Física")
 
 local boostActive     = false
 local boostForce      = 500
@@ -1660,7 +2266,7 @@ boostToggleControl = BoostSection:NewToggle(
     end
 )
 
-BoostSection:NewSlider("Força do Boost", "Intensidade (padrão 500).", 3000, 0, function(value)
+BoostSection:NewSlider("Força do Boost", "Intensidade (padrão 500).", 3000, 0, 500, function(value)
     boostForce = value
     if boostActive and not startBoost() then
         task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
@@ -1747,8 +2353,7 @@ end)
 -- =============================================================================
 -- ABA: Extras (jogador)
 -- =============================================================================
-local ExtrasTab    = Window:NewTab("Extras")
-local ExtrasSection = ExtrasTab:NewSection("Movimento e Física")
+local ExtrasSection = Window:NewTab("Extras"):NewSection("Movimento e Física")
 
 -- Noclip corrigido: CanCollide precisa ser reposto a cada Stepped
 -- porque o motor físico reseta automaticamente
@@ -1815,7 +2420,7 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function()
     if invisEnabled and not destroyed then setLocalInvisible(true) end
 end))
 
-ExtrasSection:NewSlider("Jump Power", "Altura do pulo (padrão 50).", 300, 0, function(value)
+ExtrasSection:NewSlider("Jump Power", "Altura do pulo (padrão 50).", 300, 0, 50, function(value)
     local h = getHumanoid()
     if h then
         if h.UseJumpPower then desiredJumpPower = value
@@ -1838,7 +2443,7 @@ ExtrasSection:NewButton("Redefinir Jump Power", "Volta para 50.", function()
     notify("Jump Power", "Redefinido.")
 end)
 
-ExtrasSection:NewSlider("Gravidade", "Gravidade global (padrão 196.2).", 400, 0, function(value)
+ExtrasSection:NewSlider("Gravidade", "Gravidade global (padrão 196.2).", 400, 0, originalGravity, function(value)
     workspace.Gravity = value
 end)
 
@@ -1866,8 +2471,7 @@ end)
 -- =============================================================================
 -- ABA: Mapa
 -- =============================================================================
-local MapTab     = Window:NewTab("Mapa")
-local MapSection = MapTab:NewSection("Exploração")
+local MapSection = Window:NewTab("Mapa"):NewSection("Exploração")
 
 -- Ir até parte por nome — busca com prioridade (exato > começo > contém)
 MapSection:NewTextBox("Ir até Parte", "Nome da parte no workspace. Enter.", function(value)
@@ -1998,15 +2602,14 @@ freecamToggleControl = MapSection:NewToggle("Câmera Livre", "WASD move, Q/E sob
     notify("Câmera Livre", "WASD move, Q/E sobe e desce. Desative para voltar.")
 end)
 
-MapSection:NewSlider("Velocidade da Câmera Livre", "Velocidade de movimento (1–10).", 10, 1, function(value)
+MapSection:NewSlider("Velocidade da Câmera Livre", "Velocidade de movimento (1–10).", 10, 1, freecamSpeed, function(value)
     freecamSpeed = value
 end)
 
 -- =============================================================================
 -- ABA: Eliminador
 -- =============================================================================
-local KillerTab     = Window:NewTab("Eliminador")
-local KillerSection = KillerTab:NewSection("Controle de Alvo")
+local KillerSection = Window:NewTab("Eliminador"):NewSection("Controle de Alvo")
 local targetName    = ""
 
 KillerSection:NewTextBox("Nome do Alvo", "Parte do nome. Enter.", function(value)
@@ -2033,8 +2636,7 @@ end)
 -- =============================================================================
 -- ABA: Troll
 -- =============================================================================
-local TrollTab     = Window:NewTab("Troll")
-local TrollSection = TrollTab:NewSection("Diversão")
+local TrollSection = Window:NewTab("Troll"):NewSection("Diversão")
 
 -- Câmera giratória com duração ajustável
 local spinDuration = 5
@@ -2072,7 +2674,7 @@ TrollSection:NewButton("Câmera Giratória", "Gira a câmera por alguns segundos
     notify("Troll", "Câmera girando por " .. spinDuration .. "s.")
 end)
 
-TrollSection:NewSlider("Duração Câmera (s)", "Segundos de giro.", 30, 1, function(value)
+TrollSection:NewSlider("Duração Câmera (s)", "Segundos de giro.", 30, 1, spinDuration, function(value)
     spinDuration = value
 end)
 
@@ -2115,7 +2717,7 @@ TrollSection:NewButton("Fake Lag", "Congela você por alguns segundos.", functio
     end)
 end)
 
-TrollSection:NewSlider("Duração Fake Lag (s)", "Duração em segundos.", 15, 1, function(value)
+TrollSection:NewSlider("Duração Fake Lag (s)", "Duração em segundos.", 15, 1, fakeLagDuration, function(value)
     fakeLagDuration = value
 end)
 
@@ -2201,18 +2803,15 @@ local function findMenuGui()
     return fallback
 end
 
-local menuGui
-local findDeadline = os.clock() + 3
-repeat
-    menuGui = findMenuGui()
-    if not menuGui then task.wait() end
-until menuGui or os.clock() >= findDeadline
+local menuGui = Window and Window.gui or findMenuGui()
+if not bootstrapAlive() then
+    abortBootstrap()
+    return
+end
 
 local commandsTabButton
 if not menuGui then
-    warn(MENU_NAME .. ": não foi possível localizar a janela Kavo.")
-    -- Não abandone o restante das funções/atalhos por causa de uma mudança
-    -- cosmética da Kavo. O host mantém cleanup e comandos funcionais.
+    warn(MENU_NAME .. ": não foi possível localizar a janela clássica local.")
     menuGui = Instance.new("ScreenGui")
     menuGui.Name = "NothriloFallbackHost"
     menuGui.ResetOnSpawn = false
@@ -2314,39 +2913,6 @@ local function addShortcutBadge(labelText, keyText)
                     elseif keyText == "X" and destroyNothrilo then destroyNothrilo()
                     end
                 end)
-                return
-            end
-        end
-    end
-end
-
-local function replaceKeybindLeftIcon(labelText, iconText)
-    for _, element in ipairs(menuGui:GetDescendants()) do
-        if element:IsA("TextButton") and element.Name == "keybindElement" then
-            local titleLabel, keyLabel
-            for _, child in ipairs(element:GetChildren()) do
-                if child:IsA("TextLabel") and child.Name == "togName" then
-                    if child.Position.X.Scale < 0.2 then titleLabel = child
-                    else keyLabel = child end
-                end
-            end
-            if titleLabel and titleLabel.Text == labelText then
-                local oldIcon = element:FindFirstChild("touch")
-                if oldIcon  then oldIcon.Visible  = false end
-                if keyLabel then keyLabel.Visible = false end
-                local icon = Instance.new("TextLabel")
-                icon.Name             = "NothriloKeyIcon"
-                icon.Size             = UDim2.fromOffset(21, 21)
-                icon.Position         = UDim2.new(0.02, 0, 0.18, 0)
-                icon.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
-                icon.BorderSizePixel  = 0
-                icon.Font             = Enum.Font.GothamBold
-                icon.Text             = iconText
-                icon.TextColor3       = Theme.SchemeColor
-                icon.TextSize         = 12
-                icon.Parent           = element
-                Instance.new("UICorner", icon).CornerRadius = UDim.new(0, 4)
-                table.insert(customKeybindIcons, icon)
                 return
             end
         end
@@ -2463,7 +3029,6 @@ launcherIcon.Text     = "N"
 launcherIcon.TextSize = 20
 launcherIcon.Parent   = launcher
 
-destroyed = false
 setMenuVisible = function(visible)
     if destroyed then return end
     menuGui.Enabled    = visible
@@ -2599,14 +3164,8 @@ end
 -- =============================================================================
 -- ABA: Comandos (atalhos listados)
 -- =============================================================================
-local CommandsTab     = Window:NewTab("Comandos")
+local CommandsSection = Window:NewTab("Comandos"):NewSection("Atalhos")
 commandsTabButton     = menuGui:FindFirstChild("ComandosTabButton", true)
-local CommandsSection = CommandsTab:NewSection("Atalhos")
-
-local function addCmd(label, desc, fn)
-    CommandsSection:NewButton(label, desc, fn)
-    addShortcutBadge(label, label:sub(1, 1))
-end
 
 CommandsSection:NewButton("V  •  Voo do Veículo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
 CommandsSection:NewButton("L  •  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
@@ -2643,11 +3202,19 @@ end)
 -- =============================================================================
 -- ABA: Interface
 -- =============================================================================
-local GuiTab     = Window:NewTab("Interface")
-local GuiSection = GuiTab:NewSection("Interface")
+local GuiSection = Window:NewTab("Interface"):NewSection("Interface")
 
 GuiSection:NewButton("Fechar Menu", "Fecha agora; a tecla X também funciona.", destroyNothrilo)
 addShortcutBadge("Fechar Menu", "X")
+
+-- Publicação atômica: a janela só aparece depois que todas as abas, comandos e
+-- listeners pertencentes a esta geração terminaram de ser montados.
+if not bootstrapAlive() then
+    abortBootstrap()
+    return
+end
+menuGui.Enabled = true
+if startupGui and startupGui.Parent then startupGui:Destroy() end
 
 -- =============================================================================
 -- Loop RGB
@@ -2655,7 +3222,7 @@ addShortcutBadge("Fechar Menu", "X")
 task.spawn(function()
     while running and not destroyed and menuGui.Parent and launcherGui.Parent do
         local rgb = Color3.fromHSV((os.clock() * 0.12) % 1, 0.85, 1)
-        Library:ChangeColor("SchemeColor", rgb)
+        ClassicUI:ChangeColor("SchemeColor", rgb)
         if commandsTabButton and commandsTabButton.Parent then
             commandsTabButton.BackgroundColor3 = rgb
         end

@@ -318,7 +318,7 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         Name = "Main",
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.fromScale(0.5, 0.5),
-        Size = UDim2.fromOffset(525, 318),
+        Size = UDim2.fromOffset(760, 500),
         BackgroundColor3 = ClassicUI.theme.Background,
         BorderSizePixel = 0,
         ClipsDescendants = true,
@@ -327,47 +327,34 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     local mainStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.15 }, main)
     classicBindTheme(mainStroke, "Color", "SchemeColor")
 
-    local uiScale = classicCreate("UIScale", { Scale = 1 }, main)
-    local function updateScale()
-        local camera = workspace.CurrentCamera
-        if not camera then return end
-        local viewport = camera.ViewportSize
-        uiScale.Scale = math.clamp(math.min((viewport.X - 20) / 525, (viewport.Y - 20) / 318), 0.58, 1)
-    end
-    updateScale()
-    local camera = workspace.CurrentCamera
-    if camera then
-        trackConnection(camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale))
-    end
-
     local header = classicCreate("Frame", {
         Name = "MainHeader",
-        Size = UDim2.new(1, 0, 0, 30),
+        Size = UDim2.new(1, 0, 0, 46),
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
     local titleLabel = classicCreate("TextLabel", {
         Name = "title",
-        Position = UDim2.fromOffset(10, 0),
-        Size = UDim2.new(1, -48, 1, 0),
+        Position = UDim2.fromOffset(14, 0),
+        Size = UDim2.new(1, -68, 1, 0),
         BackgroundTransparency = 1,
-        Font = Enum.Font.Gotham,
+        Font = Enum.Font.GothamBold,
         Text = title,
         TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 16,
+        TextSize = 18,
         TextXAlignment = Enum.TextXAlignment.Left,
         RichText = true,
     }, header)
     classicBindTheme(titleLabel, "TextColor3", "TextColor")
     local close = classicCreate("TextButton", {
         Name = "close",
-        Position = UDim2.new(1, -30, 0, 0),
-        Size = UDim2.fromOffset(30, 30),
+        Position = UDim2.new(1, -46, 0, 0),
+        Size = UDim2.fromOffset(46, 46),
         BackgroundTransparency = 1,
         Text = "×",
         Font = Enum.Font.GothamBold,
         TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 20,
+        TextSize = 24,
     }, header)
     close.Activated:Connect(function()
         if destroyNothrilo then destroyNothrilo() elseif gui.Parent then gui:Destroy() end
@@ -375,36 +362,77 @@ function ClassicUI.CreateLib(title, suppliedTheme)
 
     local side = classicCreate("Frame", {
         Name = "MainSide",
-        Position = UDim2.fromOffset(0, 30),
-        Size = UDim2.new(0, 149, 1, -30),
+        Position = UDim2.fromOffset(0, 46),
+        Size = UDim2.new(0, 176, 1, -46),
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
     local tabFrames = classicCreate("ScrollingFrame", {
         Name = "tabFrames",
-        Position = UDim2.fromOffset(7, 5),
-        Size = UDim2.new(1, -14, 1, -10),
+        Position = UDim2.fromOffset(8, 8),
+        Size = UDim2.new(1, -16, 1, -16),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        ScrollBarThickness = 2,
+        ScrollBarThickness = 3,
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         CanvasSize = UDim2.new(),
+        ScrollingDirection = Enum.ScrollingDirection.Y,
     }, side)
     classicBindTheme(tabFrames, "ScrollBarImageColor3", "SchemeColor")
     classicCreate("UIListLayout", {
         Name = "tabListing",
-        Padding = UDim.new(0, 1),
+        Padding = UDim.new(0, 3),
         SortOrder = Enum.SortOrder.LayoutOrder,
     }, tabFrames)
 
     local pages = classicCreate("Frame", {
         Name = "pages",
-        Position = UDim2.fromOffset(149, 30),
-        Size = UDim2.new(1, -149, 1, -30),
+        Position = UDim2.fromOffset(176, 46),
+        Size = UDim2.new(1, -176, 1, -46),
         BackgroundColor3 = ClassicUI.theme.Background,
         BorderSizePixel = 0,
     }, main)
     local pageFolder = classicCreate("Folder", { Name = "Pages" }, pages)
+
+    -- Em vez de encolher a GUI inteira com UIScale (inclusive as letras),
+    -- redimensione apenas a janela. Assim o texto continua legível no PC e
+    -- os botões continuam grandes o bastante para toque no celular.
+    local viewportConnection
+    local function updateResponsiveLayout()
+        local camera = workspace.CurrentCamera
+        local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+        local width = math.clamp(viewport.X - 20, 300, 760)
+        local height = math.clamp(viewport.Y - 20, 300, 500)
+        local sideWidth
+        if width < 520 then
+            sideWidth = 112
+        elseif width < 680 then
+            sideWidth = 144
+        else
+            sideWidth = 176
+        end
+
+        main.Size = UDim2.fromOffset(width, height)
+        side.Position = UDim2.fromOffset(0, 46)
+        side.Size = UDim2.new(0, sideWidth, 1, -46)
+        pages.Position = UDim2.fromOffset(sideWidth, 46)
+        pages.Size = UDim2.new(1, -sideWidth, 1, -46)
+    end
+    local function bindViewportCamera()
+        if viewportConnection then
+            viewportConnection:Disconnect()
+            viewportConnection = nil
+        end
+        local camera = workspace.CurrentCamera
+        if camera then
+            viewportConnection = trackConnection(
+                camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateResponsiveLayout)
+            )
+        end
+        updateResponsiveLayout()
+    end
+    bindViewportCamera()
+    trackConnection(workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera))
 
     local window = { tabs = {}, gui = gui }
     local function showTab(selected)
@@ -418,14 +446,14 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     function window:NewTab(name)
         local tabButton = classicCreate("TextButton", {
             Name = name .. "TabButton",
-            Size = UDim2.new(1, 0, 0, 28),
+            Size = UDim2.new(1, 0, 0, 40),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             AutoButtonColor = false,
-            Font = Enum.Font.Gotham,
+            Font = Enum.Font.GothamMedium,
             Text = name,
             TextColor3 = ClassicUI.theme.TextColor,
-            TextSize = 14,
+            TextSize = 15,
         }, tabFrames)
         classicCorner(tabButton, 5)
         classicBindTheme(tabButton, "BackgroundColor3", "SchemeColor")
@@ -436,21 +464,22 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             Size = UDim2.fromScale(1, 1),
             BackgroundColor3 = ClassicUI.theme.Background,
             BorderSizePixel = 0,
-            ScrollBarThickness = 4,
+            ScrollBarThickness = 6,
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             CanvasSize = UDim2.new(),
+            ScrollingDirection = Enum.ScrollingDirection.Y,
             Visible = false,
         }, pageFolder)
         classicBindTheme(page, "ScrollBarImageColor3", "SchemeColor")
         classicCreate("UIPadding", {
-            PaddingLeft = UDim.new(0, 8),
-            PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 8),
-            PaddingBottom = UDim.new(0, 8),
+            PaddingLeft = UDim.new(0, 12),
+            PaddingRight = UDim.new(0, 12),
+            PaddingTop = UDim.new(0, 12),
+            PaddingBottom = UDim.new(0, 12),
         }, page)
         classicCreate("UIListLayout", {
             Name = "pageListing",
-            Padding = UDim.new(0, 6),
+            Padding = UDim.new(0, 8),
             SortOrder = Enum.SortOrder.LayoutOrder,
         }, page)
 
@@ -469,13 +498,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             }, page)
             classicCreate("UIListLayout", {
                 Name = "sectionlistoknvm",
-                Padding = UDim.new(0, 4),
+                Padding = UDim.new(0, 6),
                 SortOrder = Enum.SortOrder.LayoutOrder,
             }, sectionFrame)
 
             local sectionHead = classicCreate("Frame", {
                 Name = "sectionHead",
-                Size = UDim2.new(1, 0, 0, hidden and 0 or 32),
+                Size = UDim2.new(1, 0, 0, hidden and 0 or 44),
                 Visible = not hidden,
                 BorderSizePixel = 0,
             }, sectionFrame)
@@ -483,13 +512,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             classicBindTheme(sectionHead, "BackgroundColor3", "SchemeColor")
             local sectionNameLabel = classicCreate("TextLabel", {
                 Name = "sectionName",
-                Position = UDim2.fromOffset(8, 0),
-                Size = UDim2.new(1, -16, 1, 0),
+                Position = UDim2.fromOffset(12, 0),
+                Size = UDim2.new(1, -24, 1, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.Gotham,
+                Font = Enum.Font.GothamBold,
                 Text = sectionName,
                 TextColor3 = ClassicUI.theme.TextColor,
-                TextSize = 14,
+                TextSize = 15,
                 TextXAlignment = Enum.TextXAlignment.Left,
             }, sectionHead)
             classicBindTheme(sectionNameLabel, "TextColor3", "TextColor")
@@ -503,7 +532,7 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             }, sectionFrame)
             classicCreate("UIListLayout", {
                 Name = "sectionElListing",
-                Padding = UDim.new(0, 3),
+                Padding = UDim.new(0, 6),
                 SortOrder = Enum.SortOrder.LayoutOrder,
             }, sectionInners)
 
@@ -520,13 +549,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 classicCorner(element, 5)
                 local title = classicCreate("TextLabel", {
                     Name = "togName",
-                    Position = UDim2.fromOffset(10, 4),
-                    Size = UDim2.new(1, -(20 + (rightInset or 0)), 0, 17),
+                    Position = UDim2.fromOffset(14, 7),
+                    Size = UDim2.new(1, -(28 + (rightInset or 0)), 0, 21),
                     BackgroundTransparency = 1,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.GothamBold,
                     Text = label,
                     TextColor3 = ClassicUI.theme.TextColor,
-                    TextSize = 13,
+                    TextSize = 15,
                     TextTruncate = Enum.TextTruncate.AtEnd,
                     TextXAlignment = Enum.TextXAlignment.Left,
                 }, element)
@@ -534,13 +563,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 if description and description ~= "" then
                     local info = classicCreate("TextLabel", {
                         Name = "description",
-                        Position = UDim2.fromOffset(10, 21),
-                        Size = UDim2.new(1, -(20 + (rightInset or 0)), 0, 14),
+                        Position = UDim2.fromOffset(14, 31),
+                        Size = UDim2.new(1, -(28 + (rightInset or 0)), 0, 18),
                         BackgroundTransparency = 1,
                         Font = Enum.Font.Gotham,
                         Text = description,
                         TextColor3 = Color3.fromRGB(170, 170, 180),
-                        TextSize = 10,
+                        TextSize = 12,
                         TextTruncate = Enum.TextTruncate.AtEnd,
                         TextXAlignment = Enum.TextXAlignment.Left,
                     }, element)
@@ -555,15 +584,15 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             end
 
             function api:NewButton(label, description, callback)
-                local element = makeElement("buttonElement", 39, label, description, 42)
+                local element = makeElement("buttonElement", 58, label, description, 52)
                 local arrow = classicCreate("TextLabel", {
                     Name = "action",
-                    Position = UDim2.new(1, -35, 0, 0),
-                    Size = UDim2.fromOffset(30, 39),
+                    Position = UDim2.new(1, -46, 0, 0),
+                    Size = UDim2.fromOffset(40, 58),
                     BackgroundTransparency = 1,
                     Font = Enum.Font.GothamBold,
                     Text = "›",
-                    TextSize = 22,
+                    TextSize = 26,
                 }, element)
                 classicBindTheme(arrow, "TextColor3", "SchemeColor")
                 element.Activated:Connect(function() classicInvoke(label, callback) end)
@@ -576,30 +605,30 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             end
 
             function api:NewToggle(label, description, callback)
-                local element, title = makeElement("toggleElement", 39, label, description, 62)
+                local element, title = makeElement("toggleElement", 58, label, description, 78)
                 local switch = classicCreate("Frame", {
                     Name = "switch",
-                    Position = UDim2.new(1, -48, 0.5, -10),
-                    Size = UDim2.fromOffset(38, 20),
+                    Position = UDim2.new(1, -64, 0.5, -14),
+                    Size = UDim2.fromOffset(52, 28),
                     BackgroundColor3 = Color3.fromRGB(45, 45, 52),
                     BorderSizePixel = 0,
                 }, element)
-                classicCorner(switch, 10)
+                classicCorner(switch, 14)
                 local dot = classicCreate("Frame", {
                     Name = "dot",
                     Position = UDim2.fromOffset(3, 3),
-                    Size = UDim2.fromOffset(14, 14),
+                    Size = UDim2.fromOffset(22, 22),
                     BackgroundColor3 = Color3.fromRGB(190, 190, 198),
                     BorderSizePixel = 0,
                 }, switch)
-                classicCorner(dot, 7)
+                classicCorner(dot, 11)
                 local state = false
                 local control = {}
                 function control:UpdateToggle(newText, enabled)
                     if newText ~= nil then title.Text = tostring(newText) end
                     state = enabled == true
                     switch.BackgroundColor3 = state and ClassicUI.theme.SchemeColor or Color3.fromRGB(45, 45, 52)
-                    dot.Position = UDim2.fromOffset(state and 21 or 3, 3)
+                    dot.Position = UDim2.fromOffset(state and 27 or 3, 3)
                     dot.BackgroundColor3 = state and ClassicUI.theme.Background or Color3.fromRGB(190, 190, 198)
                     classicInvoke(label, callback, state)
                 end
@@ -608,11 +637,11 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             end
 
             function api:NewTextBox(label, description, callback)
-                local element = makeElement("textboxElement", 62, label, description, 0)
+                local element = makeElement("textboxElement", 92, label, description, 0)
                 local input = classicCreate("TextBox", {
                     Name = "TextBox",
-                    Position = UDim2.new(0, 9, 1, -25),
-                    Size = UDim2.new(1, -18, 0, 21),
+                    Position = UDim2.new(0, 13, 1, -38),
+                    Size = UDim2.new(1, -26, 0, 30),
                     BackgroundColor3 = Color3.fromRGB(14, 14, 18),
                     BorderSizePixel = 0,
                     ClearTextOnFocus = false,
@@ -621,13 +650,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                     Font = Enum.Font.Gotham,
                     TextColor3 = ClassicUI.theme.TextColor,
                     PlaceholderColor3 = Color3.fromRGB(135, 135, 145),
-                    TextSize = 11,
+                    TextSize = 13,
                     TextXAlignment = Enum.TextXAlignment.Left,
                 }, element)
                 classicCorner(input, 4)
                 classicCreate("UIPadding", {
-                    PaddingLeft = UDim.new(0, 6),
-                    PaddingRight = UDim.new(0, 6),
+                    PaddingLeft = UDim.new(0, 9),
+                    PaddingRight = UDim.new(0, 9),
                 }, input)
                 input.FocusLost:Connect(function(enterPressed)
                     if enterPressed then classicInvoke(label, callback, input.Text) end
@@ -642,28 +671,36 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 end
                 maximum = tonumber(maximum) or 100
                 minimum = tonumber(minimum) or 0
-                local element = makeElement("sliderElement", 55, label, description, 64)
+                local element = makeElement("sliderElement", 78, label, description, 76)
                 local value = math.clamp(tonumber(defaultValue) or minimum, minimum, maximum)
                 local valueLabel = classicCreate("TextLabel", {
                     Name = "value",
-                    Position = UDim2.new(1, -58, 0, 4),
-                    Size = UDim2.fromOffset(48, 17),
+                    Position = UDim2.new(1, -66, 0, 7),
+                    Size = UDim2.fromOffset(52, 21),
                     BackgroundTransparency = 1,
                     Font = Enum.Font.GothamBold,
                     Text = tostring(value),
-                    TextSize = 11,
+                    TextSize = 13,
                     TextXAlignment = Enum.TextXAlignment.Right,
                 }, element)
                 classicBindTheme(valueLabel, "TextColor3", "SchemeColor")
                 local bar = classicCreate("TextButton", {
                     Name = "sliderBtn",
-                    Position = UDim2.new(0, 9, 1, -13),
-                    Size = UDim2.new(1, -18, 0, 7),
-                    BackgroundColor3 = Color3.fromRGB(45, 45, 52),
+                    Position = UDim2.new(0, 14, 1, -36),
+                    Size = UDim2.new(1, -28, 0, 32),
+                    BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Text = "",
                 }, element)
-                classicCorner(bar, 4)
+                local track = classicCreate("Frame", {
+                    Name = "track",
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Position = UDim2.fromScale(0, 0.5),
+                    Size = UDim2.new(1, 0, 0, 10),
+                    BackgroundColor3 = Color3.fromRGB(45, 45, 52),
+                    BorderSizePixel = 0,
+                }, bar)
+                classicCorner(track, 5)
                 local fill = classicCreate("Frame", {
                     Name = "sliderDrag",
                     Size = UDim2.new(
@@ -673,8 +710,8 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                         0
                     ),
                     BorderSizePixel = 0,
-                }, bar)
-                classicCorner(fill, 4)
+                }, track)
+                classicCorner(fill, 5)
                 classicBindTheme(fill, "BackgroundColor3", "SchemeColor")
                 local dragging = false
                 local range = maximum - minimum
@@ -719,17 +756,17 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             end
 
             function api:NewKeybind(label, description, keyCode, callback)
-                local element, title = makeElement("keybindElement", 39, label, description, 64)
+                local element, title = makeElement("keybindElement", 58, label, description, 78)
                 local activeKey = keyCode or Enum.KeyCode.Unknown
                 local listening = false
                 local keyLabel = classicCreate("TextLabel", {
                     Name = "togName",
-                    Position = UDim2.new(1, -58, 0.5, -10),
-                    Size = UDim2.fromOffset(48, 20),
+                    Position = UDim2.new(1, -68, 0.5, -13),
+                    Size = UDim2.fromOffset(56, 26),
                     BackgroundTransparency = 1,
                     Font = Enum.Font.GothamBold,
                     Text = activeKey.Name,
-                    TextSize = 10,
+                    TextSize = 12,
                     TextXAlignment = Enum.TextXAlignment.Right,
                 }, element)
                 classicBindTheme(keyLabel, "TextColor3", "SchemeColor")
@@ -3043,17 +3080,17 @@ if originalClose then
     originalClose.Active  = false
 end
 
-if header then
-    local minimize = Instance.new("TextButton")
-    minimize.Name             = "Minimize"
-    minimize.Size             = UDim2.fromOffset(28, 24)
-    minimize.Position         = UDim2.new(1, -34, 0, 2)
-    minimize.BackgroundTransparency = 1
-    minimize.AutoButtonColor  = false
-    minimize.Font             = Enum.Font.GothamBold
-    minimize.Text             = "—"
-    minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
-    minimize.TextSize         = 20
+    if header then
+        local minimize = Instance.new("TextButton")
+        minimize.Name             = "Minimize"
+        minimize.Size             = UDim2.fromOffset(44, 44)
+        minimize.Position         = UDim2.new(1, -46, 0, 1)
+        minimize.BackgroundTransparency = 1
+        minimize.AutoButtonColor  = false
+        minimize.Font             = Enum.Font.GothamBold
+        minimize.Text             = "—"
+        minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
+        minimize.TextSize         = 24
     minimize.Parent           = header
     minimize.MouseButton1Click:Connect(function() setMenuVisible(false) end)
     enableDrag(main, header)

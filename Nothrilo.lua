@@ -318,43 +318,44 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         Name = "Main",
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.fromScale(0.5, 0.5),
-        Size = UDim2.fromOffset(760, 500),
+        -- Geometria da Kavo clássica usada no roteiro de referência.
+        Size = UDim2.fromOffset(525, 318),
         BackgroundColor3 = ClassicUI.theme.Background,
         BorderSizePixel = 0,
         ClipsDescendants = true,
     }, gui)
-    classicCorner(main, 5)
+    classicCorner(main, 10)
     local mainStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.15 }, main)
     classicBindTheme(mainStroke, "Color", "SchemeColor")
 
     local header = classicCreate("Frame", {
         Name = "MainHeader",
-        Size = UDim2.new(1, 0, 0, 46),
+        Size = UDim2.new(1, 0, 0, 29),
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
     local titleLabel = classicCreate("TextLabel", {
         Name = "title",
-        Position = UDim2.fromOffset(14, 0),
-        Size = UDim2.new(1, -68, 1, 0),
+        Position = UDim2.fromOffset(9, 0),
+        Size = UDim2.new(1, -46, 1, 0),
         BackgroundTransparency = 1,
-        Font = Enum.Font.GothamBold,
+        Font = Enum.Font.Gotham,
         Text = title,
         TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 18,
+        TextSize = 16,
         TextXAlignment = Enum.TextXAlignment.Left,
         RichText = true,
     }, header)
     classicBindTheme(titleLabel, "TextColor3", "TextColor")
     local close = classicCreate("TextButton", {
         Name = "close",
-        Position = UDim2.new(1, -46, 0, 0),
-        Size = UDim2.fromOffset(46, 46),
+        Position = UDim2.new(1, -29, 0, 0),
+        Size = UDim2.fromOffset(29, 29),
         BackgroundTransparency = 1,
         Text = "×",
         Font = Enum.Font.GothamBold,
         TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 24,
+        TextSize = 20,
     }, header)
     close.Activated:Connect(function()
         if destroyNothrilo then destroyNothrilo() elseif gui.Parent then gui:Destroy() end
@@ -362,18 +363,18 @@ function ClassicUI.CreateLib(title, suppliedTheme)
 
     local side = classicCreate("Frame", {
         Name = "MainSide",
-        Position = UDim2.fromOffset(0, 46),
-        Size = UDim2.new(0, 176, 1, -46),
+        Position = UDim2.fromOffset(0, 29),
+        Size = UDim2.new(0, 149, 1, -29),
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
     local tabFrames = classicCreate("ScrollingFrame", {
         Name = "tabFrames",
-        Position = UDim2.fromOffset(8, 8),
-        Size = UDim2.new(1, -16, 1, -16),
+        Position = UDim2.fromOffset(7, 3),
+        Size = UDim2.new(0, 135, 1, -6),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        ScrollBarThickness = 3,
+        ScrollBarThickness = 0,
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         CanvasSize = UDim2.new(),
         ScrollingDirection = Enum.ScrollingDirection.Y,
@@ -381,42 +382,77 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     classicBindTheme(tabFrames, "ScrollBarImageColor3", "SchemeColor")
     classicCreate("UIListLayout", {
         Name = "tabListing",
-        Padding = UDim.new(0, 3),
+        Padding = UDim.new(0, 0),
         SortOrder = Enum.SortOrder.LayoutOrder,
     }, tabFrames)
 
     local pages = classicCreate("Frame", {
         Name = "pages",
-        Position = UDim2.fromOffset(176, 46),
-        Size = UDim2.new(1, -176, 1, -46),
+        Position = UDim2.fromOffset(157, 39),
+        Size = UDim2.fromOffset(360, 269),
         BackgroundColor3 = ClassicUI.theme.Background,
         BorderSizePixel = 0,
     }, main)
     local pageFolder = classicCreate("Folder", { Name = "Pages" }, pages)
 
-    -- Em vez de encolher a GUI inteira com UIScale (inclusive as letras),
-    -- redimensione apenas a janela. Assim o texto continua legível no PC e
-    -- os botões continuam grandes o bastante para toque no celular.
+    -- A Kavo mostra a descrição em uma faixa inferior, não espremida embaixo
+    -- do nome do controle. Um único tooltip atende todos os itens sem workers.
+    local hintBar = classicCreate("TextLabel", {
+        Name = "infoContainer",
+        Position = UDim2.fromOffset(157, 278),
+        Size = UDim2.fromOffset(368, 33),
+        BackgroundColor3 = ClassicUI.theme.ElementColor,
+        BorderSizePixel = 0,
+        Font = Enum.Font.GothamSemibold,
+        Text = "",
+        TextColor3 = ClassicUI.theme.TextColor,
+        TextSize = 14,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Visible = false,
+        ZIndex = 60,
+    }, main)
+    classicCorner(hintBar, 8)
+    classicCreate("UIPadding", {
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10),
+    }, hintBar)
+    classicBindTheme(hintBar, "BackgroundColor3", "ElementColor")
+    classicBindTheme(hintBar, "TextColor3", "TextColor")
+    local hintStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.1 }, hintBar)
+    classicBindTheme(hintStroke, "Color", "SchemeColor")
+    local hintSession = 0
+    local function showHint(description)
+        if not description or description == "" then return end
+        hintSession = hintSession + 1
+        local session = hintSession
+        hintBar.Text = description
+        hintBar.Visible = true
+        task.delay(2, function()
+            if session == hintSession and hintBar.Parent then hintBar.Visible = false end
+        end)
+    end
+
+    -- A referência usa 525x318 sem UIScale. Em telas menores só a geometria
+    -- disponível é reduzida; as fontes continuam com o mesmo tamanho.
     local viewportConnection
     local function updateResponsiveLayout()
         local camera = workspace.CurrentCamera
         local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
-        local width = math.clamp(viewport.X - 20, 300, 760)
-        local height = math.clamp(viewport.Y - 20, 300, 500)
-        local sideWidth
-        if width < 520 then
-            sideWidth = 112
-        elseif width < 680 then
-            sideWidth = 144
-        else
-            sideWidth = 176
-        end
+        local width = math.clamp(viewport.X - 16, 300, 525)
+        local height = math.clamp(viewport.Y - 16, 260, 318)
+        local sideWidth = width < 460 and 112 or 149
+        local contentX = sideWidth + 8
+        local contentY = 39
 
         main.Size = UDim2.fromOffset(width, height)
-        side.Position = UDim2.fromOffset(0, 46)
-        side.Size = UDim2.new(0, sideWidth, 1, -46)
-        pages.Position = UDim2.fromOffset(sideWidth, 46)
-        pages.Size = UDim2.new(1, -sideWidth, 1, -46)
+        side.Position = UDim2.fromOffset(0, 29)
+        side.Size = UDim2.new(0, sideWidth, 1, -29)
+        tabFrames.Size = UDim2.new(1, -14, 1, -6)
+        pages.Position = UDim2.fromOffset(contentX, contentY)
+        pages.Size = UDim2.new(1, -(contentX + 8), 1, -(contentY + 10))
+        hintBar.Position = UDim2.fromOffset(contentX, height - 40)
+        hintBar.Size = UDim2.new(1, -contentX, 0, 33)
     end
     local function bindViewportCamera()
         if viewportConnection then
@@ -446,16 +482,16 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     function window:NewTab(name)
         local tabButton = classicCreate("TextButton", {
             Name = name .. "TabButton",
-            Size = UDim2.new(1, 0, 0, 40),
+            Size = UDim2.new(1, 0, 0, 28),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             AutoButtonColor = false,
-            Font = Enum.Font.GothamMedium,
+            Font = Enum.Font.Gotham,
             Text = name,
             TextColor3 = ClassicUI.theme.TextColor,
-            TextSize = 15,
+            TextSize = 14,
         }, tabFrames)
-        classicCorner(tabButton, 5)
+        classicCorner(tabButton, 8)
         classicBindTheme(tabButton, "BackgroundColor3", "SchemeColor")
         classicBindTheme(tabButton, "TextColor3", "TextColor")
 
@@ -464,7 +500,7 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             Size = UDim2.fromScale(1, 1),
             BackgroundColor3 = ClassicUI.theme.Background,
             BorderSizePixel = 0,
-            ScrollBarThickness = 6,
+            ScrollBarThickness = 5,
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             CanvasSize = UDim2.new(),
             ScrollingDirection = Enum.ScrollingDirection.Y,
@@ -472,14 +508,14 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         }, pageFolder)
         classicBindTheme(page, "ScrollBarImageColor3", "SchemeColor")
         classicCreate("UIPadding", {
-            PaddingLeft = UDim.new(0, 12),
-            PaddingRight = UDim.new(0, 12),
-            PaddingTop = UDim.new(0, 12),
-            PaddingBottom = UDim.new(0, 12),
+            PaddingLeft = UDim.new(0, 4),
+            PaddingRight = UDim.new(0, 4),
+            PaddingTop = UDim.new(0, 0),
+            PaddingBottom = UDim.new(0, 4),
         }, page)
         classicCreate("UIListLayout", {
             Name = "pageListing",
-            Padding = UDim.new(0, 8),
+            Padding = UDim.new(0, 5),
             SortOrder = Enum.SortOrder.LayoutOrder,
         }, page)
 
@@ -498,27 +534,27 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             }, page)
             classicCreate("UIListLayout", {
                 Name = "sectionlistoknvm",
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, 5),
                 SortOrder = Enum.SortOrder.LayoutOrder,
             }, sectionFrame)
 
             local sectionHead = classicCreate("Frame", {
                 Name = "sectionHead",
-                Size = UDim2.new(1, 0, 0, hidden and 0 or 44),
+                Size = UDim2.new(1, 0, 0, hidden and 0 or 33),
                 Visible = not hidden,
                 BorderSizePixel = 0,
             }, sectionFrame)
-            classicCorner(sectionHead, 5)
+            classicCorner(sectionHead, 8)
             classicBindTheme(sectionHead, "BackgroundColor3", "SchemeColor")
             local sectionNameLabel = classicCreate("TextLabel", {
                 Name = "sectionName",
-                Position = UDim2.fromOffset(12, 0),
-                Size = UDim2.new(1, -24, 1, 0),
+                Position = UDim2.fromOffset(7, 0),
+                Size = UDim2.new(1, -14, 1, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = Enum.Font.Gotham,
                 Text = sectionName,
                 TextColor3 = ClassicUI.theme.TextColor,
-                TextSize = 15,
+                TextSize = 14,
                 TextXAlignment = Enum.TextXAlignment.Left,
             }, sectionHead)
             classicBindTheme(sectionNameLabel, "TextColor3", "TextColor")
@@ -532,7 +568,7 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             }, sectionFrame)
             classicCreate("UIListLayout", {
                 Name = "sectionElListing",
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, 3),
                 SortOrder = Enum.SortOrder.LayoutOrder,
             }, sectionInners)
 
@@ -544,57 +580,62 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                     BackgroundColor3 = ClassicUI.theme.ElementColor,
                     BorderSizePixel = 0,
                     AutoButtonColor = false,
+                    ClipsDescendants = true,
                     Text = "",
                 }, sectionInners)
-                classicCorner(element, 5)
-                local title = classicCreate("TextLabel", {
-                    Name = "togName",
-                    Position = UDim2.fromOffset(14, 7),
-                    Size = UDim2.new(1, -(28 + (rightInset or 0)), 0, 21),
+                classicCorner(element, 8)
+                local accentIcon = classicCreate("TextLabel", {
+                    Name = "touch",
+                    Position = UDim2.fromOffset(7, 6),
+                    Size = UDim2.fromOffset(21, 21),
                     BackgroundTransparency = 1,
                     Font = Enum.Font.GothamBold,
+                    Text = "•",
+                    TextColor3 = ClassicUI.theme.SchemeColor,
+                    TextSize = 17,
+                }, element)
+                classicBindTheme(accentIcon, "TextColor3", "SchemeColor")
+                local title = classicCreate("TextLabel", {
+                    Name = "togName",
+                    Position = UDim2.fromOffset(34, 0),
+                    Size = UDim2.new(1, -(62 + (rightInset or 0)), 1, 0),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamSemibold,
                     Text = label,
                     TextColor3 = ClassicUI.theme.TextColor,
-                    TextSize = 15,
+                    TextSize = 14,
                     TextTruncate = Enum.TextTruncate.AtEnd,
                     TextXAlignment = Enum.TextXAlignment.Left,
                 }, element)
                 classicBindTheme(title, "TextColor3", "TextColor")
-                if description and description ~= "" then
-                    local info = classicCreate("TextLabel", {
-                        Name = "description",
-                        Position = UDim2.fromOffset(14, 31),
-                        Size = UDim2.new(1, -(28 + (rightInset or 0)), 0, 18),
-                        BackgroundTransparency = 1,
-                        Font = Enum.Font.Gotham,
-                        Text = description,
-                        TextColor3 = Color3.fromRGB(170, 170, 180),
-                        TextSize = 12,
-                        TextTruncate = Enum.TextTruncate.AtEnd,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                    }, element)
-                end
+                local info = classicCreate("TextButton", {
+                    Name = "viewInfo",
+                    Position = UDim2.new(1, -25, 0, 5),
+                    Size = UDim2.fromOffset(23, 23),
+                    BackgroundTransparency = 1,
+                    AutoButtonColor = false,
+                    Font = Enum.Font.GothamBold,
+                    Text = "i",
+                    TextColor3 = ClassicUI.theme.SchemeColor,
+                    TextSize = 14,
+                    Visible = description ~= nil and description ~= "",
+                    ZIndex = 4,
+                }, element)
+                classicBindTheme(info, "TextColor3", "SchemeColor")
+                info.Activated:Connect(function() showHint(description) end)
                 element.MouseEnter:Connect(function()
                     element.BackgroundColor3 = ClassicUI.theme.ElementColor:Lerp(Color3.new(1, 1, 1), 0.08)
                 end)
                 element.MouseLeave:Connect(function()
                     element.BackgroundColor3 = ClassicUI.theme.ElementColor
                 end)
-                return element, title
+                return element, title, accentIcon, info
             end
 
             function api:NewButton(label, description, callback)
-                local element = makeElement("buttonElement", 58, label, description, 52)
-                local arrow = classicCreate("TextLabel", {
-                    Name = "action",
-                    Position = UDim2.new(1, -46, 0, 0),
-                    Size = UDim2.fromOffset(40, 58),
-                    BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamBold,
-                    Text = "›",
-                    TextSize = 26,
-                }, element)
-                classicBindTheme(arrow, "TextColor3", "SchemeColor")
+                local element, _, accentIcon = makeElement("buttonElement", 33, label, description, 0)
+                accentIcon.Text = "›"
+                accentIcon.TextSize = 20
                 element.Activated:Connect(function() classicInvoke(label, callback) end)
                 local control = {}
                 function control:UpdateButton(newTitle)
@@ -605,31 +646,34 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             end
 
             function api:NewToggle(label, description, callback)
-                local element, title = makeElement("toggleElement", 58, label, description, 78)
+                local element, title, accentIcon = makeElement("toggleElement", 33, label, description, 0)
+                accentIcon.Visible = false
                 local switch = classicCreate("Frame", {
-                    Name = "switch",
-                    Position = UDim2.new(1, -64, 0.5, -14),
-                    Size = UDim2.fromOffset(52, 28),
-                    BackgroundColor3 = Color3.fromRGB(45, 45, 52),
+                    Name = "toggleDisabled",
+                    Position = UDim2.fromOffset(7, 6),
+                    Size = UDim2.fromOffset(21, 21),
+                    BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                 }, element)
-                classicCorner(switch, 14)
+                classicCorner(switch, 6)
+                local switchStroke = classicCreate("UIStroke", { Thickness = 2 }, switch)
+                classicBindTheme(switchStroke, "Color", "SchemeColor")
                 local dot = classicCreate("Frame", {
-                    Name = "dot",
-                    Position = UDim2.fromOffset(3, 3),
-                    Size = UDim2.fromOffset(22, 22),
-                    BackgroundColor3 = Color3.fromRGB(190, 190, 198),
+                    Name = "toggleEnabled",
+                    Position = UDim2.fromOffset(5, 5),
+                    Size = UDim2.fromOffset(11, 11),
+                    BackgroundColor3 = ClassicUI.theme.SchemeColor,
                     BorderSizePixel = 0,
+                    Visible = false,
                 }, switch)
-                classicCorner(dot, 11)
+                classicCorner(dot, 4)
+                classicBindTheme(dot, "BackgroundColor3", "SchemeColor")
                 local state = false
                 local control = {}
                 function control:UpdateToggle(newText, enabled)
                     if newText ~= nil then title.Text = tostring(newText) end
                     state = enabled == true
-                    switch.BackgroundColor3 = state and ClassicUI.theme.SchemeColor or Color3.fromRGB(45, 45, 52)
-                    dot.Position = UDim2.fromOffset(state and 27 or 3, 3)
-                    dot.BackgroundColor3 = state and ClassicUI.theme.Background or Color3.fromRGB(190, 190, 198)
+                    dot.Visible = state
                     classicInvoke(label, callback, state)
                 end
                 element.Activated:Connect(function() control:UpdateToggle(nil, not state) end)
@@ -637,11 +681,14 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             end
 
             function api:NewTextBox(label, description, callback)
-                local element = makeElement("textboxElement", 92, label, description, 0)
+                local element, title, accentIcon = makeElement("textboxElement", 33, label, description, 0)
+                accentIcon.Text = "T"
+                accentIcon.TextSize = 13
+                title.Size = UDim2.new(0.49, -34, 1, 0)
                 local input = classicCreate("TextBox", {
                     Name = "TextBox",
-                    Position = UDim2.new(0, 13, 1, -38),
-                    Size = UDim2.new(1, -26, 0, 30),
+                    Position = UDim2.new(0.49, 0, 0, 7),
+                    Size = UDim2.new(0.43, -2, 0, 18),
                     BackgroundColor3 = Color3.fromRGB(14, 14, 18),
                     BorderSizePixel = 0,
                     ClearTextOnFocus = false,
@@ -650,13 +697,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                     Font = Enum.Font.Gotham,
                     TextColor3 = ClassicUI.theme.TextColor,
                     PlaceholderColor3 = Color3.fromRGB(135, 135, 145),
-                    TextSize = 13,
+                    TextSize = 12,
                     TextXAlignment = Enum.TextXAlignment.Left,
                 }, element)
-                classicCorner(input, 4)
+                classicCorner(input, 6)
                 classicCreate("UIPadding", {
-                    PaddingLeft = UDim.new(0, 9),
-                    PaddingRight = UDim.new(0, 9),
+                    PaddingLeft = UDim.new(0, 6),
+                    PaddingRight = UDim.new(0, 6),
                 }, input)
                 input.FocusLost:Connect(function(enterPressed)
                     if enterPressed then classicInvoke(label, callback, input.Text) end
@@ -671,23 +718,26 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 end
                 maximum = tonumber(maximum) or 100
                 minimum = tonumber(minimum) or 0
-                local element = makeElement("sliderElement", 78, label, description, 76)
+                local element, title, accentIcon = makeElement("sliderElement", 33, label, description, 0)
+                accentIcon.Text = "◉"
+                accentIcon.TextSize = 13
+                title.Size = UDim2.new(0.49, -34, 1, 0)
                 local value = math.clamp(tonumber(defaultValue) or minimum, minimum, maximum)
                 local valueLabel = classicCreate("TextLabel", {
                     Name = "value",
-                    Position = UDim2.new(1, -66, 0, 7),
-                    Size = UDim2.fromOffset(52, 21),
+                    Position = UDim2.new(1, -58, 0, 0),
+                    Size = UDim2.fromOffset(31, 33),
                     BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamBold,
+                    Font = Enum.Font.GothamSemibold,
                     Text = tostring(value),
-                    TextSize = 13,
+                    TextSize = 12,
                     TextXAlignment = Enum.TextXAlignment.Right,
                 }, element)
                 classicBindTheme(valueLabel, "TextColor3", "SchemeColor")
                 local bar = classicCreate("TextButton", {
                     Name = "sliderBtn",
-                    Position = UDim2.new(0, 14, 1, -36),
-                    Size = UDim2.new(1, -28, 0, 32),
+                    Position = UDim2.new(0.49, 0, 0, 5),
+                    Size = UDim2.new(0.34, 0, 0, 23),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Text = "",
@@ -696,11 +746,11 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                     Name = "track",
                     AnchorPoint = Vector2.new(0, 0.5),
                     Position = UDim2.fromScale(0, 0.5),
-                    Size = UDim2.new(1, 0, 0, 10),
+                    Size = UDim2.new(1, 0, 0, 6),
                     BackgroundColor3 = Color3.fromRGB(45, 45, 52),
                     BorderSizePixel = 0,
                 }, bar)
-                classicCorner(track, 5)
+                classicCorner(track, 3)
                 local fill = classicCreate("Frame", {
                     Name = "sliderDrag",
                     Size = UDim2.new(
@@ -711,7 +761,7 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                     ),
                     BorderSizePixel = 0,
                 }, track)
-                classicCorner(fill, 5)
+                classicCorner(fill, 3)
                 classicBindTheme(fill, "BackgroundColor3", "SchemeColor")
                 local dragging = false
                 local range = maximum - minimum
@@ -756,17 +806,19 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             end
 
             function api:NewKeybind(label, description, keyCode, callback)
-                local element, title = makeElement("keybindElement", 58, label, description, 78)
+                local element, title, accentIcon = makeElement("keybindElement", 33, label, description, 70)
+                accentIcon.Text = "K"
+                accentIcon.TextSize = 12
                 local activeKey = keyCode or Enum.KeyCode.Unknown
                 local listening = false
                 local keyLabel = classicCreate("TextLabel", {
                     Name = "togName",
-                    Position = UDim2.new(1, -68, 0.5, -13),
-                    Size = UDim2.fromOffset(56, 26),
+                    Position = UDim2.new(1, -96, 0, 0),
+                    Size = UDim2.fromOffset(70, 33),
                     BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamBold,
+                    Font = Enum.Font.GothamSemibold,
                     Text = activeKey.Name,
-                    TextSize = 12,
+                    TextSize = 14,
                     TextXAlignment = Enum.TextXAlignment.Right,
                 }, element)
                 classicBindTheme(keyLabel, "TextColor3", "SchemeColor")
@@ -953,13 +1005,35 @@ local function getRoot(character)
 end
 
 local function teleportCharacter(cframe)
-    local root = getRoot()
-    if not root then
+    local character = getCharacter()
+    local root = getRoot(character)
+    local humanoid = getHumanoid(character)
+    if not character or not root then
         notify("Teleporte", "HumanoidRootPart não encontrado.")
         return false
     end
-    root.CFrame = cframe
-    return true
+
+    -- Teleportar o HRP enquanto ele está soldado ao assento pode mover o
+    -- carrinho inteiro ou causar snapback. Solte o assento primeiro.
+    if humanoid and humanoid.SeatPart then
+        humanoid.Sit = false
+        pcall(function() humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+        local deadline = os.clock() + 0.6
+        repeat
+            RunService.Heartbeat:Wait()
+        until not humanoid.Parent or not humanoid.SeatPart or os.clock() >= deadline
+    end
+
+    root = getRoot(character)
+    if not root then return false end
+    local ok = pcall(function()
+        local rootOffset = character:GetPivot():ToObjectSpace(root.CFrame)
+        character:PivotTo(cframe * rootOffset:Inverse())
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+    end)
+    if not ok then notify("Teleporte", "Não foi possível mover o personagem.") end
+    return ok
 end
 
 -- =============================================================================
@@ -1148,6 +1222,9 @@ local desiredWalkSpeed
 local desiredJumpPower
 local desiredJumpHeight
 local createdTools = {}
+local killerActive = false
+local killerSession = 0
+local cartMotionPauseUntil = 0
 
 -- Fly, câmera livre, giro e spectate não podem escrever na câmera ao mesmo
 -- tempo. Cada modo registra como parar e o próximo assume de forma atômica.
@@ -1402,7 +1479,7 @@ local function startVehicleFly()
                         (cur.F + cur.B + cur.Q + cur.E) * 0.2,
                         0
                     )).Position - cam.CFrame.Position)
-                ) * spd
+                ) * (vehicleFlySpeed * spd)
             elseif mobileMoving and spd > 0 then
                 bodyVelocity.Velocity =
                     Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * spd)
@@ -1532,12 +1609,24 @@ local function setPanicStop(enabled)
     if not enabled then
         restorePanicStop()
         notify("Carrinho", "Parada de emergência desligada.")
-        return
+        return true
     end
 
     local cart = getCurrentCart()
-    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return end
+    if not cart then
+        notify("Carrinho", "Sente em um carrinho primeiro.")
+        return false
+    end
 
+    if killerActive then
+        killerSession = killerSession + 1
+        killerActive = false
+    end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
     if stopBoost then stopBoost() end
     if boostToggleControl then
         task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
@@ -1555,17 +1644,62 @@ local function setPanicStop(enabled)
         end
     end
     notify("Carrinho", "Parada de emergência ligada.")
+    return true
+end
+
+local function pivotCartByReference(cart, desiredReferenceCFrame)
+    local reference = getCartPrimary(cart)
+    if not cart or not reference then return false end
+    return pcall(function()
+        local referenceOffset = cart:GetPivot():ToObjectSpace(reference.CFrame)
+        for _, part in ipairs(cart:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.AssemblyLinearVelocity = Vector3.zero
+                part.AssemblyAngularVelocity = Vector3.zero
+            end
+        end
+        cart:PivotTo(desiredReferenceCFrame * referenceOffset:Inverse())
+        for _, part in ipairs(cart:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.AssemblyLinearVelocity = Vector3.zero
+                part.AssemblyAngularVelocity = Vector3.zero
+            end
+        end
+    end)
+end
+
+local function stopCartControllersForTeleport()
+    cartMotionPauseUntil = os.clock() + 0.25
+    if killerActive then
+        killerSession = killerSession + 1
+        killerActive = false
+    end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    if stopBoost then stopBoost() end
+    restorePanicStop()
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
+    if panicToggleControl then
+        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+    end
 end
 
 local function teleportCart(cframe)
     local cart = getCurrentCart()
-    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return end
-    local ok = pcall(function() cart:PivotTo(cframe) end)
+    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return false end
+    stopCartControllersForTeleport()
+    local ok = pivotCartByReference(cart, cframe)
     if ok then
         notify("Carrinho", "Carrinho movido para o checkpoint.")
     else
         notify("Carrinho", "Não foi possível mover este carrinho.")
     end
+    return ok
 end
 
 local STABILIZER_CONFIG = { NORMAL_FORCE = 2500, DOWNHILL_FORCE = 800 }
@@ -1730,6 +1864,9 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
     cacheCartFromSeat(nil)
     cleanupStabilizer()
     restorePanicStop()
+    if panicToggleControl then
+        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+    end
     fakeLagSession = fakeLagSession + 1
     fakeLagActive = false
     fakeLagHumanoid = nil
@@ -1792,9 +1929,6 @@ local function sitOnVehicleSeat(seat)
     end
     return false
 end
-
-local killerActive = false
-local killerSession = 0
 
 local function moveToTarget(targetRoot, duration, session)
     local root    = getRoot()
@@ -1872,7 +2006,8 @@ end
 local function teleportPlayerOrCart(cframe)
     local cart = getCurrentCart()
     if cart then
-        return pcall(function() cart:PivotTo(cframe) end)
+        stopCartControllersForTeleport()
+        return pivotCartByReference(cart, cframe)
     end
     return teleportCharacter(cframe)
 end
@@ -1928,14 +2063,15 @@ local function giveClickTeleportTool()
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
     if not backpack then return end
     local character = LocalPlayer.Character
-    if backpack:FindFirstChild("ClickTP")
-        or (character and character:FindFirstChild("ClickTP")) then
+    if backpack:FindFirstChild("NothriloClickTP")
+        or (character and character:FindFirstChild("NothriloClickTP")) then
         notify("Teleporte por Clique", "A ferramenta já está na mochila.")
         return
     end
     local tool = Instance.new("Tool")
-    tool.Name            = "ClickTP"
+    tool.Name            = "NothriloClickTP"
     tool.RequiresHandle  = false
+    tool:SetAttribute("CafezlOwner", "Nothrilo")
     tool.Activated:Connect(function()
         teleportCharacter(CFrame.new(mouse.Hit.Position + Vector3.new(0, 2.5, 0)))
     end)
@@ -1965,6 +2101,20 @@ end)
 local function setVehicleFlyEnabled(enabled)
     flyEnabled = enabled
     if enabled then
+        if killerActive then
+            flyEnabled = false
+            notify("Voo do Veículo", "Indisponível durante o Eliminador.")
+            task.defer(function()
+                if flyToggleControl then flyToggleControl:UpdateToggle(nil, false) end
+            end)
+            return
+        end
+        if panicActive then
+            restorePanicStop()
+            if panicToggleControl then
+                task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+            end
+        end
         if stopBoost then stopBoost() end
         if boostToggleControl then
             task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
@@ -2106,15 +2256,26 @@ TeleportSection:NewButton("Botão de Carrinho", "Teleporta para o botão do carr
 end)
 
 TeleportSection:NewButton("Equipe Suffering", "Teleporta para a área Suffering.", function()
-    if teleportCharacter(CFrame.new(-416.844727, 163.402969, 171.087555)) then
+    if teleportCharacter(CFrame.new(
+        -416.844727, 163.402969, 171.087555,
+        0.0174489655, 5.45878223e-08, 0.99984777,
+        -4.55684486e-08, 1, -5.38008926e-08,
+        -0.99984777, -4.46227411e-08, 0.0174489655
+    )) then
         notify("Teleporte", "Teleportado para Suffering.")
+    end
+end)
+
+TeleportSection:NewButton("Insígnia Secreta", "Teleporta para a Secret Badge da referência.", function()
+    if teleportCharacter(CFrame.new(234.500259, 2.28650475, 296.495483)) then
+        notify("Teleporte", "Teleportado para a insígnia secreta.")
     end
 end)
 
 TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", function()
     local misc  = workspace:FindFirstChild("Misc")
     local giver = misc and misc:FindFirstChild("Giver")
-    local part  = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart"))
+    local part  = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart", true))
     if not part then notify("Teleporte", "Misc.Giver não encontrado.") return end
     if teleportPlayerOrCart(part.CFrame * CFrame.new(0, 3, 0)) then
         notify("Teleporte", "Teleportado para a sala secreta.")
@@ -2141,7 +2302,12 @@ local CartSection = CartTab:NewSection("Controle do Carrinho")
 panicToggleControl = CartSection:NewToggle(
     "Parada de Emergência",
     "Para e trava o carrinho.",
-    setPanicStop
+    function(state)
+        local applied = setPanicStop(state)
+        if state and not applied then
+            task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+        end
+    end
 )
 
 CartSection:NewButton("Ir ao Checkpoint 1", "NumPad 1.", function() teleportToCheckpoint(1) end)
@@ -2324,7 +2490,9 @@ BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticame
     end
 
     antiFlipConn = RunService.Heartbeat:Connect(function()
-        if not antiFlipEnabled or antiFlipCooldown or panicActive or FLYING or killerActive then return end
+        if not antiFlipEnabled or antiFlipCooldown or panicActive or FLYING or killerActive
+            or os.clock() < cartMotionPauseUntil
+        then return end
         local cart = getCurrentCart()
         if not cart then return end
         local primary = getCartPrimary(cart)
@@ -2336,7 +2504,10 @@ BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticame
             local pos  = primary.CFrame.Position
             local look = Vector3.new(primary.CFrame.LookVector.X, 0, primary.CFrame.LookVector.Z)
             look = look.Magnitude > 0.01 and look.Unit or Vector3.new(1, 0, 0)
-            cart:PivotTo(CFrame.new(pos + Vector3.new(0, 2, 0), pos + Vector3.new(0, 2, 0) + look))
+            pivotCartByReference(
+                cart,
+                CFrame.new(pos + Vector3.new(0, 2, 0), pos + Vector3.new(0, 2, 0) + look)
+            )
             notify("Anti-Flip", "Carrinho endireitado.")
             task.wait(1.5)
             antiFlipCooldown = false
@@ -2359,7 +2530,9 @@ BoostSection:NewToggle("Freio Automático", "Trava ao detectar queda livre.", fu
     end
 
     autobrakeConn = RunService.Heartbeat:Connect(function()
-        if not autobrakeEnabled or autobrakeCooldown or panicActive or FLYING or killerActive then return end
+        if not autobrakeEnabled or autobrakeCooldown or panicActive or FLYING or killerActive
+            or os.clock() < cartMotionPauseUntil
+        then return end
         local cart = getCurrentCart()
         if not cart then return end
         local primary = getCartPrimary(cart)
@@ -2458,24 +2631,22 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function()
 end))
 
 ExtrasSection:NewSlider("Jump Power", "Altura do pulo (padrão 50).", 300, 0, 50, function(value)
+    desiredJumpPower = value
+    desiredJumpHeight = 7.2 * (value / 50)
     local h = getHumanoid()
-    if h then
-        if h.UseJumpPower then desiredJumpPower = value
-        else desiredJumpHeight = value end
-        if not fakeLagActive then
-            if h.UseJumpPower then h.JumpPower = value else h.JumpHeight = value end
-        end
+    if h and not fakeLagActive then
+        if h.UseJumpPower then h.JumpPower = desiredJumpPower
+        else h.JumpHeight = desiredJumpHeight end
     end
 end)
 
 ExtrasSection:NewButton("Redefinir Jump Power", "Volta para 50.", function()
+    desiredJumpPower = 50
+    desiredJumpHeight = 7.2
     local h = getHumanoid()
-    if h then
-        if h.UseJumpPower then desiredJumpPower = 50
-        else desiredJumpHeight = 7.2 end
-        if not fakeLagActive then
-            if h.UseJumpPower then h.JumpPower = 50 else h.JumpHeight = 7.2 end
-        end
+    if h and not fakeLagActive then
+        if h.UseJumpPower then h.JumpPower = desiredJumpPower
+        else h.JumpHeight = desiredJumpHeight end
     end
     notify("Jump Power", "Redefinido.")
 end)
@@ -2858,12 +3029,12 @@ end
 -- Arredonda todos os UICorner
 local function applyRoundedStyle(root)
     for _, object in ipairs(root:GetDescendants()) do
-        if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
+        if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 8) end
     end
 end
 applyRoundedStyle(menuGui)
 trackConnection(menuGui.DescendantAdded:Connect(function(object)
-    if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 12) end
+    if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 8) end
 end))
 
 -- Textbox helper: encontra pela label ao lado
@@ -2923,7 +3094,7 @@ local function addShortcutBadge(labelText, keyText)
                 local badge      = Instance.new("TextButton")
                 badge.Name           = "NothriloShortcut_" .. keyText
                 badge.Size           = UDim2.fromOffset(badgeWidth, 21)
-                badge.Position       = UDim2.new(0.84, -(badgeWidth - 21), 0.18, 0)
+                badge.Position       = UDim2.new(1, -(badgeWidth + 31), 0, 6)
                 badge.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
                 badge.BorderSizePixel = 0
                 badge.AutoButtonColor = false
@@ -2935,6 +3106,12 @@ local function addShortcutBadge(labelText, keyText)
                 badge.Parent         = element
                 Instance.new("UICorner", badge).CornerRadius = UDim.new(0, 5)
                 table.insert(customKeybindIcons, badge)
+
+                -- Reserve espaço real: a Kavo original deixava textos longos
+                -- passarem por baixo do atalho e do ícone de informação.
+                if title.Parent == element then
+                    title.Size = UDim2.new(1, -(badgeWidth + 70), 1, 0)
+                end
 
                 badge.Activated:Connect(function()
                     if     keyText == "V"     then flyToggleControl:UpdateToggle(nil, not flyEnabled)
@@ -3083,14 +3260,14 @@ end
     if header then
         local minimize = Instance.new("TextButton")
         minimize.Name             = "Minimize"
-        minimize.Size             = UDim2.fromOffset(44, 44)
-        minimize.Position         = UDim2.new(1, -46, 0, 1)
+        minimize.Size             = UDim2.fromOffset(29, 29)
+        minimize.Position         = UDim2.new(1, -29, 0, 0)
         minimize.BackgroundTransparency = 1
         minimize.AutoButtonColor  = false
         minimize.Font             = Enum.Font.GothamBold
         minimize.Text             = "—"
         minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
-        minimize.TextSize         = 24
+        minimize.TextSize         = 18
     minimize.Parent           = header
     minimize.MouseButton1Click:Connect(function() setMenuVisible(false) end)
     enableDrag(main, header)

@@ -168,14 +168,13 @@ local Theme = {
 -- =============================================================================
 -- Tela de carregamento
 -- =============================================================================
--- O vídeo pode vir de um ID autorizado do Roblox ou, quando o executor oferece
--- suporte, de um arquivo local indicado antes do loadstring. Nenhuma tentativa
--- de vídeo segura a abertura do menu além dos mesmos 10 segundos.
+-- Loader compacto e procedural: não depende de vídeo, GIF, arquivo local nem
+-- APIs diferentes entre executores.
 local startup = {
-    videoAssetId = tostring(suiteEnvironment.NothriloCatVideoAssetId or ""),
-    videoPath = tostring(suiteEnvironment.NothriloCatVideoLocalPath
-        or suiteEnvironment.NothriloCatVideoPath or ""),
-    seconds = 10,
+    videoEnabled = false,
+    videoAssetId = "",
+    videoPath = "",
+    seconds = 5,
     beganAt = os.clock(),
 }
 startup.gui, startup.status, startup.progress = (function()
@@ -198,20 +197,15 @@ startup.gui, startup.status, startup.progress = (function()
     card.Name            = "Card"
     card.AnchorPoint     = Vector2.new(0.5, 0.5)
     card.Position        = UDim2.fromScale(0.5, 0.5)
-    card.Size            = UDim2.new(0.88, 0, 0.82, 0)
+    card.Size            = UDim2.new(0.88, 0, 0, 160)
     card.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
     card.BorderSizePixel = 0
     card.ClipsDescendants = true
     card.Parent          = shade
     local cardSize = Instance.new("UISizeConstraint")
-    cardSize.MinSize = Vector2.new(166, 260)
-    cardSize.MaxSize = Vector2.new(360, 550)
+    cardSize.MinSize = Vector2.new(260, 160)
+    cardSize.MaxSize = Vector2.new(360, 160)
     cardSize.Parent = card
-
-    local aspect = Instance.new("UIAspectRatioConstraint")
-    aspect.AspectRatio = 0.64
-    aspect.DominantAxis = Enum.DominantAxis.Height
-    aspect.Parent = card
 
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 24)
@@ -229,6 +223,7 @@ startup.gui, startup.status, startup.progress = (function()
     media.BackgroundColor3 = Color3.fromRGB(16, 16, 22)
     media.BorderSizePixel = 0
     media.ClipsDescendants = true
+    media.Visible = false
     media.Parent = card
     Instance.new("UICorner", media).CornerRadius = UDim.new(0, 18)
 
@@ -352,19 +347,21 @@ startup.gui, startup.status, startup.progress = (function()
 
     -- As fontes são tentadas em uma tarefa isolada. Mesmo que a API extra do
     -- executor falhe, o fallback continua animado e o menu abre normalmente.
-    task.spawn(function()
-        local official = normalizeVideoId(startup.videoAssetId)
-        if official and tryVideo(official, 2.6) then return end
-        if not gui.Parent or os.clock() >= startup.beganAt + startup.seconds - 0.15 then return end
-        local localUri = registerLocalVideo(startup.videoPath)
-        if localUri then
-            tryVideo(localUri, math.max(0.1, startup.beganAt + startup.seconds - os.clock() - 0.15))
-        end
-    end)
+    if startup.videoEnabled then
+        task.spawn(function()
+            local official = normalizeVideoId(startup.videoAssetId)
+            if official and tryVideo(official, 2.6) then return end
+            if not gui.Parent or os.clock() >= startup.beganAt + startup.seconds - 0.15 then return end
+            local localUri = registerLocalVideo(startup.videoPath)
+            if localUri then
+                tryVideo(localUri, math.max(0.1, startup.beganAt + startup.seconds - os.clock() - 0.15))
+            end
+        end)
+    end
 
     local titleL = Instance.new("TextLabel")
     titleL.BackgroundTransparency = 1
-    titleL.Position  = UDim2.new(0, 22, 1, -108)
+    titleL.Position  = UDim2.fromOffset(22, 18)
     titleL.Size      = UDim2.new(1, -44, 0, 24)
     titleL.Font      = Enum.Font.GothamSemibold
     titleL.Text      = MENU_NAME
@@ -375,7 +372,7 @@ startup.gui, startup.status, startup.progress = (function()
 
     local subtitleL = Instance.new("TextLabel")
     subtitleL.BackgroundTransparency = 1
-    subtitleL.Position  = UDim2.new(0, 22, 1, -82)
+    subtitleL.Position  = UDim2.fromOffset(22, 46)
     subtitleL.Size      = UDim2.new(1, -44, 0, 17)
     subtitleL.Font      = Enum.Font.Gotham
     subtitleL.Text      = "Feito por Cafezl  •  inicialização segura"
@@ -386,7 +383,7 @@ startup.gui, startup.status, startup.progress = (function()
 
     local status = Instance.new("TextLabel")
     status.BackgroundTransparency = 1
-    status.Position  = UDim2.new(0, 22, 1, -57)
+    status.Position  = UDim2.fromOffset(22, 82)
     status.Size      = UDim2.new(1, -44, 0, 16)
     status.Font      = Enum.Font.Gotham
     status.Text      = "Carregando menu com segurança... 0%"
@@ -421,7 +418,6 @@ startup.gui, startup.status, startup.progress = (function()
             progress.BackgroundColor3 = rgb
             stroke.Color = rgb
             status.TextColor3 = rgb
-            catFallback.Rotation = math.sin(elapsed * 7) * 2.5
             status.Text = ("Carregando menu com segurança... %d%%"):format(math.floor(alpha * 100))
             RunService.RenderStepped:Wait()
         end

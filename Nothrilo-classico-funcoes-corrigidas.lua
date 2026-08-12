@@ -168,7 +168,15 @@ local Theme = {
 -- =============================================================================
 -- Tela de carregamento
 -- =============================================================================
-local startupGui, startupStatus = (function()
+-- Para tocar o MP4 do gato no Roblox, envie-o pelo Asset Manager e coloque o
+-- ID autorizado aqui. Sem um asset permitido, o loader animado continua e o
+-- menu abre normalmente após os mesmos 10 segundos.
+local startup = {
+    videoAssetId = tostring(suiteEnvironment.NothriloCatVideoAssetId or ""),
+    seconds = 10,
+    beganAt = os.clock(),
+}
+startup.gui, startup.status, startup.progress = (function()
     local gui  = Instance.new("ScreenGui")
     gui.Name            = "NothriloLoading"
     gui.ResetOnSpawn    = false
@@ -176,45 +184,109 @@ local startupGui, startupStatus = (function()
     gui.DisplayOrder    = 10050
     gui.Parent          = CoreGui
 
+    local shade = Instance.new("Frame")
+    shade.Name = "Shade"
+    shade.Size = UDim2.fromScale(1, 1)
+    shade.BackgroundColor3 = Color3.fromRGB(4, 4, 6)
+    shade.BackgroundTransparency = 0.12
+    shade.BorderSizePixel = 0
+    shade.Parent = gui
+
     local card = Instance.new("Frame")
     card.Name            = "Card"
     card.AnchorPoint     = Vector2.new(0.5, 0.5)
     card.Position        = UDim2.fromScale(0.5, 0.5)
-    card.Size            = UDim2.new(0.9, 0, 0, 108)
-    card.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+    card.Size            = UDim2.new(0.88, 0, 0.82, 0)
+    card.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
     card.BorderSizePixel = 0
-    card.Parent          = gui
+    card.ClipsDescendants = true
+    card.Parent          = shade
     local cardSize = Instance.new("UISizeConstraint")
-    cardSize.MinSize = Vector2.new(260, 108)
-    cardSize.MaxSize = Vector2.new(360, 108)
+    cardSize.MinSize = Vector2.new(166, 260)
+    cardSize.MaxSize = Vector2.new(360, 550)
     cardSize.Parent = card
 
+    local aspect = Instance.new("UIAspectRatioConstraint")
+    aspect.AspectRatio = 0.64
+    aspect.DominantAxis = Enum.DominantAxis.Height
+    aspect.Parent = card
+
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 16)
+    corner.CornerRadius = UDim.new(0, 24)
     corner.Parent = card
 
     local stroke = Instance.new("UIStroke")
-    stroke.Thickness = 1.5
+    stroke.Thickness = 2
     stroke.Color     = Theme.SchemeColor
     stroke.Parent    = card
 
+    local media = Instance.new("Frame")
+    media.Name = "CatMedia"
+    media.Position = UDim2.fromOffset(12, 12)
+    media.Size = UDim2.new(1, -24, 1, -126)
+    media.BackgroundColor3 = Color3.fromRGB(16, 16, 22)
+    media.BorderSizePixel = 0
+    media.ClipsDescendants = true
+    media.Parent = card
+    Instance.new("UICorner", media).CornerRadius = UDim.new(0, 18)
+
+    local catFallback = Instance.new("TextLabel")
+    catFallback.Name = "CatFallback"
+    catFallback.Size = UDim2.fromScale(1, 1)
+    catFallback.BackgroundTransparency = 1
+    catFallback.Font = Enum.Font.GothamBold
+    catFallback.Text = "🐱  🐱\n\npreparando a bagunça..."
+    catFallback.TextColor3 = Color3.fromRGB(245, 245, 248)
+    catFallback.TextSize = 22
+    catFallback.TextWrapped = true
+    catFallback.Parent = media
+
+    if startup.videoAssetId ~= "" then
+        local video = Instance.new("VideoFrame")
+        local assigned = pcall(function()
+            video.Name = "CatVideo"
+            video.Size = UDim2.fromScale(1, 1)
+            video.BackgroundTransparency = 1
+            video.Looped = false
+            video.Volume = 0.35
+            video.Video = startup.videoAssetId:find("rbxassetid://", 1, true)
+                and startup.videoAssetId
+                or ("rbxassetid://" .. startup.videoAssetId)
+            video.Visible = false
+            video.Parent = media
+        end)
+        if assigned then
+            task.spawn(function()
+                local deadline = os.clock() + 2
+                repeat task.wait() until video.IsLoaded or os.clock() >= deadline or not video.Parent
+                if video.Parent and video.IsLoaded then
+                    video.Visible = true
+                    catFallback.Visible = false
+                    pcall(function() video:Play() end)
+                end
+            end)
+        else
+            video:Destroy()
+        end
+    end
+
     local titleL = Instance.new("TextLabel")
     titleL.BackgroundTransparency = 1
-    titleL.Position  = UDim2.fromOffset(24, 20)
-    titleL.Size      = UDim2.new(1, -48, 0, 24)
-    titleL.Font      = Enum.Font.GothamBold
+    titleL.Position  = UDim2.new(0, 22, 1, -108)
+    titleL.Size      = UDim2.new(1, -44, 0, 24)
+    titleL.Font      = Enum.Font.GothamSemibold
     titleL.Text      = MENU_NAME
     titleL.TextColor3 = Color3.fromRGB(248, 248, 250)
-    titleL.TextSize  = 18
+    titleL.TextSize  = 17
     titleL.TextXAlignment = Enum.TextXAlignment.Left
     titleL.Parent    = card
 
     local subtitleL = Instance.new("TextLabel")
     subtitleL.BackgroundTransparency = 1
-    subtitleL.Position  = UDim2.fromOffset(24, 48)
-    subtitleL.Size      = UDim2.new(1, -48, 0, 18)
+    subtitleL.Position  = UDim2.new(0, 22, 1, -82)
+    subtitleL.Size      = UDim2.new(1, -44, 0, 17)
     subtitleL.Font      = Enum.Font.Gotham
-    subtitleL.Text      = "Feito por Cafezl"
+    subtitleL.Text      = "Feito por Cafezl  •  inicialização segura"
     subtitleL.TextColor3 = Color3.fromRGB(205, 205, 214)
     subtitleL.TextSize  = 13
     subtitleL.TextXAlignment = Enum.TextXAlignment.Left
@@ -222,16 +294,48 @@ local startupGui, startupStatus = (function()
 
     local status = Instance.new("TextLabel")
     status.BackgroundTransparency = 1
-    status.Position  = UDim2.fromOffset(24, 72)
-    status.Size      = UDim2.new(1, -48, 0, 16)
+    status.Position  = UDim2.new(0, 22, 1, -57)
+    status.Size      = UDim2.new(1, -44, 0, 16)
     status.Font      = Enum.Font.Gotham
-    status.Text      = "Carregando menu..."
+    status.Text      = "Carregando menu com segurança... 0%"
     status.TextColor3 = Theme.SchemeColor
     status.TextSize  = 12
     status.TextXAlignment = Enum.TextXAlignment.Left
     status.Parent    = card
 
-    return gui, status
+    local progressTrack = Instance.new("Frame")
+    progressTrack.Name = "ProgressTrack"
+    progressTrack.Position = UDim2.new(0, 22, 1, -29)
+    progressTrack.Size = UDim2.new(1, -44, 0, 7)
+    progressTrack.BackgroundColor3 = Color3.fromRGB(34, 34, 42)
+    progressTrack.BorderSizePixel = 0
+    progressTrack.Parent = card
+    Instance.new("UICorner", progressTrack).CornerRadius = UDim.new(1, 0)
+
+    local progress = Instance.new("Frame")
+    progress.Name = "Progress"
+    progress.Size = UDim2.fromScale(0, 1)
+    progress.BackgroundColor3 = Theme.SchemeColor
+    progress.BorderSizePixel = 0
+    progress.Parent = progressTrack
+    Instance.new("UICorner", progress).CornerRadius = UDim.new(1, 0)
+
+    task.spawn(function()
+        while gui.Parent do
+            local elapsed = os.clock() - startup.beganAt
+            local alpha = math.clamp(elapsed / startup.seconds, 0, 1)
+            progress.Size = UDim2.fromScale(alpha, 1)
+            local rgb = Color3.fromHSV((os.clock() * 0.16) % 1, 0.82, 1)
+            progress.BackgroundColor3 = rgb
+            stroke.Color = rgb
+            status.TextColor3 = rgb
+            catFallback.Rotation = math.sin(elapsed * 7) * 2.5
+            status.Text = ("Carregando menu com segurança... %d%%"):format(math.floor(alpha * 100))
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    return gui, status, progress
 end)()
 
 -- =============================================================================
@@ -324,33 +428,33 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         BorderSizePixel = 0,
         ClipsDescendants = true,
     }, gui)
-    classicCorner(main, 10)
+    classicCorner(main, 14)
     local mainStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.15 }, main)
     classicBindTheme(mainStroke, "Color", "SchemeColor")
 
     local header = classicCreate("Frame", {
         Name = "MainHeader",
-        Size = UDim2.new(1, 0, 0, 29),
+        Size = UDim2.new(1, 0, 0, 34),
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
     local titleLabel = classicCreate("TextLabel", {
         Name = "title",
-        Position = UDim2.fromOffset(9, 0),
+        Position = UDim2.fromOffset(12, 0),
         Size = UDim2.new(1, -46, 1, 0),
         BackgroundTransparency = 1,
-        Font = Enum.Font.Gotham,
+        Font = Enum.Font.GothamSemibold,
         Text = title,
         TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 16,
+        TextSize = 15,
         TextXAlignment = Enum.TextXAlignment.Left,
         RichText = true,
     }, header)
     classicBindTheme(titleLabel, "TextColor3", "TextColor")
     local close = classicCreate("TextButton", {
         Name = "close",
-        Position = UDim2.new(1, -29, 0, 0),
-        Size = UDim2.fromOffset(29, 29),
+        Position = UDim2.new(1, -34, 0, 0),
+        Size = UDim2.fromOffset(34, 34),
         BackgroundTransparency = 1,
         Text = "×",
         Font = Enum.Font.GothamBold,
@@ -363,15 +467,15 @@ function ClassicUI.CreateLib(title, suppliedTheme)
 
     local side = classicCreate("Frame", {
         Name = "MainSide",
-        Position = UDim2.fromOffset(0, 29),
-        Size = UDim2.new(0, 149, 1, -29),
+        Position = UDim2.fromOffset(0, 34),
+        Size = UDim2.new(0, 145, 1, -34),
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
     local tabFrames = classicCreate("ScrollingFrame", {
         Name = "tabFrames",
-        Position = UDim2.fromOffset(7, 3),
-        Size = UDim2.new(0, 135, 1, -6),
+        Position = UDim2.fromOffset(6, 3),
+        Size = UDim2.new(0, 133, 1, -6),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         ScrollBarThickness = 0,
@@ -382,14 +486,14 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     classicBindTheme(tabFrames, "ScrollBarImageColor3", "SchemeColor")
     classicCreate("UIListLayout", {
         Name = "tabListing",
-        Padding = UDim.new(0, 0),
+        Padding = UDim.new(0, 2),
         SortOrder = Enum.SortOrder.LayoutOrder,
     }, tabFrames)
 
     local pages = classicCreate("Frame", {
         Name = "pages",
-        Position = UDim2.fromOffset(157, 39),
-        Size = UDim2.fromOffset(360, 269),
+        Position = UDim2.fromOffset(153, 42),
+        Size = UDim2.fromOffset(364, 268),
         BackgroundColor3 = ClassicUI.theme.Background,
         BorderSizePixel = 0,
     }, main)
@@ -399,20 +503,21 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     -- do nome do controle. Um único tooltip atende todos os itens sem workers.
     local hintBar = classicCreate("TextLabel", {
         Name = "infoContainer",
-        Position = UDim2.fromOffset(157, 278),
-        Size = UDim2.fromOffset(368, 33),
+        Position = UDim2.fromOffset(153, 268),
+        Size = UDim2.fromOffset(364, 42),
         BackgroundColor3 = ClassicUI.theme.ElementColor,
         BorderSizePixel = 0,
         Font = Enum.Font.GothamSemibold,
         Text = "",
         TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 14,
+        TextSize = 12,
+        TextWrapped = true,
         TextTruncate = Enum.TextTruncate.AtEnd,
         TextXAlignment = Enum.TextXAlignment.Left,
         Visible = false,
         ZIndex = 60,
     }, main)
-    classicCorner(hintBar, 8)
+    classicCorner(hintBar, 10)
     classicCreate("UIPadding", {
         PaddingLeft = UDim.new(0, 10),
         PaddingRight = UDim.new(0, 10),
@@ -422,13 +527,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     local hintStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.1 }, hintBar)
     classicBindTheme(hintStroke, "Color", "SchemeColor")
     local hintSession = 0
-    local function showHint(description)
+    local function showHint(label, description)
         if not description or description == "" then return end
         hintSession = hintSession + 1
         local session = hintSession
-        hintBar.Text = description
+        hintBar.Text = tostring(label) .. "  •  " .. tostring(description)
         hintBar.Visible = true
-        task.delay(2, function()
+        task.delay(4, function()
             if session == hintSession and hintBar.Parent then hintBar.Visible = false end
         end)
     end
@@ -436,23 +541,28 @@ function ClassicUI.CreateLib(title, suppliedTheme)
     -- A referência usa 525x318 sem UIScale. Em telas menores só a geometria
     -- disponível é reduzida; as fontes continuam com o mesmo tamanho.
     local viewportConnection
+    local responsiveCallbacks = {}
     local function updateResponsiveLayout()
         local camera = workspace.CurrentCamera
         local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
         local width = math.clamp(viewport.X - 16, 300, 525)
         local height = math.clamp(viewport.Y - 16, 260, 318)
-        local sideWidth = width < 460 and 112 or 149
+        local sideWidth = width < 420 and 96 or 145
         local contentX = sideWidth + 8
-        local contentY = 39
+        local contentY = 42
 
         main.Size = UDim2.fromOffset(width, height)
-        side.Position = UDim2.fromOffset(0, 29)
-        side.Size = UDim2.new(0, sideWidth, 1, -29)
-        tabFrames.Size = UDim2.new(1, -14, 1, -6)
+        side.Position = UDim2.fromOffset(0, 34)
+        side.Size = UDim2.new(0, sideWidth, 1, -34)
+        tabFrames.Size = UDim2.new(1, -12, 1, -6)
         pages.Position = UDim2.fromOffset(contentX, contentY)
-        pages.Size = UDim2.new(1, -(contentX + 8), 1, -(contentY + 10))
-        hintBar.Position = UDim2.fromOffset(contentX, height - 40)
-        hintBar.Size = UDim2.new(1, -contentX, 0, 33)
+        pages.Size = UDim2.new(1, -(contentX + 8), 1, -(contentY + 8))
+        hintBar.Position = UDim2.fromOffset(contentX, height - 50)
+        hintBar.Size = UDim2.new(1, -(contentX + 8), 0, 42)
+        local compact = width < 420
+        for _, callback in ipairs(responsiveCallbacks) do
+            callback(compact)
+        end
     end
     local function bindViewportCamera()
         if viewportConnection then
@@ -476,20 +586,22 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             local active = tab == selected
             tab.page.Visible = active
             tab.button.BackgroundTransparency = active and 0 or 1
+            tab.button.Font = active and Enum.Font.GothamSemibold or Enum.Font.GothamMedium
+            if active then tab.page.CanvasPosition = Vector2.zero end
         end
     end
 
     function window:NewTab(name)
         local tabButton = classicCreate("TextButton", {
             Name = name .. "TabButton",
-            Size = UDim2.new(1, 0, 0, 28),
+            Size = UDim2.new(1, 0, 0, 26),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             AutoButtonColor = false,
-            Font = Enum.Font.Gotham,
+            Font = Enum.Font.GothamMedium,
             Text = name,
             TextColor3 = ClassicUI.theme.TextColor,
-            TextSize = 14,
+            TextSize = 13,
         }, tabFrames)
         classicCorner(tabButton, 8)
         classicBindTheme(tabButton, "BackgroundColor3", "SchemeColor")
@@ -510,8 +622,8 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         classicCreate("UIPadding", {
             PaddingLeft = UDim.new(0, 4),
             PaddingRight = UDim.new(0, 4),
-            PaddingTop = UDim.new(0, 0),
-            PaddingBottom = UDim.new(0, 4),
+            PaddingTop = UDim.new(0, 4),
+            PaddingBottom = UDim.new(0, 50),
         }, page)
         classicCreate("UIListLayout", {
             Name = "pageListing",
@@ -542,22 +654,31 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 Name = "sectionHead",
                 Size = UDim2.new(1, 0, 0, hidden and 0 or 33),
                 Visible = not hidden,
+                BackgroundColor3 = ClassicUI.theme.ElementColor,
                 BorderSizePixel = 0,
             }, sectionFrame)
-            classicCorner(sectionHead, 8)
-            classicBindTheme(sectionHead, "BackgroundColor3", "SchemeColor")
+            classicCorner(sectionHead, 10)
+            classicBindTheme(sectionHead, "BackgroundColor3", "ElementColor")
+            local sectionAccent = classicCreate("Frame", {
+                Name = "SectionAccent",
+                Size = UDim2.new(0, 3, 1, -10),
+                Position = UDim2.fromOffset(6, 5),
+                BorderSizePixel = 0,
+            }, sectionHead)
+            classicCorner(sectionAccent, 2)
+            classicBindTheme(sectionAccent, "BackgroundColor3", "SchemeColor")
             local sectionNameLabel = classicCreate("TextLabel", {
                 Name = "sectionName",
-                Position = UDim2.fromOffset(7, 0),
-                Size = UDim2.new(1, -14, 1, 0),
+                Position = UDim2.fromOffset(16, 0),
+                Size = UDim2.new(1, -23, 1, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.Gotham,
+                Font = Enum.Font.GothamBold,
                 Text = sectionName,
-                TextColor3 = ClassicUI.theme.TextColor,
-                TextSize = 14,
+                TextColor3 = ClassicUI.theme.SchemeColor,
+                TextSize = 13,
                 TextXAlignment = Enum.TextXAlignment.Left,
             }, sectionHead)
-            classicBindTheme(sectionNameLabel, "TextColor3", "TextColor")
+            classicBindTheme(sectionNameLabel, "TextColor3", "SchemeColor")
 
             local sectionInners = classicCreate("Frame", {
                 Name = "sectionInners",
@@ -574,20 +695,26 @@ function ClassicUI.CreateLib(title, suppliedTheme)
 
             local api = {}
             local function makeElement(name, height, label, description, rightInset)
+                local rowHeight = UserInputService.TouchEnabled and math.max(height, 44) or height
                 local element = classicCreate("TextButton", {
                     Name = name,
-                    Size = UDim2.new(1, 0, 0, height),
+                    Size = UDim2.new(1, 0, 0, rowHeight),
                     BackgroundColor3 = ClassicUI.theme.ElementColor,
                     BorderSizePixel = 0,
                     AutoButtonColor = false,
                     ClipsDescendants = true,
                     Text = "",
                 }, sectionInners)
-                classicCorner(element, 8)
+                classicCorner(element, 10)
+                local elementStroke = classicCreate("UIStroke", {
+                    Thickness = 1,
+                    Transparency = 0.82,
+                    Color = Color3.fromRGB(80, 80, 92),
+                }, element)
                 local accentIcon = classicCreate("TextLabel", {
                     Name = "touch",
-                    Position = UDim2.fromOffset(7, 6),
-                    Size = UDim2.fromOffset(21, 21),
+                    Position = UDim2.new(0, 7, 0.5, -11),
+                    Size = UDim2.fromOffset(22, 22),
                     BackgroundTransparency = 1,
                     Font = Enum.Font.GothamBold,
                     Text = "•",
@@ -610,8 +737,8 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 classicBindTheme(title, "TextColor3", "TextColor")
                 local info = classicCreate("TextButton", {
                     Name = "viewInfo",
-                    Position = UDim2.new(1, -25, 0, 5),
-                    Size = UDim2.fromOffset(23, 23),
+                    Position = UDim2.new(1, -30, 0, 0),
+                    Size = UDim2.new(0, 30, 1, 0),
                     BackgroundTransparency = 1,
                     AutoButtonColor = false,
                     Font = Enum.Font.GothamBold,
@@ -622,7 +749,8 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                     ZIndex = 4,
                 }, element)
                 classicBindTheme(info, "TextColor3", "SchemeColor")
-                info.Activated:Connect(function() showHint(description) end)
+                info.Activated:Connect(function() showHint(label, description) end)
+                info.MouseEnter:Connect(function() showHint(label, description) end)
                 element.MouseEnter:Connect(function()
                     element.BackgroundColor3 = ClassicUI.theme.ElementColor:Lerp(Color3.new(1, 1, 1), 0.08)
                 end)
@@ -648,9 +776,10 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             function api:NewToggle(label, description, callback)
                 local element, title, accentIcon = makeElement("toggleElement", 33, label, description, 0)
                 accentIcon.Visible = false
+                local toggleVisualY = UserInputService.TouchEnabled and 11 or 6
                 local switch = classicCreate("Frame", {
                     Name = "toggleDisabled",
-                    Position = UDim2.fromOffset(7, 6),
+                    Position = UDim2.fromOffset(7, toggleVisualY),
                     Size = UDim2.fromOffset(21, 21),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
@@ -682,12 +811,13 @@ function ClassicUI.CreateLib(title, suppliedTheme)
 
             function api:NewTextBox(label, description, callback)
                 local element, title, accentIcon = makeElement("textboxElement", 33, label, description, 0)
+                local normalHeight = UserInputService.TouchEnabled and 44 or 33
                 accentIcon.Text = "T"
                 accentIcon.TextSize = 13
                 title.Size = UDim2.new(0.49, -34, 1, 0)
                 local input = classicCreate("TextBox", {
                     Name = "TextBox",
-                    Position = UDim2.new(0.49, 0, 0, 7),
+                    Position = UDim2.new(0.49, 0, 0.5, -9),
                     Size = UDim2.new(0.43, -2, 0, 18),
                     BackgroundColor3 = Color3.fromRGB(14, 14, 18),
                     BorderSizePixel = 0,
@@ -705,6 +835,25 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                     PaddingLeft = UDim.new(0, 6),
                     PaddingRight = UDim.new(0, 6),
                 }, input)
+                local function layoutTextBox(compact)
+                    if compact then
+                        element.Size = UDim2.new(1, 0, 0, 64)
+                        accentIcon.Position = UDim2.fromOffset(7, 4)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(1, -70, 0, 30)
+                        input.Position = UDim2.fromOffset(34, 32)
+                        input.Size = UDim2.new(1, -72, 0, 24)
+                    else
+                        element.Size = UDim2.new(1, 0, 0, normalHeight)
+                        accentIcon.Position = UDim2.new(0, 7, 0.5, -11)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(0.49, -34, 1, 0)
+                        input.Position = UDim2.new(0.49, 0, 0.5, -9)
+                        input.Size = UDim2.new(0.43, -2, 0, 18)
+                    end
+                end
+                table.insert(responsiveCallbacks, layoutTextBox)
+                layoutTextBox(main.Size.X.Offset < 420)
                 input.FocusLost:Connect(function(enterPressed)
                     if enterPressed then classicInvoke(label, callback, input.Text) end
                 end)
@@ -719,6 +868,7 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 maximum = tonumber(maximum) or 100
                 minimum = tonumber(minimum) or 0
                 local element, title, accentIcon = makeElement("sliderElement", 33, label, description, 0)
+                local normalHeight = UserInputService.TouchEnabled and 44 or 33
                 accentIcon.Text = "◉"
                 accentIcon.TextSize = 13
                 title.Size = UDim2.new(0.49, -34, 1, 0)
@@ -736,7 +886,7 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 classicBindTheme(valueLabel, "TextColor3", "SchemeColor")
                 local bar = classicCreate("TextButton", {
                     Name = "sliderBtn",
-                    Position = UDim2.new(0.49, 0, 0, 5),
+                    Position = UDim2.new(0.49, 0, 0.5, -12),
                     Size = UDim2.new(0.34, 0, 0, 23),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
@@ -763,6 +913,29 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 }, track)
                 classicCorner(fill, 3)
                 classicBindTheme(fill, "BackgroundColor3", "SchemeColor")
+                local function layoutSlider(compact)
+                    if compact then
+                        element.Size = UDim2.new(1, 0, 0, 60)
+                        accentIcon.Position = UDim2.fromOffset(7, 4)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(1, -70, 0, 30)
+                        bar.Position = UDim2.fromOffset(34, 30)
+                        bar.Size = UDim2.new(1, -136, 0, 28)
+                        valueLabel.Position = UDim2.new(1, -100, 0, 30)
+                        valueLabel.Size = UDim2.fromOffset(70, 28)
+                    else
+                        element.Size = UDim2.new(1, 0, 0, normalHeight)
+                        accentIcon.Position = UDim2.new(0, 7, 0.5, -11)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(0.49, -34, 1, 0)
+                        bar.Position = UDim2.new(0.49, 0, 0.5, -12)
+                        bar.Size = UDim2.new(0.34, 0, 0, 23)
+                        valueLabel.Position = UDim2.new(1, -58, 0, 0)
+                        valueLabel.Size = UDim2.new(0, 31, 1, 0)
+                    end
+                end
+                table.insert(responsiveCallbacks, layoutSlider)
+                layoutSlider(main.Size.X.Offset < 420)
                 local dragging = false
                 local range = maximum - minimum
                 local control = {}
@@ -876,11 +1049,11 @@ local function abortBootstrap()
         runtimeConnections[index] = nil
     end
     if ClassicUI.gui and ClassicUI.gui.Parent then ClassicUI.gui:Destroy() end
-    if startupGui and startupGui.Parent then startupGui:Destroy() end
+    if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
     if runtime and runtime.Parent then runtime:Destroy() end
 end
 
-if startupStatus then startupStatus.Text = "Montando interface clássica local..." end
+if startup.status then startup.status.Text = "Montando interface clássica local..." end
 if not bootstrapAlive() then
     abortBootstrap()
     return
@@ -1271,6 +1444,7 @@ local flyKeyUp
 local flyHumanoid
 local flyAutoRotate
 local flyPlatformStand
+local flySavedState = { freefall = nil, fallingDown = nil, inputEnabled = true }
 local mouse        = LocalPlayer:GetMouse()
 local flyTouchUp   = 0
 local flyTouchDown = 0
@@ -1375,17 +1549,28 @@ local function stopFly()
         humanoid.PlatformStand = flyPlatformStand ~= nil and flyPlatformStand or false
         humanoid.AutoRotate    = flyAutoRotate    ~= nil and flyAutoRotate    or true
         pcall(function()
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    true)
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+            local freefall = flySavedState.freefall
+            local fallingDown = flySavedState.fallingDown
+            humanoid:SetStateEnabled(
+                Enum.HumanoidStateType.Freefall,
+                freefall == nil and true or freefall
+            )
+            humanoid:SetStateEnabled(
+                Enum.HumanoidStateType.FallingDown,
+                fallingDown == nil and true or fallingDown
+            )
         end)
     end
     flyHumanoid     = nil
     flyAutoRotate   = nil
     flyPlatformStand = nil
+    flySavedState.freefall = nil
+    flySavedState.fallingDown = nil
+    flySavedState.inputEnabled = true
     releaseCameraMode("fly")
 end
 
-local function startVehicleFly()
+local function startVehicleFly(inputEnabled)
     stopFly()
     local session = flySession
     local character = getCharacter()
@@ -1397,10 +1582,20 @@ local function startVehicleFly()
     end
 
     claimCameraMode("fly")
+    pcall(function()
+        if workspace.CurrentCamera then
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Track
+        end
+    end)
 
     flyHumanoid      = humanoid
     flyAutoRotate    = humanoid.AutoRotate
     flyPlatformStand = humanoid.PlatformStand
+    flySavedState.inputEnabled = inputEnabled ~= false
+    pcall(function()
+        flySavedState.freefall = humanoid:GetStateEnabled(Enum.HumanoidStateType.Freefall)
+        flySavedState.fallingDown = humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown)
+    end)
     humanoid.AutoRotate = false
     if not humanoid.SeatPart and not UserInputService.TouchEnabled then
         humanoid.PlatformStand = true
@@ -1413,7 +1608,7 @@ local function startVehicleFly()
     local control     = { F=0, B=0, L=0, R=0, Q=0, E=0 }
     local lastControl = { F=0, B=0, L=0, R=0, Q=0, E=0 }
     FLYING = true
-    showMobileFlyControls(true)
+    showMobileFlyControls(flySavedState.inputEnabled)
 
     local bodyGyro = Instance.new("BodyGyro")
     bodyGyro.Name      = "CafezlVehicleFlyGyro"
@@ -1429,6 +1624,7 @@ local function startVehicleFly()
     bodyVelocity.Parent   = root
 
     flyKeyDown = mouse.KeyDown:Connect(function(key)
+        if not flySavedState.inputEnabled then return end
         key = key:lower()
         if     key == "w" then control.F =  vehicleFlySpeed
         elseif key == "s" then control.B = -vehicleFlySpeed
@@ -1440,6 +1636,7 @@ local function startVehicleFly()
     end)
 
     flyKeyUp = mouse.KeyUp:Connect(function(key)
+        if not flySavedState.inputEnabled then return end
         key = key:lower()
         if     key == "w" then control.F = 0
         elseif key == "s" then control.B = 0
@@ -1458,7 +1655,7 @@ local function startVehicleFly()
                 or (control.F + control.B ~= 0)
                 or (control.Q + control.E ~= 0)
             local mobileDir     = humanoid.MoveDirection
-            local mobileMoving  = UserInputService.TouchEnabled and (
+            local mobileMoving  = flySavedState.inputEnabled and UserInputService.TouchEnabled and (
                 Vector3.new(mobileDir.X, 0, mobileDir.Z).Magnitude > 0.05
                 or flyTouchUp ~= 0 or flyTouchDown ~= 0
             )
@@ -1472,6 +1669,7 @@ local function startVehicleFly()
             local cur = keyboardMoving and control or lastControl
             if keyboardMoving and spd > 0 then
                 local cam = workspace.CurrentCamera
+                if not cam then break end
                 bodyVelocity.Velocity = (
                     (cam.CFrame.LookVector * (cur.F + cur.B))
                     + ((cam.CFrame * CFrame.new(
@@ -1479,7 +1677,7 @@ local function startVehicleFly()
                         (cur.F + cur.B + cur.Q + cur.E) * 0.2,
                         0
                     )).Position - cam.CFrame.Position)
-                ) * (vehicleFlySpeed * spd)
+                ) * spd
             elseif mobileMoving and spd > 0 then
                 bodyVelocity.Velocity =
                     Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * spd)
@@ -1487,7 +1685,9 @@ local function startVehicleFly()
             else
                 bodyVelocity.Velocity = Vector3.zero
             end
-            bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+            local currentCamera = workspace.CurrentCamera
+            if not currentCamera then break end
+            bodyGyro.CFrame = currentCamera.CFrame
         end
         if bodyGyro.Parent    then bodyGyro:Destroy()    end
         if bodyVelocity.Parent then bodyVelocity:Destroy() end
@@ -1726,7 +1926,7 @@ end
 
 local function getWheels(cart)
     local wheels   = {}
-    local keywords = { "wheel", "tire", "tyre", "roda", "pneu", "axle" }
+    local keywords = { "wheel", "tire", "tyre", "roda", "pneu", "axle", "roue" }
     for _, part in ipairs(cart:GetDescendants()) do
         if part:IsA("BasePart") and not part.Anchored then
             local name = part.Name:lower()
@@ -1781,7 +1981,9 @@ local function applyStabilizer(cart)
     stabilizer.heartbeat = RunService.Heartbeat:Connect(function()
         if not reference or not reference.Parent then cleanupStabilizer() return end
         local mag = 0
-        if stabilizer.enabled and not FLYING and not panicActive then
+        if stabilizer.enabled and not FLYING and not panicActive
+            and os.clock() >= cartMotionPauseUntil
+        then
             mag = math.abs(reference.AssemblyLinearVelocity.Y) > 5
                 and STABILIZER_CONFIG.DOWNHILL_FORCE
                 or  STABILIZER_CONFIG.NORMAL_FORCE
@@ -1983,7 +2185,9 @@ local function executeKiller(partialName)
     if not sitOnVehicleSeat(seat) then finishKiller("Não foi possível sentar no carrinho.", session) return end
     if destroyed or session ~= killerSession then return end
 
-    if not startVehicleFly() then finishKiller("Não foi possível iniciar o voo.", session) return end
+    -- O Eliminador controla o CFrame até o alvo; bloqueie WASD temporariamente
+    -- para não deixar dois escritores moverem o mesmo carrinho.
+    if not startVehicleFly(false) then finishKiller("Não foi possível iniciar o voo.", session) return end
     task.wait(0.15)
     if destroyed or session ~= killerSession then return end
 
@@ -2483,8 +2687,8 @@ local antiFlipConn
 
 BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticamente.", function(state)
     antiFlipEnabled = state
+    if antiFlipConn then antiFlipConn:Disconnect() antiFlipConn = nil end
     if not state then
-        if antiFlipConn then antiFlipConn:Disconnect() antiFlipConn = nil end
         notify("Anti-Flip", "Desligado.")
         return
     end
@@ -2523,8 +2727,8 @@ local autobrakeConn
 
 BoostSection:NewToggle("Freio Automático", "Trava ao detectar queda livre.", function(state)
     autobrakeEnabled = state
+    if autobrakeConn then autobrakeConn:Disconnect() autobrakeConn = nil end
     if not state then
-        if autobrakeConn then autobrakeConn:Disconnect() autobrakeConn = nil end
         notify("Freio Automático", "Desligado.")
         return
     end
@@ -3026,17 +3230,6 @@ if not menuGui then
     menuGui.Parent = CoreGui
 end
 
--- Arredonda todos os UICorner
-local function applyRoundedStyle(root)
-    for _, object in ipairs(root:GetDescendants()) do
-        if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 8) end
-    end
-end
-applyRoundedStyle(menuGui)
-trackConnection(menuGui.DescendantAdded:Connect(function(object)
-    if object:IsA("UICorner") then object.CornerRadius = UDim.new(0, 8) end
-end))
-
 -- Textbox helper: encontra pela label ao lado
 getKavoTextBoxByLabel = function(labelText)
     for _, element in ipairs(menuGui:GetDescendants()) do
@@ -3080,6 +3273,9 @@ configureKavoTextBox("Força em Descidas", "800",  800)
 local customKeybindIcons = {}
 
 local function addShortcutBadge(labelText, keyText)
+    -- No toque a linha inteira já é o controle; esconder teclas libera espaço
+    -- para nomes maiores e evita colisão com o ícone de informação.
+    if UserInputService.TouchEnabled then return end
     for _, element in ipairs(menuGui:GetDescendants()) do
         if element:IsA("TextButton") then
             local title
@@ -3260,8 +3456,8 @@ end
     if header then
         local minimize = Instance.new("TextButton")
         minimize.Name             = "Minimize"
-        minimize.Size             = UDim2.fromOffset(29, 29)
-        minimize.Position         = UDim2.new(1, -29, 0, 0)
+        minimize.Size             = UDim2.fromOffset(34, 34)
+        minimize.Position         = UDim2.new(1, -34, 0, 0)
         minimize.BackgroundTransparency = 1
         minimize.AutoButtonColor  = false
         minimize.Font             = Enum.Font.GothamBold
@@ -3427,8 +3623,19 @@ if not bootstrapAlive() then
     abortBootstrap()
     return
 end
+menuGui.Enabled = false
+if os.clock() < startup.beganAt + startup.seconds then
+    if startup.status then startup.status.Text = "Funções prontas • terminando carregamento seguro..." end
+    repeat
+        RunService.RenderStepped:Wait()
+        if not bootstrapAlive() then
+            abortBootstrap()
+            return
+        end
+    until os.clock() >= startup.beganAt + startup.seconds
+end
+if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
 menuGui.Enabled = true
-if startupGui and startupGui.Parent then startupGui:Destroy() end
 
 -- =============================================================================
 -- Loop RGB

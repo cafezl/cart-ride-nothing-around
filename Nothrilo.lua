@@ -168,11 +168,13 @@ local Theme = {
 -- =============================================================================
 -- Tela de carregamento
 -- =============================================================================
--- Para tocar o MP4 do gato no Roblox, envie-o pelo Asset Manager e coloque o
--- ID autorizado aqui. Sem um asset permitido, o loader animado continua e o
--- menu abre normalmente após os mesmos 10 segundos.
+-- O vídeo pode vir de um ID autorizado do Roblox ou, quando o executor oferece
+-- suporte, de um arquivo local indicado antes do loadstring. Nenhuma tentativa
+-- de vídeo segura a abertura do menu além dos mesmos 10 segundos.
 local startup = {
     videoAssetId = tostring(suiteEnvironment.NothriloCatVideoAssetId or ""),
+    videoPath = tostring(suiteEnvironment.NothriloCatVideoLocalPath
+        or suiteEnvironment.NothriloCatVideoPath or ""),
     seconds = 10,
     beganAt = os.clock(),
 }
@@ -241,34 +243,124 @@ startup.gui, startup.status, startup.progress = (function()
     catFallback.TextWrapped = true
     catFallback.Parent = media
 
-    if startup.videoAssetId ~= "" then
+    local function normalizeVideoId(value)
+        value = tostring(value or ""):match("^%s*(.-)%s*$")
+        local id = value:match("^rbxassetid://(%d+)$") or value:match("^(%d+)$")
+        if id and tonumber(id) and tonumber(id) > 0 then
+            return "rbxassetid://" .. id
+        end
+        return nil
+    end
+
+    local function tryVideo(contentId, seconds)
+        if not contentId or contentId == "" or not media.Parent then return false end
         local video = Instance.new("VideoFrame")
         local assigned = pcall(function()
             video.Name = "CatVideo"
+            video.AnchorPoint = Vector2.new(0.5, 0.5)
+            video.Position = UDim2.fromScale(0.5, 0.5)
             video.Size = UDim2.fromScale(1, 1)
             video.BackgroundTransparency = 1
-            video.Looped = false
+            video.Looped = true
             video.Volume = 0.35
-            video.Video = startup.videoAssetId:find("rbxassetid://", 1, true)
-                and startup.videoAssetId
-                or ("rbxassetid://" .. startup.videoAssetId)
+            video.Video = contentId
             video.Visible = false
+            video.ZIndex = 2
             video.Parent = media
+            local videoAspect = Instance.new("UIAspectRatioConstraint")
+            videoAspect.AspectRatio = 576 / 1024
+            videoAspect.DominantAxis = Enum.DominantAxis.Height
+            videoAspect.Parent = video
         end)
-        if assigned then
-            task.spawn(function()
-                local deadline = os.clock() + 2
-                repeat task.wait() until video.IsLoaded or os.clock() >= deadline or not video.Parent
-                if video.Parent and video.IsLoaded then
-                    video.Visible = true
-                    catFallback.Visible = false
-                    pcall(function() video:Play() end)
-                end
-            end)
-        else
+        if not assigned then
             video:Destroy()
+            return false
         end
+
+        local deadline = math.min(startup.beganAt + startup.seconds - 0.15, os.clock() + seconds)
+        repeat task.wait(0.05)
+        until video.IsLoaded or os.clock() >= deadline or not video.Parent or not gui.Parent
+
+        if video.Parent and gui.Parent and video.IsLoaded then
+            local played = pcall(function() video:Play() end)
+            if played then
+                video.Visible = true
+                catFallback.Visible = false
+                return true
+            end
+        end
+        if video.Parent then video:Destroy() end
+        return false
     end
+
+    local function executorFunction(name)
+        local callback
+        pcall(function() callback = suiteEnvironment[name] end)
+        if type(callback) == "function" then return callback end
+        pcall(function() callback = _G[name] end)
+        return type(callback) == "function" and callback or nil
+    end
+
+    local function registerLocalVideo(path)
+        local customFunctions = {}
+        local first = executorFunction("getcustomasset")
+        local second = executorFunction("getsynasset")
+        if first then table.insert(customFunctions, first) end
+        if second and second ~= first then table.insert(customFunctions, second) end
+        if #customFunctions == 0 then return nil end
+
+        local candidates = {}
+        local function addCandidate(candidate)
+            if type(candidate) == "string" and candidate ~= ""
+                and not table.find(candidates, candidate)
+            then
+                table.insert(candidates, candidate)
+            end
+        end
+        addCandidate(path)
+        addCandidate(path:gsub("\\", "/"))
+        addCandidate("ssstik.io_@djmtnofc_1786499402709.mp4")
+        addCandidate("NothriloCatLoader.mp4")
+
+        local function register(candidate)
+            for _, customAsset in ipairs(customFunctions) do
+                local ok, uri = pcall(customAsset, candidate)
+                if ok and type(uri) == "string" and uri ~= "" then return uri end
+            end
+            return nil
+        end
+        for _, candidate in ipairs(candidates) do
+            local uri = register(candidate)
+            if uri then return uri end
+        end
+
+        -- Alguns executores não registram Downloads diretamente, mas deixam
+        -- copiar um arquivo legível para a pasta workspace antes de registrá-lo.
+        local readFile = executorFunction("readfile")
+        local writeFile = executorFunction("writefile")
+        if not readFile or not writeFile or path == "" then return nil end
+        local readOk, bytes = pcall(readFile, path)
+        if not readOk or type(bytes) ~= "string" or #bytes < 12
+            or #bytes > 25 * 1024 * 1024 or bytes:sub(5, 8) ~= "ftyp"
+        then
+            return nil
+        end
+        local cachePath = "NothriloCatLoader.mp4"
+        local wrote = pcall(writeFile, cachePath, bytes)
+        return wrote and register(cachePath) or nil
+    end
+
+    -- As fontes são tentadas em uma tarefa isolada. Mesmo que a API extra do
+    -- executor falhe, o fallback continua animado e o menu abre normalmente.
+    task.spawn(function()
+        local official = normalizeVideoId(startup.videoAssetId)
+        if official and tryVideo(official, 2.6) then return end
+        if not gui.Parent or os.clock() >= startup.beganAt + startup.seconds - 0.15 then return end
+        local localUri = registerLocalVideo(startup.videoPath)
+        if localUri then
+            tryVideo(localUri, math.max(0.1, startup.beganAt + startup.seconds - os.clock() - 0.15))
+        end
+    end)
 
     local titleL = Instance.new("TextLabel")
     titleL.BackgroundTransparency = 1
@@ -429,8 +521,6 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         ClipsDescendants = true,
     }, gui)
     classicCorner(main, 14)
-    local mainStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.15 }, main)
-    classicBindTheme(mainStroke, "Color", "SchemeColor")
 
     local header = classicCreate("Frame", {
         Name = "MainHeader",
@@ -438,6 +528,17 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
+    -- O header arredonda os dois cantos de cima. O preenchimento inferior
+    -- mantém a junção com o conteúdo reta sem encobrir o contorno externo.
+    classicCorner(header, 14)
+    local headerSquareBottom = classicCreate("Frame", {
+        Name = "SquareBottom",
+        Position = UDim2.new(0, 0, 1, -14),
+        Size = UDim2.new(1, 0, 0, 14),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, header)
+    classicBindTheme(headerSquareBottom, "BackgroundColor3", "Header")
     local titleLabel = classicCreate("TextLabel", {
         Name = "title",
         Position = UDim2.fromOffset(12, 0),
@@ -472,6 +573,24 @@ function ClassicUI.CreateLib(title, suppliedTheme)
         BackgroundColor3 = ClassicUI.theme.Header,
         BorderSizePixel = 0,
     }, main)
+    -- Só o canto inferior esquerdo da lateral é externo. Os preenchimentos
+    -- deixam os outros três cantos retos e preservam a união entre painéis.
+    classicCorner(side, 14)
+    local sideSquareTop = classicCreate("Frame", {
+        Name = "SquareTop",
+        Size = UDim2.new(1, 0, 0, 14),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, side)
+    classicBindTheme(sideSquareTop, "BackgroundColor3", "Header")
+    local sideSquareRight = classicCreate("Frame", {
+        Name = "SquareRight",
+        Position = UDim2.new(1, -14, 0, 0),
+        Size = UDim2.new(0, 14, 1, 0),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, side)
+    classicBindTheme(sideSquareRight, "BackgroundColor3", "Header")
     local tabFrames = classicCreate("ScrollingFrame", {
         Name = "tabFrames",
         Position = UDim2.fromOffset(6, 3),
@@ -587,6 +706,8 @@ function ClassicUI.CreateLib(title, suppliedTheme)
             tab.page.Visible = active
             tab.button.BackgroundTransparency = active and 0 or 1
             tab.button.Font = active and Enum.Font.GothamSemibold or Enum.Font.GothamMedium
+            tab.button.TextColor3 = active and Color3.fromRGB(7, 7, 9)
+                or ClassicUI.theme.TextColor
             if active then tab.page.CanvasPosition = Vector2.zero end
         end
     end
@@ -654,31 +775,22 @@ function ClassicUI.CreateLib(title, suppliedTheme)
                 Name = "sectionHead",
                 Size = UDim2.new(1, 0, 0, hidden and 0 or 33),
                 Visible = not hidden,
-                BackgroundColor3 = ClassicUI.theme.ElementColor,
+                BackgroundColor3 = ClassicUI.theme.SchemeColor,
                 BorderSizePixel = 0,
             }, sectionFrame)
             classicCorner(sectionHead, 10)
-            classicBindTheme(sectionHead, "BackgroundColor3", "ElementColor")
-            local sectionAccent = classicCreate("Frame", {
-                Name = "SectionAccent",
-                Size = UDim2.new(0, 3, 1, -10),
-                Position = UDim2.fromOffset(6, 5),
-                BorderSizePixel = 0,
-            }, sectionHead)
-            classicCorner(sectionAccent, 2)
-            classicBindTheme(sectionAccent, "BackgroundColor3", "SchemeColor")
+            classicBindTheme(sectionHead, "BackgroundColor3", "SchemeColor")
             local sectionNameLabel = classicCreate("TextLabel", {
                 Name = "sectionName",
-                Position = UDim2.fromOffset(16, 0),
-                Size = UDim2.new(1, -23, 1, 0),
+                Position = UDim2.fromOffset(12, 0),
+                Size = UDim2.new(1, -24, 1, 0),
                 BackgroundTransparency = 1,
                 Font = Enum.Font.GothamBold,
                 Text = sectionName,
-                TextColor3 = ClassicUI.theme.SchemeColor,
+                TextColor3 = Color3.fromRGB(7, 7, 9),
                 TextSize = 13,
                 TextXAlignment = Enum.TextXAlignment.Left,
             }, sectionHead)
-            classicBindTheme(sectionNameLabel, "TextColor3", "SchemeColor")
 
             local sectionInners = classicCreate("Frame", {
                 Name = "sectionInners",
@@ -1027,6 +1139,25 @@ function ClassicUI.CreateLib(title, suppliedTheme)
 
         return tab
     end
+
+    -- Contorno desenhado por último e um pixel para dentro: permanece visível
+    -- sobre header/lateral e fecha os quatro cantos sem bloquear os controles.
+    local outline = classicCreate("Frame", {
+        Name = "MainOutline",
+        Position = UDim2.fromOffset(1, 1),
+        Size = UDim2.new(1, -2, 1, -2),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Active = false,
+        ZIndex = 100,
+    }, main)
+    classicCorner(outline, 13)
+    local outlineStroke = classicCreate("UIStroke", {
+        Thickness = 1,
+        Transparency = 0.08,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    }, outline)
+    classicBindTheme(outlineStroke, "Color", "SchemeColor")
 
     return window
 end

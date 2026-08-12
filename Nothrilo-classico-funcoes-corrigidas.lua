@@ -388,30 +388,3379 @@ startup.gui, startup.status, startup.progress = (function()
                     0.5,
                     math.floor(math.sin(wave) * 4)
                 )
-                label.Rotation = math.sin(waßİtÖÚ$z{-®éÜj×à¢–bF—FÆRå&VçBÓÒVÆVÖVçBF†Và¢F—FÆRå6—¦RÒTF–Ó"ææWrƒÂÒ†&FvUv–GF‚²s’ÂÂ¢Væ@ Ğ¢&FvRä7F—fFVC¤6öææV7B†gVæ7F–öâ‚Ğ¢–b¶W•FW‡BÓÒ%b"F†VâfÇ•FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷BfÇ”Væ&ÆVBĞ¢VÇ6V–b¶W•FW‡BÓÒ$Â"F†VâW7FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷BW7Væ&ÆVBĞ¢VÇ6V–b¶W•FW‡BÓÒ%"F†Vâ–æf–æ—FT§V×FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷B–æf–æ—FT§V×Ğ¢VÇ6V–b¶W•FW‡BÓÒ%B"F†Vâv—fT6Æ–6µFVÆW÷'EFööÂ‚Ğ¢VÇ6V–b¶W•FW‡BÓÒ#"F†VâFVÆW÷'EFô6†V6·ö–çBƒĞ¢VÇ6V–b¶W•FW‡BÓÒ#""F†VâFVÆW÷'EFô6†V6·ö–çBƒ"Ğ¢VÇ6V–b¶W•FW‡BÓÒ#2"F†VâFVÆW÷'EFô6†V6·ö–çBƒ2Ğ¢VÇ6V–b¶W•FW‡BÓÒ#ó"ó2"F†Vâæ÷F–g’‚$6†V6·ö–çG2"Â%W6RçVÕBÂ"÷R2â"Ğ¢VÇ6V–b¶W•FW‡BÓÒ$""F†Vâ&ö÷7EFövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷B&ö÷7D7F—fRĞ¢VÇ6V–b¶W•FW‡BÓÒ$²"F†Vâ6WDÖVçUf—6–&ÆR†fÇ6RĞ¢VÇ6V–b¶W•FW‡BÓÒ%‚"æBFW7G&÷”æ÷F‡&–ÆòF†VâFW7G&÷”æ÷F‡&–Æò‚Ğ¢Væ@Ğ¢VæBĞ¢&WGW&àĞ¢Væ@Ğ¢Væ@Ğ¢Væ@Ğ¦Væ@Ğ Ğ¢ÒÒ&FvW2F2&2÷&–v–æ—0Ğ¦FE6†÷'F7WD&FvR‚%föòFòf\:Ö7VÆò"Â%b"Ğ¦FE6†÷'F7WD&FvR‚$U5"Â$Â"Ğ¦FE6†÷'F7WD&FvR‚%VÆò–æf–æ—Fò"Â%"Ğ¦FE6†÷'F7WD&FvR‚%FVÆW÷'FR÷"6Æ—VR"Â%B"Ğ¦FE6†÷'F7WD&FvR‚$&ö÷7BFò6'&–æ†ò"Â$""Ğ¦FE6†÷'F7WD&FvR‚$—"ò6†V6·ö–çB"Â#"Ğ¦FE6†÷'F7WD&FvR‚$—"ò6†V6·ö–çB""Â#""Ğ¦FE6†÷'F7WD&FvR‚$—"ò6†V6·ö–çB2"Â#2"Ğ Ğ¢ÒÒ6—7FVÖFRFö7@Ğ¦Æö6ÂFö7DwV’Ò–ç7Fæ6RææWr‚%67&VVäwV’"Ğ§Fö7DwV’äæÖRÒ$æ÷F‡&–Æôæ÷F–f–6F–öç2 Ğ§Fö7DwV’å&W6WDöå7vâÒfÇ6PĞ§Fö7DwV’ä–væ÷&TwV”–ç6WBÒG'VPĞ§Fö7DwV’äF—7Æ”÷&FW"ÒĞ§Fö7DwV’å&VçBÒÖVçTwV’å&Vç@Ğ Ğ§Fö7D6öçF–æW"Ò–ç7Fæ6RææWr‚$g&ÖR"Ğ§Fö7D6öçF–æW"äæÖRÒ%Fö7D6öçF–æW" Ğ§Fö7D6öçF–æW"äæ6†÷%ö–çBÒfV7F÷#"ææWrƒÂĞ§Fö7D6öçF–æW"å÷6—F–öâÒTF–Ó"ææWrƒÂÓ‚ÂÂ#Ğ§Fö7D6öçF–æW"å6—¦RÒTF–Ó"æg&öÔöfg6WBƒ3Â3Ğ§Fö7D6öçF–æW"ä&6¶w&÷VæEG&ç7&Væ7’ÒĞ§Fö7D6öçF–æW"å&VçBÒFö7DwVĞ Ğ¦Æö6ÂFö7DÆ–÷WBÒ–ç7Fæ6RææWr‚%T”Æ—7DÆ–÷WB"Ğ§Fö7DÆ–÷WBåFF–ærÒTF–ÒææWrƒÂ‚Ğ§Fö7DÆ–÷WBå6÷'D÷&FW"ÒVçVÒå6÷'D÷&FW"äÆ–÷WD÷&FW Ğ§Fö7DÆ–÷WBå&VçBÒFö7D6öçF–æW Ğ Ğ¢ÒÒG&r†VÇW"†Ö÷W6RRF÷V6‚Ğ¦Æö6ÂgVæ7F–öâVæ&ÆTG&r‡F&vWBÂ†æFÆRÂöäG&tVæBĞ¢F&vWBä7F—fRÒG'VPĞ¢†æFÆRä7F—fRÒG'VPĞ¢Æö6ÂG&vv–ærÂG&t–çWBÂG&u7F'BÂ7F'E÷2Âv4G&vvVBÒfÇ6RÂæ–ÂÂæ–ÂÂæ–ÂÂfÇ6PĞ Ğ¢Æö6ÂgVæ7F–öâWFFU÷2†–çWBĞ¢Æö6ÂFVÇFÒ–çWBå÷6—F–öâÒG&u7F'@Ğ¢–bFVÇFäÖvæ—GVFRâbF†Vâv4G&vvVBÒG'VRVæ@Ğ¢F&vWBå÷6—F–öâÒTF–Ó"ææWr€Ğ¢7F'E÷2å‚å66ÆRÂ7F'E÷2å‚äöfg6WB²FVÇFå‚ÀĞ¢7F'E÷2å’å66ÆRÂ7F'E÷2å’äöfg6WB²FVÇFåĞ¢Ğ¢Væ@Ğ Ğ¢†æFÆRä–çWD&Vvã¤6öææV7B†gVæ7F–öâ†–çWBĞ¢–b–çWBåW6W$–çWEG—RãÒVçVÒåW6W$–çWEG—RäÖ÷W6T'WGFöãĞ¢æB–çWBåW6W$–çWEG—RãÒVçVÒåW6W$–çWEG—RåF÷V6‚F†Vâ&WGW&âVæ@Ğ¢G&vv–ærÒG'VPĞ¢v4G&vvVBÒfÇ6PĞ¢G&u7F'BÒ–çWBå÷6—F–öàĞ¢7F'E÷2ÒF&vWBå÷6—F–öàĞ¢–çWBä6†ævVC¤6öææV7B†gVæ7F–öâ‚Ğ¢–b–çWBåW6W$–çWE7FFRÓÒVçVÒåW6W$–çWE7FFRäVæBF†VàĞ¢G&vv–ærÒfÇ6PĞ¢–böäG&tVæBF†VâöäG&tVæB‡v4G&vvVB’Væ@Ğ¢Væ@Ğ¢VæBĞ¢VæBĞ Ğ¢†æFÆRä–çWD6†ævVC¤6öææV7B†gVæ7F–öâ†–çWBĞ¢–b–çWBåW6W$–çWEG—RÓÒVçVÒåW6W$–çWEG—RäÖ÷W6TÖ÷fVÖVç@Ğ¢÷"–çWBåW6W$–çWEG—RÓÒVçVÒåW6W$–çWEG—RåF÷V6‚F†VàĞ¢G&t–çWBÒ–çW@Ğ¢Væ@Ğ¢VæBĞ Ğ¢G&6´6öææV7F–öâ…W6W$–çWE6W'f–6Rä–çWD6†ævVC¤6öææV7B†gVæ7F–öâ†–çWB¢–bG&vv–æræB–çWBÓÒG&t–çWBF†VâWFFU÷2†–çWB’Væ@¢VæB’¦Væ@Ğ Ğ¢ÒÒÆVæ6†W"†&÷L:6ò&&V'&—"VæFòÖ–æ–Ö—¦FòĞ¦Æö6ÂÆVæ6†W$wV’Ò–ç7Fæ6RææWr‚%67&VVäwV’"Ğ¦ÆVæ6†W$wV’äæÖRÒ$æ÷F‡&–ÆôÆVæ6†W" Ğ¦ÆVæ6†W$wV’å&W6WDöå7vâÒfÇ6PĞ¦ÆVæ6†W$wV’ä–væ÷&TwV”–ç6WBÒG'VPĞ¦ÆVæ6†W$wV’äF—7Æ”÷&FW"Ò Ğ¦ÆVæ6†W$wV’å&VçBÒÖVçTwV’å&Vç@Ğ Ğ¦Æö6ÂÆVæ6†W"Ò–ç7Fæ6RææWr‚%FW‡D'WGFöâ"Ğ¦ÆVæ6†W"äæÖRÒ$÷Väæ÷F‡&–ÆôÖVçR Ğ¦ÆVæ6†W"å6—¦RÒTF–Ó"æg&öÔöfg6WBƒs‚ÂSĞ¦ÆVæ6†W"å÷6—F–öâÒTF–Ó"ææWrƒÂbÂãRÂÓ#RĞ¦ÆVæ6†W"ä&6¶w&÷VæD6öÆ÷#2Ò6öÆ÷#2æg&öÕ$t"ƒÂÂ"Ğ¦ÆVæ6†W"ä&÷&FW%6—¦U—†VÂÒ Ğ¦ÆVæ6†W"äWFô'WGFöä6öÆ÷"ÒfÇ6PĞ¦ÆVæ6†W"äföçBÒVçVÒäföçBäv÷F†Ô&öÆ@Ğ¦ÆVæ6†W"åFW‡BÒ""ââ7G&–ærçWW"„ÔTåUôäÔRĞ¦ÆVæ6†W"åFW‡D6öÆ÷#2Ò6öÆ÷#2æg&öÕ$t"ƒ#SRÂ#SRÂ#SRĞ¦ÆVæ6†W"åFW‡E6—¦RÒ`Ğ¦ÆVæ6†W"åFW‡E„Æ–væÖVçBÒVçVÒåFW‡E„Æ–væÖVçBäÆVg@Ğ¦ÆVæ6†W"åf—6–&ÆRÒfÇ6PĞ¦ÆVæ6†W"å&VçBÒÆVæ6†W$wVĞ¤–ç7Fæ6RææWr‚%T”6÷&æW""ÂÆVæ6†W"’ä6÷&æW%&F—W2ÒTF–ÒææWrƒÂ‚Ğ Ğ¦Æö6ÂÆVæ6†W%7G&ö¶RÒ–ç7Fæ6RææWr‚%T•7G&ö¶R"Ğ¦ÆVæ6†W%7G&ö¶RåF†–6¶æW72Ò Ğ¦ÆVæ6†W%7G&ö¶Rå&VçBÒÆVæ6†W Ğ Ğ¦Æö6ÂÆVæ6†W$–6öâÒ–ç7Fæ6RææWr‚%FW‡DÆ&VÂ"Ğ¦ÆVæ6†W$–6öâä&6¶w&÷VæEG&ç7&Væ7’ÒĞ¦ÆVæ6†W$–6öâå6—¦RÒTF–Ó"æg&öÔöfg6WBƒ3‚ÂSĞ¦ÆVæ6†W$–6öâå÷6—F–öâÒTF–Ó"æg&öÔöfg6WBƒbÂĞ¦ÆVæ6†W$–6öâäföçBÒVçVÒäföçBäv÷F†Ô&öÆ@Ğ¦ÆVæ6†W$–6öâåFW‡BÒ$â Ğ¦ÆVæ6†W$–6öâåFW‡E6—¦RÒ# Ğ¦ÆVæ6†W$–6öâå&VçBÒÆVæ6†W Ğ Ğ§6WDÖVçUf—6–&ÆRÒgVæ7F–öâ‡f—6–&ÆR¢–bFW7G&÷–VBF†Vâ&WGW&âVæ@Ğ¢ÖVçTwV’äVæ&ÆVBÒf—6–&ÆPĞ¢ÆVæ6†W"åf—6–&ÆRÒæ÷Bf—6–&ÆPĞ¦Væ@Ğ Ğ¦Æö6ÂÖ–âÒÖVçTwV“¤f–æDf—'7D6†–ÆB‚$Ö–â"Ğ¦Æö6Â†VFW"ÒÖ–âæBÖ–ã¤f–æDf—'7D6†–ÆB‚$Ö–ä†VFW""Ğ¦Æö6Â÷&–v–æÄ6Æ÷6RÒ†VFW"æB†VFW#¤f–æDf—'7D6†–ÆB‚&6Æ÷6R"Ğ¦–b÷&–v–æÄ6Æ÷6RF†VàĞ¢÷&–v–æÄ6Æ÷6Råf—6–&ÆRÒfÇ6PĞ¢÷&–v–æÄ6Æ÷6Rä7F—fRÒfÇ6PĞ¦Væ@Ğ Ğ¢–b†VFW"F†Và¢Æö6ÂÖ–æ–Ö—¦RÒ–ç7Fæ6RææWr‚%FW‡D'WGFöâ"¢Ö–æ–Ö—¦RäæÖRÒ$Ö–æ–Ö—¦R ¢Ö–æ–Ö—¦Rå6—¦RÒTF–Ó"æg&öÔöfg6WBƒ3BÂ3B¢Ö–æ–Ö—¦Rå÷6—F–öâÒTF–Ó"ææWrƒÂÓ3BÂÂ¢Ö–æ–Ö—¦Rä&6¶w&÷VæEG&ç7&Væ7’Ò¢Ö–æ–Ö—¦RäWFô'WGFöä6öÆ÷"ÒfÇ6P¢Ö–æ–Ö—¦RäföçBÒVçVÒäföçBäv÷F†Ô&öÆ@¢Ö–æ–Ö—¦RåFW‡BÒ.(	B ¢Ö–æ–Ö—¦RåFW‡D6öÆ÷#2Ò6öÆ÷#2æg&öÕ$t"ƒ#SRÂ#SRÂ#SR¢Ö–æ–Ö—¦RåFW‡E6—¦RÒ€¢Ö–æ–Ö—¦Rå&VçBÒ†VFW Ğ¢Ö–æ–Ö—¦RäÖ÷W6T'WGFöã6Æ–6³¤6öææV7B†gVæ7F–öâ‚’6WDÖVçUf—6–&ÆR†fÇ6R’VæBĞ¢Væ&ÆTG&r†Ö–âÂ†VFW"Ğ¦Væ@Ğ Ğ¦Æö6ÂÆVæ6†W$Æ7DG&rÒ Ğ¦Væ&ÆTG&r†ÆVæ6†W"ÂÆVæ6†W"ÂgVæ7F–öâ‡v4G&vvVBĞ¢–bv4G&vvVBF†VâÆVæ6†W$Æ7DG&rÒ÷2æ6Æö6²‚’Væ@Ğ¦VæBĞ¦ÆVæ6†W"ä7F—fFVC¤6öææV7B†gVæ7F–öâ‚Ğ¢–b÷2æ6Æö6²‚’ÒÆVæ6†W$Æ7DG&rÂã#RF†Vâ&WGW&âVæ@Ğ¢6WDÖVçUf—6–&ÆR‡G'VRĞ¦VæBĞ Ğ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ¢ÒÒFÆ†÷2FRFV6ÆFòvÆö&—0Ğ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ§G&6´6öææV7F–öâ…W6W$–çWE6W'f–6Rä–çWD&Vvã¤6öææV7B†gVæ7F–öâ†–çWBÂvÖU&ö6W76VB¢–bFW7G&÷–VB÷"vÖU&ö6W76VB÷"W6W$–çWE6W'f–6S¤vWDfö7W6VEFW‡D&÷‚‚’F†Vâ&WGW&âVæ@Ğ Ğ¢–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRåbF†VàĞ¢fÇ•FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷BfÇ”Væ&ÆVBĞ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRäÂF†VàĞ¢W7FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷BW7Væ&ÆVBĞ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRåF†VàĞ¢–æf–æ—FT§V×FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷B–æf–æ—FT§V×Ğ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRåBF†VàĞ¢v—fT6Æ–6µFVÆW÷'EFööÂ‚Ğ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRä"F†VàĞ¢&ö÷7EFövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷B&ö÷7D7F—fRĞ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRä¶W—DöæRF†VàĞ¢FVÆW÷'EFô6†V6·ö–çBƒĞ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRä¶W—EGvòF†VàĞ¢FVÆW÷'EFô6†V6·ö–çBƒ"Ğ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRä¶W—EF‡&VRF†VàĞ¢FVÆW÷'EFô6†V6·ö–çBƒ2Ğ¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRä²F†Và¢6WDÖVçUf—6–&ÆR†æ÷BÖVçTwV’äVæ&ÆVB¢VÇ6V–b–çWBä¶W”6öFRÓÒVçVÒä¶W”6öFRå‚F†Và¢FW7G&÷”æ÷F‡&–Æò‚¢Væ@¦VæB’ Ğ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ¢ÒÒFW7G'Vœ:|:6òÆ–×Ğ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ¦Æö6Â'Vææ–ærÒG'VPĞ¦FW7G&÷”æ÷F‡&–ÆòÒgVæ7F–öâ‚Ğ¢–bFW7G&÷–VBF†Vâ&WGW&âVæ@Ğ¢FW7G&÷–VBÒG'VP¢'Vææ–ærÒfÇ6P¢¶–ÆÆW$7F—fRÒfÇ6P¢¶–ÆÆW%6W76–öâÒ¶–ÆÆW%6W76–öâ²¢–æf–æ—FT§V×ÒfÇ6P ¢f¶TÆu6W76–öâÒf¶TÆu6W76–öâ²¢&W7F÷&Tf¶TÆr‚¢7F÷7–â‡G'VR¢7F÷7V7FFR‡G'VR¢7F÷g&VV6Ò‚ ¢æö6Æ—Væ&ÆVBÒfÇ6P¢&W7F÷&Tæö6Æ—‚¢–çf—4Væ&ÆVBÒfÇ6P¢6WDÆö6Ä–çf—6–&ÆR†fÇ6R ¢vöDVæ&ÆVBÒfÇ6P¢–bvöE&W7vä6öæâF†VâvöE&W7vä6öæã¤F—66öææV7B‚“²vöE&W7vä6öæâÒæ–ÂVæ@¢&W7F÷&TvöD‡VÖæö–B‚ ¢çF”f´Væ&ÆVBÒfÇ6P¢–bçF”f´6öæâF†VâçF”f´6öæã¤F—66öææV7B‚“²çF”f´6öæâÒæ–ÂVæ@ ¢7F÷fÇ’‚¢7F÷&ö÷7B‚Ğ¢W7Væ&ÆVBÒfÇ6PĞ¢W76W76–öâÒW76W76–öâ²Ğ¢6ÆV$U5‚Ğ¢7F&–Æ—¦W"æVæ&ÆVBÒfÇ6PĞ¢6ÆVçW7F&–Æ—¦W"‚Ğ¢&W7F÷&Uæ–57F÷‚Ğ¢v÷&·76Räw&f—G’Ò÷&–v–æÄw&f—G Ğ¢–bçF”fÆ—6öæâF†VâçF”fÆ—6öæã¤F—66öææV7B‚’çF”fÆ—6öæâÒæ–ÂVæ@Ğ¢–bWFö'&¶T6öæâF†VâWFö'&¶T6öæã¤F—66öææV7B‚’WFö'&¶T6öæâÒæ–ÂVæ@Ğ¢7F—fT6ÖW&ÖöFRÒæ–À¢&W7F÷&TFVfVÇD6ÖW&‚ ¢f÷"–æFW‚Ò7'VçF–ÖT6öææV7F–öç2ÂÂÓFğ¢Æö6Â6öææV7F–öâÒ'VçF–ÖT6öææV7F–öç5¶–æFW…Ğ¢6ÆÂ†gVæ7F–öâ‚’6öææV7F–öã¤F—66öææV7B‚’VæB¢'VçF–ÖT6öææV7F–öç5¶–æFW…ÒÒæ–À¢Væ@ ¢f÷"–æFW‚Ò67&VFVEFööÇ2ÂÂÓFğ¢Æö6ÂFööÂÒ7&VFVEFööÇ5¶–æFW…Ğ¢–bFööÂæBFööÂå&VçBF†VâFööÃ¤FW7G&÷’‚’Væ@¢7&VFVEFööÇ5¶–æFW…ÒÒæ–À¢Væ@ ¢–bfÇ”Öö&–ÆTwV’æBfÇ”Öö&–ÆTwV’å&VçBF†VâfÇ”Öö&–ÆTwV“¤FW7G&÷’‚’Væ@¢–bFö7DwV’æBFö7DwV’å&VçBF†VâFö7DwV“¤FW7G&÷’‚’Væ@Ğ¢–bÆVæ6†W$wV’æBÆVæ6†W$wV’å&VçBF†VâÆVæ6†W$wV“¤FW7G&÷’‚’Væ@Ğ¢–bÖVçTwV’æBÖVçTwV’å&VçBF†VâÖVçTwV“¤FW7G&÷’‚’Væ@Ğ¢–b'VçF–ÖRæB'VçF–ÖRå&VçBF†Vâ'VçF–ÖS¤FW7G&÷’‚’Væ@Ğ¦Væ@Ğ Ğ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞ¢ÒÒ$¢6öÖæF÷2†FÆ†÷2Æ—7FF÷2Ğ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ¦Æö6Â6öÖÖæG56V7F–öâÒv–æF÷s¤æWuF"‚$6öÖæF÷2"“¤æWu6V7F–öâ‚$FÆ†÷2"¦6öÖÖæG5F$'WGFöâÒÖVçTwV“¤f–æDf—'7D6†–ÆB‚$6öÖæF÷5F$'WGFöâ"ÂG'VR Ğ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚%b(
-"föòFòf\:Ö7VÆò"Â%FV6Æb"ÂgVæ7F–öâ‚’fÇ•FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷BfÇ”Væ&ÆVB’VæBĞ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚$Â(
-"U5"Â%FV6ÆÂ"ÂgVæ7F–öâ‚’W7FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷BW7Væ&ÆVB’VæBĞ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚%(
-"VÆò–æf–æ—Fò"Â%FV6Æ"ÂgVæ7F–öâ‚’–æf–æ—FT§V×FövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷B–æf–æ—FT§V×’VæBĞ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚%B(
-"FVÆW÷'FR÷"6Æ—VR"Â%FV6ÆB"Âv—fT6Æ–6µFVÆW÷'EFööÂĞ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚$"(
-"&ö÷7BFò6'&–æ†ò"Â%FV6Æ""ÂgVæ7F–öâ‚’&ö÷7EFövvÆT6öçG&öÃ¥WFFUFövvÆR†æ–ÂÂæ÷B&ö÷7D7F—fR’VæBĞ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚$çVÕBó"ó2(
-"6†V6·ö–çG2"Â%FV6ÆFòçVÜ:—&–6ò"ÂgVæ7F–öâ‚Ğ¢æ÷F–g’‚$6†V6·ö–çG2"Â%W6RçVÕBÂ"÷R2â"Ğ¦VæBĞ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚$²(
-"Ö–æ–Ö—¦"ò'&—""Â%FV6Æ²"ÂgVæ7F–öâ‚’6WDÖVçUf—6–&ÆR†fÇ6R’VæBĞ¤6öÖÖæG56V7F–öã¤æWt'WGFöâ‚%‚(
-"fV6†"òæ÷F‡&–Æò"Â%FV6Æ‚"ÂFW7G&÷”æ÷F‡&–ÆòĞ Ğ¦FE6†÷'F7WD&FvR‚%b(
-"föòFòf\:Ö7VÆò"Â%b"Ğ¦FE6†÷'F7WD&FvR‚$Â(
-"U5"Â$Â"Ğ¦FE6†÷'F7WD&FvR‚%(
-"VÆò–æf–æ—Fò"Â%"Ğ¦FE6†÷'F7WD&FvR‚%B(
-"FVÆW÷'FR÷"6Æ—VR"Â%B"Ğ¦FE6†÷'F7WD&FvR‚$"(
-"&ö÷7BFò6'&–æ†ò"Â$""Ğ¦FE6†÷'F7WD&FvR‚$çVÕBó"ó2(
-"6†V6·ö–çG2"Â#ó"ó2"Ğ¦FE6†÷'F7WD&FvR‚$²(
-"Ö–æ–Ö—¦"ò'&—""Â$²"Ğ¦FE6†÷'F7WD&FvR‚%‚(
-"fV6†"òæ÷F‡&–Æò"Â%‚"Ğ Ğ§F6²æFVÆ’ƒã2ÂgVæ7F–öâ‚Ğ¢–bæ÷BÖVçTwV’÷"æ÷BÖVçTwV’å&VçBF†Vâ&WGW&âVæ@Ğ¢FE6†÷'F7WD&FvR‚%b(
-"föòFòf\:Ö7VÆò"Â%b"Ğ¢FE6†÷'F7WD&FvR‚$Â(
-"U5"Â$Â"Ğ¢FE6†÷'F7WD&FvR‚%(
-"VÆò–æf–æ—Fò"Â%"Ğ¢FE6†÷'F7WD&FvR‚%B(
-"FVÆW÷'FR÷"6Æ—VR"Â%B"Ğ¢FE6†÷'F7WD&FvR‚$"(
-"&ö÷7BFò6'&–æ†ò"Â$""Ğ¢FE6†÷'F7WD&FvR‚$çVÕBó"ó2(
-"6†V6·ö–çG2"Â#ó"ó2"Ğ¢FE6†÷'F7WD&FvR‚$²(
-"Ö–æ–Ö—¦"ò'&—""Â$²"Ğ¢FE6†÷'F7WD&FvR‚%‚(
-"fV6†"òæ÷F‡&–Æò"Â%‚"Ğ¦VæBĞ Ğ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ¢ÒÒ$¢–çFW&f6PĞ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ¦Æö6ÂwV•6V7F–öâÒv–æF÷s¤æWuF"‚$–çFW&f6R"“¤æWu6V7F–öâ‚$–çFW&f6R" Ğ¤wV•6V7F–öã¤æWt'WGFöâ‚$fV6†"ÖVçR"Â$fV6†v÷&²FV6Æ‚FÖ,:–ÒgVæ6–öæâ"ÂFW7G&÷”æ÷F‡&–Æò¦FE6†÷'F7WD&FvR‚$fV6†"ÖVçR"Â%‚" ¢ÒÒV&Æ–6:|:6òL;FÖ–6¢¦æVÆ<;2&V6RFWö—2VRFöF22&2Â6öÖæF÷2P¢ÒÒÆ—7FVæW'2W'FVæ6VçFW2W7FvW&:|:6òFW&Ö–æ&ÒFR6W"ÖöçFF÷2à¦–bæ÷B&ö÷G7G&Æ—fR‚’F†Và¢&÷'D&ö÷G7G&‚¢&WGW&à¦Væ@¦ÖVçTwV’äVæ&ÆVBÒfÇ6P¦–b÷2æ6Æö6²‚’Â7F'GWæ&VväB²7F'GWç6V6öæG2F†Và¢–b7F'GWç7FGW2F†Vâ7F'GWç7FGW2åFW‡BÒ$gVì:|;VW2&öçF2(
-"FW&Ö–ææFò6'&VvÖVçFò6VwW&òâââ"Væ@¢&WV@¢'Vå6W'f–6Rå&VæFW%7FWVC¥v—B‚¢–bæ÷B&ö÷G7G&Æ—fR‚’F†Và¢&÷'D&ö÷G7G&‚¢&WGW&à¢Væ@¢VçF–Â÷2æ6Æö6²‚’ãÒ7F'GWæ&VväB²7F'GWç6V6öæG0¦Væ@¦–b7F'GWæwV’æB7F'GWæwV’å&VçBF†Vâ7F'GWæwV“¤FW7G&÷’‚’Væ@¦ÖVçTwV’äVæ&ÆVBÒG'VP ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞ¢ÒÒÆö÷$t ¢ÒÒÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓĞĞ§F6²ç7vâ†gVæ7F–öâ‚Ğ¢v†–ÆR'Vææ–æræBæ÷BFW7G&÷–VBæBÖVçTwV’å&VçBæBÆVæ6†W$wV’å&VçBFğĞ¢Æö6Â&v"Ò6öÆ÷#2æg&öÔ…5b‚†÷2æ6Æö6²‚’¢ã"’RÂãƒRÂĞ¢6Æ76–5T“¤6†ævT6öÆ÷"‚%66†VÖT6öÆ÷""Â&v"¢–b6öÖÖæG5F$'WGFöâæB6öÖÖæG5F$'WGFöâå&VçBF†VàĞ¢6öÖÖæG5F$'WGFöâä&6¶w&÷VæD6öÆ÷#2Ò&v Ğ¢Væ@Ğ¢ÆVæ6†W%7G&ö¶Rä6öÆ÷"Ò&v Ğ¢ÆVæ6†W$–6öâåFW‡D6öÆ÷#2Ò&v Ğ¢f÷"’Ò67W7FöÔ¶W–&–æD–6öç2ÂÂÓFğĞ¢Æö6Â–6öâÒ7W7FöÔ¶W–&–æD–6öç5¶•ĞĞ¢–b–6öâæB–6öâå&VçBF†Vâ–6öâåFW‡D6öÆ÷#2Ò&v Ğ¢VÇ6RF&ÆRç&VÖ÷fR†7W7FöÔ¶W–&–æD–6öç2Â’’Væ@Ğ¢Væ@Ğ¢f÷"’Ò7Fö7E7G&ö¶W2ÂÂÓFğĞ¢Æö6Â7G&ö¶RÒFö7E7G&ö¶W5¶•ĞĞ¢–b7G&ö¶RæB7G&ö¶Rå&VçBF†Vâ7G&ö¶Rä6öÆ÷"Ò&v Ğ¢VÇ6RF&ÆRç&VÖ÷fR‡Fö7E7G&ö¶W2Â’’Væ@Ğ¢Væ@Ğ¢F6²çv—Bƒã3Ğ¢Væ@Ğ¦VæBĞ Ğ¦æ÷F–g’„ÔTåUôäÔRÂ$fV—Fò÷"6fW¦Â(
-"²Ö–æ–Ö—¦R&V'&RòÖVçRâ" 
+                label.Rotation = math.sin(wave * 0.82) * 7
+                label.TextSize = 27 + math.floor((math.sin(wave) + 1) * 1.5)
+            end
+
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    return gui, status, progress
+end)()
+
+-- =============================================================================
+-- Classic UI local â€” API compatÃ­vel com Kavo sem polling por controle
+-- =============================================================================
+-- A Kavo upstream abre um `while wait()` permanente para praticamente cada
+-- aba, seÃ§Ã£o e elemento. Neste menu isso passava de 80 loops simultÃ¢neos e
+-- continuava mesmo apÃ³s destruir a ScreenGui. Esta implementaÃ§Ã£o preserva a
+-- API e a estrutura visual usadas abaixo, mas atualiza cores apenas por evento.
+local ClassicUI = (function()
+local ClassicUI = {
+    gui = nil,
+    theme = Theme,
+    themeBindings = {},
+}
+
+local function classicCreate(className, properties, parent)
+    local object = Instance.new(className)
+    for property, value in pairs(properties or {}) do object[property] = value end
+    object.Parent = parent
+    return object
+end
+
+local function classicCorner(parent, radius)
+    return classicCreate("UICorner", { CornerRadius = UDim.new(0, radius or 4) }, parent)
+end
+
+local function classicBindTheme(object, property, themeKey)
+    table.insert(ClassicUI.themeBindings, {
+        object = object,
+        property = property,
+        themeKey = themeKey,
+    })
+    object[property] = ClassicUI.theme[themeKey]
+    return object
+end
+
+local function classicInvoke(name, callback, ...)
+    if not callback then return end
+    local args = table.pack(...)
+    local ok, err = xpcall(function()
+        callback(table.unpack(args, 1, args.n))
+    end, function(message)
+        if debug and type(debug.traceback) == "function" then
+            return debug.traceback(tostring(message), 2)
+        end
+        return tostring(message)
+    end)
+    if not ok then warn(("[%s/%s] %s"):format(MENU_NAME, name, tostring(err))) end
+end
+
+function ClassicUI:ChangeColor(themeKey, color)
+    if not self.theme[themeKey] then return end
+    self.theme[themeKey] = color
+    for index = #self.themeBindings, 1, -1 do
+        local binding = self.themeBindings[index]
+        if not binding.object or not binding.object.Parent then
+            table.remove(self.themeBindings, index)
+        elseif binding.themeKey == themeKey then
+            binding.object[binding.property] = color
+        end
+    end
+end
+
+function ClassicUI:ToggleUI()
+    if self.gui and self.gui.Parent then self.gui.Enabled = not self.gui.Enabled end
+end
+
+function ClassicUI.CreateLib(title, suppliedTheme)
+    ClassicUI.theme = suppliedTheme or Theme
+    table.clear(ClassicUI.themeBindings)
+
+    local gui = classicCreate("ScreenGui", {
+        Name = "NothriloClassicUI",
+        Enabled = false,
+        ResetOnSpawn = false,
+        IgnoreGuiInset = true,
+        DisplayOrder = 10000,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    }, CoreGui)
+    ClassicUI.gui = gui
+
+    local main = classicCreate("Frame", {
+        Name = "Main",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromScale(0.5, 0.5),
+        -- Geometria da Kavo clÃ¡ssica usada no roteiro de referÃªncia.
+        Size = UDim2.fromOffset(525, 318),
+        BackgroundColor3 = ClassicUI.theme.Background,
+        BorderSizePixel = 0,
+        ClipsDescendants = true,
+    }, gui)
+    classicCorner(main, 14)
+
+    local header = classicCreate("Frame", {
+        Name = "MainHeader",
+        Size = UDim2.new(1, 0, 0, 34),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, main)
+    -- O header arredonda os dois cantos de cima. O preenchimento inferior
+    -- mantÃ©m a junÃ§Ã£o com o conteÃºdo reta sem encobrir o contorno externo.
+    classicCorner(header, 14)
+    local headerSquareBottom = classicCreate("Frame", {
+        Name = "SquareBottom",
+        Position = UDim2.new(0, 0, 1, -14),
+        Size = UDim2.new(1, 0, 0, 14),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, header)
+    classicBindTheme(headerSquareBottom, "BackgroundColor3", "Header")
+    local titleLabel = classicCreate("TextLabel", {
+        Name = "title",
+        Position = UDim2.fromOffset(12, 0),
+        Size = UDim2.new(1, -46, 1, 0),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.GothamSemibold,
+        Text = title,
+        TextColor3 = ClassicUI.theme.TextColor,
+        TextSize = 15,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        RichText = true,
+    }, header)
+    classicBindTheme(titleLabel, "TextColor3", "TextColor")
+    local close = classicCreate("TextButton", {
+        Name = "close",
+        Position = UDim2.new(1, -34, 0, 0),
+        Size = UDim2.fromOffset(34, 34),
+        BackgroundTransparency = 1,
+        Text = "Ã—",
+        Font = Enum.Font.GothamBold,
+        TextColor3 = ClassicUI.theme.TextColor,
+        TextSize = 20,
+    }, header)
+    close.Activated:Connect(function()
+        if destroyNothrilo then destroyNothrilo() elseif gui.Parent then gui:Destroy() end
+    end)
+
+    local side = classicCreate("Frame", {
+        Name = "MainSide",
+        Position = UDim2.fromOffset(0, 34),
+        Size = UDim2.new(0, 145, 1, -34),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, main)
+    -- SÃ³ o canto inferior esquerdo da lateral Ã© externo. Os preenchimentos
+    -- deixam os outros trÃªs cantos retos e preservam a uniÃ£o entre painÃ©is.
+    classicCorner(side, 14)
+    local sideSquareTop = classicCreate("Frame", {
+        Name = "SquareTop",
+        Size = UDim2.new(1, 0, 0, 14),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, side)
+    classicBindTheme(sideSquareTop, "BackgroundColor3", "Header")
+    local sideSquareRight = classicCreate("Frame", {
+        Name = "SquareRight",
+        Position = UDim2.new(1, -14, 0, 0),
+        Size = UDim2.new(0, 14, 1, 0),
+        BackgroundColor3 = ClassicUI.theme.Header,
+        BorderSizePixel = 0,
+    }, side)
+    classicBindTheme(sideSquareRight, "BackgroundColor3", "Header")
+    local tabFrames = classicCreate("ScrollingFrame", {
+        Name = "tabFrames",
+        Position = UDim2.fromOffset(6, 3),
+        Size = UDim2.new(0, 133, 1, -6),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 0,
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        CanvasSize = UDim2.new(),
+        ScrollingDirection = Enum.ScrollingDirection.Y,
+    }, side)
+    classicBindTheme(tabFrames, "ScrollBarImageColor3", "SchemeColor")
+    classicCreate("UIListLayout", {
+        Name = "tabListing",
+        Padding = UDim.new(0, 2),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+    }, tabFrames)
+
+    local pages = classicCreate("Frame", {
+        Name = "pages",
+        Position = UDim2.fromOffset(153, 42),
+        Size = UDim2.fromOffset(364, 268),
+        BackgroundColor3 = ClassicUI.theme.Background,
+        BorderSizePixel = 0,
+    }, main)
+    local pageFolder = classicCreate("Folder", { Name = "Pages" }, pages)
+
+    -- A Kavo mostra a descriÃ§Ã£o em uma faixa inferior, nÃ£o espremida embaixo
+    -- do nome do controle. Um Ãºnico tooltip atende todos os itens sem workers.
+    local hintBar = classicCreate("TextLabel", {
+        Name = "infoContainer",
+        Position = UDim2.fromOffset(153, 268),
+        Size = UDim2.fromOffset(364, 42),
+        BackgroundColor3 = ClassicUI.theme.ElementColor,
+        BorderSizePixel = 0,
+        Font = Enum.Font.GothamSemibold,
+        Text = "",
+        TextColor3 = ClassicUI.theme.TextColor,
+        TextSize = 12,
+        TextWrapped = true,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Visible = false,
+        ZIndex = 60,
+    }, main)
+    classicCorner(hintBar, 10)
+    classicCreate("UIPadding", {
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10),
+    }, hintBar)
+    classicBindTheme(hintBar, "BackgroundColor3", "ElementColor")
+    classicBindTheme(hintBar, "TextColor3", "TextColor")
+    local hintStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.1 }, hintBar)
+    classicBindTheme(hintStroke, "Color", "SchemeColor")
+    local hintSession = 0
+    local function showHint(label, description)
+        if not description or description == "" then return end
+        hintSession = hintSession + 1
+        local session = hintSession
+        hintBar.Text = tostring(label) .. "  â€¢  " .. tostring(description)
+        hintBar.Visible = true
+        task.delay(4, function()
+            if session == hintSession and hintBar.Parent then hintBar.Visible = false end
+        end)
+    end
+
+    -- A referÃªncia usa 525x318 sem UIScale. Em telas menores sÃ³ a geometria
+    -- disponÃ­vel Ã© reduzida; as fontes continuam com o mesmo tamanho.
+    local viewportConnection
+    local responsiveCallbacks = {}
+    local function updateResponsiveLayout()
+        local camera = workspace.CurrentCamera
+        local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+        local width = math.clamp(viewport.X - 16, 300, 525)
+        local height = math.clamp(viewport.Y - 16, 260, 318)
+        local sideWidth = width < 420 and 96 or 145
+        local contentX = sideWidth + 8
+        local contentY = 42
+
+        main.Size = UDim2.fromOffset(width, height)
+        side.Position = UDim2.fromOffset(0, 34)
+        side.Size = UDim2.new(0, sideWidth, 1, -34)
+        tabFrames.Size = UDim2.new(1, -12, 1, -6)
+        pages.Position = UDim2.fromOffset(contentX, contentY)
+        pages.Size = UDim2.new(1, -(contentX + 8), 1, -(contentY + 8))
+        hintBar.Position = UDim2.fromOffset(contentX, height - 50)
+        hintBar.Size = UDim2.new(1, -(contentX + 8), 0, 42)
+        local compact = width < 420
+        for _, callback in ipairs(responsiveCallbacks) do
+            callback(compact)
+        end
+    end
+    local function bindViewportCamera()
+        if viewportConnection then
+            viewportConnection:Disconnect()
+            viewportConnection = nil
+        end
+        local camera = workspace.CurrentCamera
+        if camera then
+            viewportConnection = trackConnection(
+                camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateResponsiveLayout)
+            )
+        end
+        updateResponsiveLayout()
+    end
+    bindViewportCamera()
+    trackConnection(workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera))
+
+    local window = { tabs = {}, gui = gui }
+    local function showTab(selected)
+        for _, tab in ipairs(window.tabs) do
+            local active = tab == selected
+            tab.page.Visible = active
+            tab.button.BackgroundTransparency = active and 0 or 1
+            tab.button.Font = active and Enum.Font.GothamSemibold or Enum.Font.GothamMedium
+            tab.button.TextColor3 = active and Color3.fromRGB(7, 7, 9)
+                or ClassicUI.theme.TextColor
+            if active then tab.page.CanvasPosition = Vector2.zero end
+        end
+    end
+
+    function window:NewTab(name)
+        local tabButton = classicCreate("TextButton", {
+            Name = name .. "TabButton",
+            Size = UDim2.new(1, 0, 0, 26),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            AutoButtonColor = false,
+            Font = Enum.Font.GothamMedium,
+            Text = name,
+            TextColor3 = ClassicUI.theme.TextColor,
+            TextSize = 13,
+        }, tabFrames)
+        classicCorner(tabButton, 8)
+        classicBindTheme(tabButton, "BackgroundColor3", "SchemeColor")
+        classicBindTheme(tabButton, "TextColor3", "TextColor")
+
+        local page = classicCreate("ScrollingFrame", {
+            Name = "Page",
+            Size = UDim2.fromScale(1, 1),
+            BackgroundColor3 = ClassicUI.theme.Background,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 5,
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            CanvasSize = UDim2.new(),
+            ScrollingDirection = Enum.ScrollingDirection.Y,
+            Visible = false,
+        }, pageFolder)
+        classicBindTheme(page, "ScrollBarImageColor3", "SchemeColor")
+        classicCreate("UIPadding", {
+            PaddingLeft = UDim.new(0, 4),
+            PaddingRight = UDim.new(0, 4),
+            PaddingTop = UDim.new(0, 4),
+            PaddingBottom = UDim.new(0, 50),
+        }, page)
+        classicCreate("UIListLayout", {
+            Name = "pageListing",
+            Padding = UDim.new(0, 5),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+        }, page)
+
+        local tab = { button = tabButton, page = page }
+        table.insert(self.tabs, tab)
+        tabButton.Activated:Connect(function() showTab(tab) end)
+        if #self.tabs == 1 then showTab(tab) end
+
+        function tab:NewSection(sectionName, hidden)
+            local sectionFrame = classicCreate("Frame", {
+                Name = "sectionFrame",
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+            }, page)
+            classicCreate("UIListLayout", {
+                Name = "sectionlistoknvm",
+                Padding = UDim.new(0, 5),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+            }, sectionFrame)
+
+            local sectionHead = classicCreate("Frame", {
+                Name = "sectionHead",
+                Size = UDim2.new(1, 0, 0, hidden and 0 or 33),
+                Visible = not hidden,
+                BackgroundColor3 = ClassicUI.theme.SchemeColor,
+                BorderSizePixel = 0,
+            }, sectionFrame)
+            classicCorner(sectionHead, 10)
+            classicBindTheme(sectionHead, "BackgroundColor3", "SchemeColor")
+            local sectionNameLabel = classicCreate("TextLabel", {
+                Name = "sectionName",
+                Position = UDim2.fromOffset(12, 0),
+                Size = UDim2.new(1, -24, 1, 0),
+                BackgroundTransparency = 1,
+                Font = Enum.Font.GothamBold,
+                Text = sectionName,
+                TextColor3 = Color3.fromRGB(7, 7, 9),
+                TextSize = 13,
+                TextXAlignment = Enum.TextXAlignment.Left,
+            }, sectionHead)
+
+            local sectionInners = classicCreate("Frame", {
+                Name = "sectionInners",
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+            }, sectionFrame)
+            classicCreate("UIListLayout", {
+                Name = "sectionElListing",
+                Padding = UDim.new(0, 3),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+            }, sectionInners)
+
+            local api = {}
+            local function makeElement(name, height, label, description, rightInset)
+                local rowHeight = UserInputService.TouchEnabled and math.max(height, 44) or height
+                local element = classicCreate("TextButton", {
+                    Name = name,
+                    Size = UDim2.new(1, 0, 0, rowHeight),
+                    BackgroundColor3 = ClassicUI.theme.ElementColor,
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    ClipsDescendants = true,
+                    Text = "",
+                }, sectionInners)
+                classicCorner(element, 10)
+                local elementStroke = classicCreate("UIStroke", {
+                    Thickness = 1,
+                    Transparency = 0.82,
+                    Color = Color3.fromRGB(80, 80, 92),
+                }, element)
+                local accentIcon = classicCreate("TextLabel", {
+                    Name = "touch",
+                    Position = UDim2.new(0, 7, 0.5, -11),
+                    Size = UDim2.fromOffset(22, 22),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamBold,
+                    Text = "â€¢",
+                    TextColor3 = ClassicUI.theme.SchemeColor,
+                    TextSize = 17,
+                }, element)
+                classicBindTheme(accentIcon, "TextColor3", "SchemeColor")
+                local title = classicCreate("TextLabel", {
+                    Name = "togName",
+                    Position = UDim2.fromOffset(34, 0),
+                    Size = UDim2.new(1, -(62 + (rightInset or 0)), 1, 0),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamSemibold,
+                    Text = label,
+                    TextColor3 = ClassicUI.theme.TextColor,
+                    TextSize = 14,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                }, element)
+                classicBindTheme(title, "TextColor3", "TextColor")
+                local info = classicCreate("TextButton", {
+                    Name = "viewInfo",
+                    Position = UDim2.new(1, -30, 0, 0),
+                    Size = UDim2.new(0, 30, 1, 0),
+                    BackgroundTransparency = 1,
+                    AutoButtonColor = false,
+                    Font = Enum.Font.GothamBold,
+                    Text = "i",
+                    TextColor3 = ClassicUI.theme.SchemeColor,
+                    TextSize = 14,
+                    Visible = description ~= nil and description ~= "",
+                    ZIndex = 4,
+                }, element)
+                classicBindTheme(info, "TextColor3", "SchemeColor")
+                info.Activated:Connect(function() showHint(label, description) end)
+                info.MouseEnter:Connect(function() showHint(label, description) end)
+                element.MouseEnter:Connect(function()
+                    element.BackgroundColor3 = ClassicUI.theme.ElementColor:Lerp(Color3.new(1, 1, 1), 0.08)
+                end)
+                element.MouseLeave:Connect(function()
+                    element.BackgroundColor3 = ClassicUI.theme.ElementColor
+                end)
+                return element, title, accentIcon, info
+            end
+
+            function api:NewButton(label, description, callback)
+                local element, _, accentIcon = makeElement("buttonElement", 33, label, description, 0)
+                accentIcon.Text = "â€º"
+                accentIcon.TextSize = 20
+                element.Activated:Connect(function() classicInvoke(label, callback) end)
+                local control = {}
+                function control:UpdateButton(newTitle)
+                    local titleObject = element:FindFirstChild("togName")
+                    if titleObject and newTitle ~= nil then titleObject.Text = tostring(newTitle) end
+                end
+                return control
+            end
+
+            function api:NewToggle(label, description, callback)
+                local element, title, accentIcon = makeElement("toggleElement", 33, label, description, 0)
+                accentIcon.Visible = false
+                local toggleVisualY = UserInputService.TouchEnabled and 11 or 6
+                local switch = classicCreate("Frame", {
+                    Name = "toggleDisabled",
+                    Position = UDim2.fromOffset(7, toggleVisualY),
+                    Size = UDim2.fromOffset(21, 21),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                }, element)
+                classicCorner(switch, 6)
+                local switchStroke = classicCreate("UIStroke", { Thickness = 2 }, switch)
+                classicBindTheme(switchStroke, "Color", "SchemeColor")
+                local dot = classicCreate("Frame", {
+                    Name = "toggleEnabled",
+                    Position = UDim2.fromOffset(5, 5),
+                    Size = UDim2.fromOffset(11, 11),
+                    BackgroundColor3 = ClassicUI.theme.SchemeColor,
+                    BorderSizePixel = 0,
+                    Visible = false,
+                }, switch)
+                classicCorner(dot, 4)
+                classicBindTheme(dot, "BackgroundColor3", "SchemeColor")
+                local state = false
+                local control = {}
+                function control:UpdateToggle(newText, enabled)
+                    if newText ~= nil then title.Text = tostring(newText) end
+                    state = enabled == true
+                    dot.Visible = state
+                    classicInvoke(label, callback, state)
+                end
+                element.Activated:Connect(function() control:UpdateToggle(nil, not state) end)
+                return control
+            end
+
+            function api:NewTextBox(label, description, callback)
+                local element, title, accentIcon = makeElement("textboxElement", 33, label, description, 0)
+                local normalHeight = UserInputService.TouchEnabled and 44 or 33
+                accentIcon.Text = "T"
+                accentIcon.TextSize = 13
+                title.Size = UDim2.new(0.49, -34, 1, 0)
+                local input = classicCreate("TextBox", {
+                    Name = "TextBox",
+                    Position = UDim2.new(0.49, 0, 0.5, -9),
+                    Size = UDim2.new(0.43, -2, 0, 18),
+                    BackgroundColor3 = Color3.fromRGB(14, 14, 18),
+                    BorderSizePixel = 0,
+                    ClearTextOnFocus = false,
+                    PlaceholderText = "Type here!",
+                    Text = "",
+                    Font = Enum.Font.Gotham,
+                    TextColor3 = ClassicUI.theme.TextColor,
+                    PlaceholderColor3 = Color3.fromRGB(135, 135, 145),
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                }, element)
+                classicCorner(input, 6)
+                classicCreate("UIPadding", {
+                    PaddingLeft = UDim.new(0, 6),
+                    PaddingRight = UDim.new(0, 6),
+                }, input)
+                local function layoutTextBox(compact)
+                    if compact then
+                        element.Size = UDim2.new(1, 0, 0, 64)
+                        accentIcon.Position = UDim2.fromOffset(7, 4)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(1, -70, 0, 30)
+                        input.Position = UDim2.fromOffset(34, 32)
+                        input.Size = UDim2.new(1, -72, 0, 24)
+                    else
+                        element.Size = UDim2.new(1, 0, 0, normalHeight)
+                        accentIcon.Position = UDim2.new(0, 7, 0.5, -11)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(0.49, -34, 1, 0)
+                        input.Position = UDim2.new(0.49, 0, 0.5, -9)
+                        input.Size = UDim2.new(0.43, -2, 0, 18)
+                    end
+                end
+                table.insert(responsiveCallbacks, layoutTextBox)
+                layoutTextBox(main.Size.X.Offset < 420)
+                input.FocusLost:Connect(function(enterPressed)
+                    if enterPressed then classicInvoke(label, callback, input.Text) end
+                end)
+                return input
+            end
+
+            function api:NewSlider(label, description, maximum, minimum, defaultValue, callback)
+                if type(defaultValue) == "function" then
+                    callback = defaultValue
+                    defaultValue = minimum
+                end
+                maximum = tonumber(maximum) or 100
+                minimum = tonumber(minimum) or 0
+                local element, title, accentIcon = makeElement("sliderElement", 33, label, description, 0)
+                local normalHeight = UserInputService.TouchEnabled and 44 or 33
+                accentIcon.Text = "â—‰"
+                accentIcon.TextSize = 13
+                title.Size = UDim2.new(0.49, -34, 1, 0)
+                local value = math.clamp(tonumber(defaultValue) or minimum, minimum, maximum)
+                local valueLabel = classicCreate("TextLabel", {
+                    Name = "value",
+                    Position = UDim2.new(1, -58, 0, 0),
+                    Size = UDim2.fromOffset(31, 33),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamSemibold,
+                    Text = tostring(value),
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                }, element)
+                classicBindTheme(valueLabel, "TextColor3", "SchemeColor")
+                local bar = classicCreate("TextButton", {
+                    Name = "sliderBtn",
+                    Position = UDim2.new(0.49, 0, 0.5, -12),
+                    Size = UDim2.new(0.34, 0, 0, 23),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    Text = "",
+                }, element)
+                local track = classicCreate("Frame", {
+                    Name = "track",
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Position = UDim2.fromScale(0, 0.5),
+                    Size = UDim2.new(1, 0, 0, 6),
+                    BackgroundColor3 = Color3.fromRGB(45, 45, 52),
+                    BorderSizePixel = 0,
+                }, bar)
+                classicCorner(track, 3)
+                local fill = classicCreate("Frame", {
+                    Name = "sliderDrag",
+                    Size = UDim2.new(
+                        maximum ~= minimum and ((value - minimum) / (maximum - minimum)) or 0,
+                        0,
+                        1,
+                        0
+                    ),
+                    BorderSizePixel = 0,
+                }, track)
+                classicCorner(fill, 3)
+                classicBindTheme(fill, "BackgroundColor3", "SchemeColor")
+                local function layoutSlider(compact)
+                    if compact then
+                        element.Size = UDim2.new(1, 0, 0, 60)
+                        accentIcon.Position = UDim2.fromOffset(7, 4)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(1, -70, 0, 30)
+                        bar.Position = UDim2.fromOffset(34, 30)
+                        bar.Size = UDim2.new(1, -136, 0, 28)
+                        valueLabel.Position = UDim2.new(1, -100, 0, 30)
+                        valueLabel.Size = UDim2.fromOffset(70, 28)
+                    else
+                        element.Size = UDim2.new(1, 0, 0, normalHeight)
+                        accentIcon.Position = UDim2.new(0, 7, 0.5, -11)
+                        title.Position = UDim2.fromOffset(34, 0)
+                        title.Size = UDim2.new(0.49, -34, 1, 0)
+                        bar.Position = UDim2.new(0.49, 0, 0.5, -12)
+                        bar.Size = UDim2.new(0.34, 0, 0, 23)
+                        valueLabel.Position = UDim2.new(1, -58, 0, 0)
+                        valueLabel.Size = UDim2.new(0, 31, 1, 0)
+                    end
+                end
+                table.insert(responsiveCallbacks, layoutSlider)
+                layoutSlider(main.Size.X.Offset < 420)
+                local dragging = false
+                local range = maximum - minimum
+                local control = {}
+                function control:SetValue(nextValue, invokeCallback)
+                    value = math.clamp(tonumber(nextValue) or minimum, minimum, maximum)
+                    local percent = range ~= 0 and ((value - minimum) / range) or 0
+                    fill.Size = UDim2.new(percent, 0, 1, 0)
+                    valueLabel.Text = tostring(value)
+                    if invokeCallback ~= false then classicInvoke(label, callback, value) end
+                end
+                function control:GetValue() return value end
+                local function setFromInput(input)
+                    if bar.AbsoluteSize.X <= 0 then return end
+                    local percent = math.clamp(
+                        (input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
+                        0,
+                        1
+                    )
+                    control:SetValue(math.floor(minimum + (range * percent) + 0.5), true)
+                end
+                bar.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1
+                    or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = true
+                        setFromInput(input)
+                    end
+                end)
+                trackConnection(UserInputService.InputChanged:Connect(function(input)
+                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+                    or input.UserInputType == Enum.UserInputType.Touch) then
+                        setFromInput(input)
+                    end
+                end))
+                trackConnection(UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1
+                    or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = false
+                    end
+                end))
+                return control
+            end
+
+            function api:NewKeybind(label, description, keyCode, callback)
+                local element, title, accentIcon = makeElement("keybindElement", 33, label, description, 70)
+                accentIcon.Text = "K"
+                accentIcon.TextSize = 12
+                local activeKey = keyCode or Enum.KeyCode.Unknown
+                local listening = false
+                local keyLabel = classicCreate("TextLabel", {
+                    Name = "togName",
+                    Position = UDim2.new(1, -96, 0, 0),
+                    Size = UDim2.fromOffset(70, 33),
+                    BackgroundTransparency = 1,
+                    Font = Enum.Font.GothamSemibold,
+                    Text = activeKey.Name,
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                }, element)
+                classicBindTheme(keyLabel, "TextColor3", "SchemeColor")
+                element.Activated:Connect(function()
+                    listening = true
+                    keyLabel.Text = "..."
+                end)
+                trackConnection(UserInputService.InputBegan:Connect(function(input, processed)
+                    if destroyed then return end
+                    if listening then
+                        if input.KeyCode ~= Enum.KeyCode.Unknown then
+                            activeKey = input.KeyCode
+                            keyLabel.Text = activeKey.Name
+                            listening = false
+                        end
+                        return
+                    end
+                    if not processed and not UserInputService:GetFocusedTextBox()
+                    and input.KeyCode == activeKey then
+                        classicInvoke(label, callback)
+                    end
+                end))
+                local control = {}
+                function control:UpdateKeybind(newText, newKey)
+                    if newText ~= nil then title.Text = tostring(newText) end
+                    if newKey then activeKey = newKey; keyLabel.Text = activeKey.Name end
+                end
+                return control
+            end
+
+            return api
+        end
+
+        return tab
+    end
+
+    -- Contorno desenhado por Ãºltimo e um pixel para dentro: permanece visÃ­vel
+    -- sobre header/lateral e fecha os quatro cantos sem bloquear os controles.
+    local outline = classicCreate("Frame", {
+        Name = "MainOutline",
+        Position = UDim2.fromOffset(1, 1),
+        Size = UDim2.new(1, -2, 1, -2),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Active = false,
+        ZIndex = 100,
+    }, main)
+    classicCorner(outline, 13)
+    local outlineStroke = classicCreate("UIStroke", {
+        Thickness = 1,
+        Transparency = 0.08,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    }, outline)
+    classicBindTheme(outlineStroke, "Color", "SchemeColor")
+
+    return window
+end
+
+return ClassicUI
+end)()
+
+local function bootstrapAlive()
+    return not destroyed
+        and isCurrentSuiteGeneration()
+        and runtime
+        and runtime.Parent ~= nil
+end
+
+local function abortBootstrap()
+    destroyed = true
+    for index = #runtimeConnections, 1, -1 do
+        local connection = runtimeConnections[index]
+        pcall(function() connection:Disconnect() end)
+        runtimeConnections[index] = nil
+    end
+    if ClassicUI.gui and ClassicUI.gui.Parent then ClassicUI.gui:Destroy() end
+    if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
+    if runtime and runtime.Parent then runtime:Destroy() end
+end
+
+if startup.status then startup.status.Text = "Montando interface clÃ¡ssica local..." end
+if not bootstrapAlive() then
+    abortBootstrap()
+    return
+end
+
+local Window
+do
+    local windowOk, windowOrError = pcall(function()
+        return ClassicUI.CreateLib(UI_TITLE, Theme)
+    end)
+    if not windowOk or not windowOrError or not bootstrapAlive() then
+        warn(MENU_NAME .. ": falha ao criar a janela local: " .. tostring(windowOrError))
+        abortBootstrap()
+        return
+    end
+    Window = windowOrError
+end
+
+-- =============================================================================
+-- Sistema de notificaÃ§Ãµes (toasts)
+-- =============================================================================
+local toastContainer
+local toastStrokes = {}
+
+local function notify(title, text)
+    if not toastContainer or not toastContainer.Parent then
+        warn((title or MENU_NAME) .. ": " .. (text or ""))
+        return
+    end
+
+    local card = Instance.new("Frame")
+    card.Name             = "NothriloToast"
+    card.Size             = UDim2.new(1, 0, 0, 74)
+    card.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
+    card.BackgroundTransparency = 1
+    card.BorderSizePixel  = 0
+    card.Parent           = toastContainer
+
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 15)
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Name        = "RGBStroke"
+    stroke.Thickness   = 1.5
+    stroke.Transparency = 1
+    stroke.Parent      = card
+    table.insert(toastStrokes, stroke)
+
+    local icon = Instance.new("TextLabel")
+    icon.Size             = UDim2.fromOffset(42, 42)
+    icon.Position         = UDim2.fromOffset(14, 16)
+    icon.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
+    icon.BackgroundTransparency = 1
+    icon.Font             = Enum.Font.GothamBold
+    icon.Text             = "N"
+    icon.TextColor3       = Color3.fromRGB(255, 255, 255)
+    icon.TextSize         = 18
+    icon.TextTransparency = 1
+    icon.Parent           = card
+    Instance.new("UICorner", icon).CornerRadius = UDim.new(1, 0)
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size             = UDim2.new(1, -76, 0, 20)
+    titleLabel.Position         = UDim2.fromOffset(68, 14)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Font             = Enum.Font.GothamBold
+    titleLabel.Text             = title or MENU_NAME
+    titleLabel.TextColor3       = Color3.fromRGB(250, 250, 252)
+    titleLabel.TextSize         = 14
+    titleLabel.TextTransparency = 1
+    titleLabel.TextXAlignment   = Enum.TextXAlignment.Left
+    titleLabel.Parent           = card
+
+    local bodyLabel = Instance.new("TextLabel")
+    bodyLabel.Size              = UDim2.new(1, -76, 0, 30)
+    bodyLabel.Position          = UDim2.fromOffset(68, 34)
+    bodyLabel.BackgroundTransparency = 1
+    bodyLabel.Font              = Enum.Font.Gotham
+    bodyLabel.Text              = text or ""
+    bodyLabel.TextColor3        = Color3.fromRGB(185, 185, 195)
+    bodyLabel.TextSize          = 12
+    bodyLabel.TextTransparency  = 1
+    bodyLabel.TextWrapped       = true
+    bodyLabel.TextXAlignment    = Enum.TextXAlignment.Left
+    bodyLabel.TextYAlignment    = Enum.TextYAlignment.Top
+    bodyLabel.Parent            = card
+
+    local ti = TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    TweenService:Create(card,       ti, { BackgroundTransparency = 0 }):Play()
+    TweenService:Create(stroke,     TweenInfo.new(0.22), { Transparency = 0.15 }):Play()
+    TweenService:Create(icon,       TweenInfo.new(0.22), { BackgroundTransparency = 0, TextTransparency = 0 }):Play()
+    TweenService:Create(titleLabel, TweenInfo.new(0.22), { TextTransparency = 0 }):Play()
+    TweenService:Create(bodyLabel,  TweenInfo.new(0.22), { TextTransparency = 0 }):Play()
+
+    task.delay(4, function()
+        if not card.Parent then return end
+        local tiOut = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        TweenService:Create(card,       tiOut, { BackgroundTransparency = 1 }):Play()
+        TweenService:Create(stroke,     tiOut, { Transparency = 1 }):Play()
+        TweenService:Create(icon,       tiOut, { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
+        TweenService:Create(titleLabel, tiOut, { TextTransparency = 1 }):Play()
+        TweenService:Create(bodyLabel,  tiOut, { TextTransparency = 1 }):Play()
+        task.wait(0.25)
+        card:Destroy()
+    end)
+end
+
+-- =============================================================================
+-- Helpers de personagem
+-- =============================================================================
+local function getCharacter()
+    return LocalPlayer.Character
+end
+
+local function getHumanoid(character)
+    character = character or getCharacter()
+    return character and character:FindFirstChildOfClass("Humanoid")
+end
+
+local function getRoot(character)
+    character = character or getCharacter()
+    return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function teleportCharacter(cframe)
+    local character = getCharacter()
+    local root = getRoot(character)
+    local humanoid = getHumanoid(character)
+    if not character or not root then
+        notify("Teleporte", "HumanoidRootPart nÃ£o encontrado.")
+        return false
+    end
+
+    -- Teleportar o HRP enquanto ele estÃ¡ soldado ao assento pode mover o
+    -- carrinho inteiro ou causar snapback. Solte o assento primeiro.
+    if humanoid and humanoid.SeatPart then
+        humanoid.Sit = false
+        pcall(function() humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+        local deadline = os.clock() + 0.6
+        repeat
+            RunService.Heartbeat:Wait()
+        until not humanoid.Parent or not humanoid.SeatPart or os.clock() >= deadline
+    end
+
+    root = getRoot(character)
+    if not root then return false end
+    local ok = pcall(function()
+        local rootOffset = character:GetPivot():ToObjectSpace(root.CFrame)
+        character:PivotTo(cframe * rootOffset:Inverse())
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+    end)
+    if not ok then notify("Teleporte", "NÃ£o foi possÃ­vel mover o personagem.") end
+    return ok
+end
+
+-- =============================================================================
+-- ESP
+-- =============================================================================
+local ESP_TAG             = "NothriloESP"
+local espEnabled          = false
+local espObjects          = {}
+local espPlayerConnections = {}
+local espGlobalConnections = {}
+local espSession          = 0
+
+local function getESPColor(player)
+    if player.Team and player.Team.TeamColor then
+        return player.Team.TeamColor.Color
+    end
+    return Color3.fromRGB(190, 130, 255)
+end
+
+local function removeESP(player)
+    local objects = espObjects[player]
+    if not objects then return end
+    for _, object in pairs(objects) do
+        if object and object.Parent then object:Destroy() end
+    end
+    espObjects[player] = nil
+end
+
+local function refreshESPColor(player)
+    local objects = espObjects[player]
+    if not objects then return end
+    local color = getESPColor(player)
+    if objects.Highlight and objects.Highlight.Parent then
+        objects.Highlight.FillColor    = color
+        objects.Highlight.OutlineColor = color
+    end
+    if objects.Label and objects.Label.Parent then
+        objects.Label.TextColor3 = color
+    end
+end
+
+local function refreshESPSize(player)
+    local objects = espObjects[player]
+    if not objects or not objects.Billboard or not objects.Billboard.Parent then return end
+    local localCharacter = LocalPlayer.Character
+    local localRoot      = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
+    local targetRoot     = objects.Billboard.Adornee
+    if not localRoot or not targetRoot or not targetRoot.Parent then return end
+
+    local distance           = (localRoot.Position - targetRoot.Position).Magnitude
+    local scaleStartDistance = 150
+    objects.Billboard.Enabled = true
+
+    local progress = math.clamp((distance - scaleStartDistance) / 450, 0, 1)
+    objects.Billboard.Size = UDim2.fromOffset(
+        math.floor(82  + (170 - 82)  * progress),
+        math.floor(18  + (36  - 18)  * progress)
+    )
+end
+
+local function addESP(player, character)
+    if not espEnabled or player == LocalPlayer then return end
+    character = character or player.Character
+    if not character or not character.Parent then return end
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    removeESP(player)
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name          = ESP_TAG .. "Name"
+    billboard.Size          = UDim2.fromOffset(78, 16)
+    billboard.Enabled       = false
+    billboard.Adornee       = root
+    billboard.AlwaysOnTop   = true
+    billboard.LightInfluence = 0
+    billboard.MaxDistance   = math.huge
+    billboard.StudsOffset   = Vector3.new(0, 3.2, 0)
+    billboard.Parent        = root
+
+    local label = Instance.new("TextLabel")
+    label.Name                 = "NameLabel"
+    label.Size                 = UDim2.fromScale(1, 1)
+    label.BackgroundTransparency = 1
+    label.Font                 = Enum.Font.GothamBold
+    label.Text                 = player.DisplayName ~= "" and player.DisplayName or player.Name
+    label.TextScaled           = true
+    label.TextStrokeColor3     = Color3.fromRGB(0, 0, 0)
+    label.TextStrokeTransparency = 0
+    label.Parent               = billboard
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name             = ESP_TAG
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode        = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Adornee          = character
+    highlight.Parent           = character
+
+    espObjects[player] = { Billboard = billboard, Label = label, Highlight = highlight }
+    refreshESPColor(player)
+    refreshESPSize(player)
+end
+
+local function disconnectESPPlayer(player)
+    local connections = espPlayerConnections[player]
+    if connections then
+        for _, c in ipairs(connections) do c:Disconnect() end
+    end
+    espPlayerConnections[player] = nil
+end
+
+local function watchESPPlayer(player)
+    if player == LocalPlayer then return end
+    disconnectESPPlayer(player)
+    local connections = {}
+    espPlayerConnections[player] = connections
+
+    table.insert(connections, player.CharacterAdded:Connect(function(character)
+        task.wait(0.2)
+        addESP(player, character)
+    end))
+    table.insert(connections, player.CharacterRemoving:Connect(function()
+        removeESP(player)
+    end))
+    table.insert(connections, player:GetPropertyChangedSignal("Team"):Connect(function()
+        refreshESPColor(player)
+    end))
+    addESP(player, player.Character)
+end
+
+local function clearESP()
+    for _, c in ipairs(espGlobalConnections) do c:Disconnect() end
+    table.clear(espGlobalConnections)
+    for player in pairs(espPlayerConnections) do disconnectESPPlayer(player) end
+    for player in pairs(espObjects) do removeESP(player) end
+end
+
+local function setESP(enabled)
+    espEnabled = enabled
+    espSession = espSession + 1
+    clearESP()
+    if not enabled then notify("ESP", "Desligado.") return end
+
+    for _, player in ipairs(Players:GetPlayers()) do watchESPPlayer(player) end
+    table.insert(espGlobalConnections, Players.PlayerAdded:Connect(watchESPPlayer))
+    table.insert(espGlobalConnections, Players.PlayerRemoving:Connect(function(player)
+        removeESP(player)
+        disconnectESPPlayer(player)
+    end))
+
+    local session = espSession
+    task.spawn(function()
+        while espEnabled and session == espSession do
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then
+                    local objects = espObjects[player]
+                    local valid = objects
+                        and objects.Billboard and objects.Billboard.Parent
+                        and objects.Highlight and objects.Highlight.Parent
+                    if not valid then
+                        removeESP(player)
+                        addESP(player, player.Character)
+                    else
+                        refreshESPSize(player)
+                    end
+                end
+            end
+            task.wait(0.5)
+        end
+    end)
+    notify("ESP", "Ligado: nomes e contornos ativos.")
+end
+
+-- Estados declarados antes dos workers para que respawn, Killer e atalhos
+-- sempre enxerguem a mesma fonte de verdade.
+local flyEnabled = false
+local flyToggleControl
+local boostToggleControl
+local panicToggleControl
+local stopBoost
+local setMenuVisible
+local fakeLagActive = false
+local fakeLagSession = 0
+local fakeLagHumanoid
+local desiredWalkSpeed
+local desiredJumpPower
+local desiredJumpHeight
+local createdTools = {}
+local killerActive = false
+local killerSession = 0
+local cartMotionPauseUntil = 0
+
+-- Fly, cÃ¢mera livre, giro e spectate nÃ£o podem escrever na cÃ¢mera ao mesmo
+-- tempo. Cada modo registra como parar e o prÃ³ximo assume de forma atÃ´mica.
+local activeCameraMode
+local cameraModeStoppers = {}
+
+local function restoreDefaultCamera()
+    local camera = workspace.CurrentCamera
+    if not camera then return end
+    camera.CameraType = Enum.CameraType.Custom
+    local humanoid = getHumanoid()
+    if humanoid then camera.CameraSubject = humanoid end
+end
+
+local function claimCameraMode(mode)
+    if activeCameraMode == mode then return end
+    local previous = activeCameraMode
+    activeCameraMode = mode
+    local stopper = previous and cameraModeStoppers[previous]
+    if stopper then pcall(stopper) end
+end
+
+local function releaseCameraMode(mode)
+    if activeCameraMode ~= mode then return end
+    activeCameraMode = nil
+    restoreDefaultCamera()
+end
+
+local function resetCameraModes()
+    local previous = activeCameraMode
+    activeCameraMode = nil
+    local stopper = previous and cameraModeStoppers[previous]
+    if stopper then pcall(stopper) end
+    restoreDefaultCamera()
+end
+
+-- =============================================================================
+-- Voo (Vehicle Fly)
+-- =============================================================================
+local FLYING         = false
+local vehicleFlySpeed = 1
+local flyKeyDown
+local flyKeyUp
+local flyHumanoid
+local flyAutoRotate
+local flyPlatformStand
+local flySavedState = { freefall = nil, fallingDown = nil, inputEnabled = true }
+local mouse        = LocalPlayer:GetMouse()
+local flyTouchUp   = 0
+local flyTouchDown = 0
+local flyMobileGui
+local flySession   = 0
+
+local function showMobileFlyControls(visible)
+    if not UserInputService.TouchEnabled then return end
+    if flyMobileGui and flyMobileGui.Parent then
+        flyMobileGui.Enabled = visible
+        return
+    end
+    if not visible then return end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name           = "NothriloMobileFly"
+    gui.ResetOnSpawn   = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder   = 10020
+    gui.Parent         = CoreGui
+    flyMobileGui       = gui
+
+    local panel = Instance.new("Frame")
+    panel.Name              = "ControlesDeVoo"
+    panel.AnchorPoint       = Vector2.new(1, 0.5)
+    panel.Position          = UDim2.new(1, -16, 0.5, 0)
+    panel.Size              = UDim2.fromOffset(72, 124)
+    panel.BackgroundColor3  = Color3.fromRGB(10, 10, 13)
+    panel.BackgroundTransparency = 0.12
+    panel.BorderSizePixel   = 0
+    panel.Parent            = gui
+    Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 14)
+    local ps = Instance.new("UIStroke", panel)
+    ps.Color = Theme.SchemeColor
+    ps.Thickness = 1
+
+    local titleL = Instance.new("TextLabel")
+    titleL.BackgroundTransparency = 1
+    titleL.Position = UDim2.fromOffset(0, 6)
+    titleL.Size     = UDim2.new(1, 0, 0, 18)
+    titleL.Font     = Enum.Font.GothamBold
+    titleL.Text     = "VOO"
+    titleL.TextColor3 = Color3.fromRGB(245, 245, 245)
+    titleL.TextSize = 11
+    titleL.Parent   = panel
+
+    local function makeBtn(symbol, y, setDir)
+        local btn = Instance.new("TextButton")
+        btn.Size              = UDim2.fromOffset(52, 38)
+        btn.Position          = UDim2.new(0.5, -26, 0, y)
+        btn.BackgroundColor3  = Color3.fromRGB(28, 28, 35)
+        btn.BorderSizePixel   = 0
+        btn.AutoButtonColor   = false
+        btn.Font              = Enum.Font.GothamBold
+        btn.Text              = symbol
+        btn.TextColor3        = Theme.SchemeColor
+        btn.TextSize          = 22
+        btn.Parent            = panel
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+
+        btn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                setDir(1)
+                btn.BackgroundColor3 = Color3.fromRGB(48, 48, 58)
+            end
+        end)
+        btn.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                setDir(0)
+                btn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+            end
+        end)
+    end
+
+    makeBtn("â–²", 30, function(v) flyTouchUp   = v end)
+    makeBtn("â–¼", 74, function(v) flyTouchDown = v end)
+end
+
+local function stopFly()
+    flySession = flySession + 1
+    FLYING     = false
+    flyTouchUp = 0
+    flyTouchDown = 0
+    showMobileFlyControls(false)
+
+    if flyKeyDown then flyKeyDown:Disconnect() flyKeyDown = nil end
+    if flyKeyUp   then flyKeyUp:Disconnect()   flyKeyUp   = nil end
+
+    -- Remove os movers imediatamente; nÃ£o espera o loop antigo chegar ao fim.
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root then
+        local gyro = root:FindFirstChild("CafezlVehicleFlyGyro")
+        local velocity = root:FindFirstChild("CafezlVehicleFlyVelocity")
+        if gyro then gyro:Destroy() end
+        if velocity then velocity:Destroy() end
+    end
+
+    local humanoid = flyHumanoid or getHumanoid()
+    if humanoid then
+        humanoid.PlatformStand = flyPlatformStand ~= nil and flyPlatformStand or false
+        humanoid.AutoRotate    = flyAutoRotate    ~= nil and flyAutoRotate    or true
+        pcall(function()
+            local freefall = flySavedState.freefall
+            local fallingDown = flySavedState.fallingDown
+            humanoid:SetStateEnabled(
+                Enum.HumanoidStateType.Freefall,
+                freefall == nil and true or freefall
+            )
+            humanoid:SetStateEnabled(
+                Enum.HumanoidStateType.FallingDown,
+                fallingDown == nil and true or fallingDown
+            )
+        end)
+    end
+    flyHumanoid     = nil
+    flyAutoRotate   = nil
+    flyPlatformStand = nil
+    flySavedState.freefall = nil
+    flySavedState.fallingDown = nil
+    flySavedState.inputEnabled = true
+    releaseCameraMode("fly")
+end
+
+local function startVehicleFly(inputEnabled)
+    stopFly()
+    local session = flySession
+    local character = getCharacter()
+    local root      = getRoot(character)
+    local humanoid  = getHumanoid(character)
+    if not root or not humanoid then
+        notify("Voo do VeÃ­culo", "Personagem nÃ£o encontrado.")
+        return false
+    end
+
+    claimCameraMode("fly")
+    pcall(function()
+        if workspace.CurrentCamera then
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Track
+        end
+    end)
+
+    flyHumanoid      = humanoid
+    flyAutoRotate    = humanoid.AutoRotate
+    flyPlatformStand = humanoid.PlatformStand
+    flySavedState.inputEnabled = inputEnabled ~= false
+    pcall(function()
+        flySavedState.freefall = humanoid:GetStateEnabled(Enum.HumanoidStateType.Freefall)
+        flySavedState.fallingDown = humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown)
+    end)
+    humanoid.AutoRotate = false
+    if not humanoid.SeatPart and not UserInputService.TouchEnabled then
+        humanoid.PlatformStand = true
+    end
+    pcall(function()
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    end)
+
+    local control     = { F=0, B=0, L=0, R=0, Q=0, E=0 }
+    local lastControl = { F=0, B=0, L=0, R=0, Q=0, E=0 }
+    FLYING = true
+    showMobileFlyControls(flySavedState.inputEnabled)
+
+    local bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.Name      = "CafezlVehicleFlyGyro"
+    bodyGyro.P         = 90000
+    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bodyGyro.CFrame    = root.CFrame
+    bodyGyro.Parent    = root
+
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Name     = "CafezlVehicleFlyVelocity"
+    bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    bodyVelocity.Velocity = Vector3.zero
+    bodyVelocity.Parent   = root
+
+    flyKeyDown = mouse.KeyDown:Connect(function(key)
+        if not flySavedState.inputEnabled then return end
+        key = key:lower()
+        if     key == "w" then control.F =  vehicleFlySpeed
+        elseif key == "s" then control.B = -vehicleFlySpeed
+        elseif key == "a" then control.L = -vehicleFlySpeed
+        elseif key == "d" then control.R =  vehicleFlySpeed
+        elseif key == "e" then control.Q =  vehicleFlySpeed * 2
+        elseif key == "q" then control.E = -vehicleFlySpeed * 2
+        end
+    end)
+
+    flyKeyUp = mouse.KeyUp:Connect(function(key)
+        if not flySavedState.inputEnabled then return end
+        key = key:lower()
+        if     key == "w" then control.F = 0
+        elseif key == "s" then control.B = 0
+        elseif key == "a" then control.L = 0
+        elseif key == "d" then control.R = 0
+        elseif key == "e" then control.Q = 0
+        elseif key == "q" then control.E = 0
+        end
+    end)
+
+    task.spawn(function()
+        while FLYING and session == flySession and root.Parent and humanoid.Parent do
+            task.wait()
+
+            local keyboardMoving = (control.L + control.R ~= 0)
+                or (control.F + control.B ~= 0)
+                or (control.Q + control.E ~= 0)
+            local mobileDir     = humanoid.MoveDirection
+            local mobileMoving  = flySavedState.inputEnabled and UserInputService.TouchEnabled and (
+                Vector3.new(mobileDir.X, 0, mobileDir.Z).Magnitude > 0.05
+                or flyTouchUp ~= 0 or flyTouchDown ~= 0
+            )
+            local moving = keyboardMoving or mobileMoving
+            local spd    = moving and 50 or 0
+
+            if keyboardMoving then
+                lastControl = { F=control.F, B=control.B, L=control.L, R=control.R, Q=control.Q, E=control.E }
+            end
+
+            local cur = keyboardMoving and control or lastControl
+            if keyboardMoving and spd > 0 then
+                local cam = workspace.CurrentCamera
+                if not cam then break end
+                bodyVelocity.Velocity = (
+                    (cam.CFrame.LookVector * (cur.F + cur.B))
+                    + ((cam.CFrame * CFrame.new(
+                        cur.L + cur.R,
+                        (cur.F + cur.B + cur.Q + cur.E) * 0.2,
+                        0
+                    )).Position - cam.CFrame.Position)
+                ) * spd
+            elseif mobileMoving and spd > 0 then
+                bodyVelocity.Velocity =
+                    Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * spd)
+                    + Vector3.new(0, (flyTouchUp - flyTouchDown) * vehicleFlySpeed * spd, 0)
+            else
+                bodyVelocity.Velocity = Vector3.zero
+            end
+            local currentCamera = workspace.CurrentCamera
+            if not currentCamera then break end
+            bodyGyro.CFrame = currentCamera.CFrame
+        end
+        if bodyGyro.Parent    then bodyGyro:Destroy()    end
+        if bodyVelocity.Parent then bodyVelocity:Destroy() end
+
+        -- Respawn/remoÃ§Ã£o do personagem encerra tambÃ©m o estado visual.
+        if session == flySession and FLYING then
+            if flyEnabled and flyToggleControl then
+                flyToggleControl:UpdateToggle(nil, false)
+            else
+                stopFly()
+            end
+        end
+    end)
+    return true
+end
+
+cameraModeStoppers.fly = function()
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+end
+
+-- =============================================================================
+-- Carrinho: helpers, parada, checkpoints, estabilizador
+-- =============================================================================
+local function findCartFromSeat(seat)
+    if not seat or not seat:IsA("BasePart") then return nil end
+    local assemblyRoot = seat.AssemblyRootPart
+    local current = seat.Parent
+    local fallback
+    while current and current ~= workspace do
+        if current:IsA("Model") then
+            fallback = fallback or current
+            local assemblyParts = 0
+            for _, object in ipairs(current:GetDescendants()) do
+                if object:IsA("BasePart")
+                    and (not assemblyRoot or object.AssemblyRootPart == assemblyRoot)
+                then
+                    assemblyParts = assemblyParts + 1
+                    if assemblyParts >= 2 then
+                        -- O primeiro Model compatÃ­vel Ã© o invÃ³lucro mais prÃ³ximo
+                        -- do assento, nÃ£o um Model gigante do mapa.
+                        return current
+                    end
+                end
+            end
+        end
+        current = current.Parent
+    end
+    return fallback
+end
+
+local cachedCartSeat
+local cachedCart
+local cachedCartAssemblyRoot
+
+local function cacheCartFromSeat(seat)
+    cachedCartSeat = seat
+    cachedCartAssemblyRoot = seat and seat.AssemblyRootPart or nil
+    cachedCart = seat and findCartFromSeat(seat) or nil
+    return cachedCart
+end
+
+local function getCurrentCart()
+    local humanoid = getHumanoid()
+    local seat = humanoid and humanoid.SeatPart
+    if not seat then
+        cachedCartSeat = nil
+        cachedCart = nil
+        cachedCartAssemblyRoot = nil
+        return nil
+    end
+    if seat ~= cachedCartSeat
+        or not cachedCart
+        or not cachedCart.Parent
+        or not cachedCart:IsAncestorOf(seat)
+        or seat.AssemblyRootPart ~= cachedCartAssemblyRoot
+    then
+        return cacheCartFromSeat(seat)
+    end
+    return cachedCart
+end
+
+-- Retorna a parte principal do carrinho de forma robusta
+local function getCartPrimary(cart)
+    if not cart then return nil end
+    if cart.PrimaryPart then return cart.PrimaryPart end
+    local seat = cachedCartSeat
+    if not seat or not seat.Parent then
+        local humanoid = getHumanoid()
+        seat = humanoid and humanoid.SeatPart
+    end
+    if seat and cart:IsAncestorOf(seat) and seat.AssemblyRootPart then
+        return seat.AssemblyRootPart
+    end
+    local firstUnanchored
+    for _, part in ipairs(cart:GetDescendants()) do
+        if part:IsA("BasePart") and not part.Anchored then
+            firstUnanchored = firstUnanchored or part
+            if part.AssemblyRootPart == part then return part end
+        end
+    end
+    return firstUnanchored
+end
+
+local panicParts = {}
+local panicActive = false
+local function restorePanicStop()
+    for part, wasAnchored in pairs(panicParts) do
+        if part and part.Parent then part.Anchored = wasAnchored end
+    end
+    panicParts = {}
+    panicActive = false
+end
+
+local function setPanicStop(enabled)
+    if not enabled then
+        restorePanicStop()
+        notify("Carrinho", "Parada de emergÃªncia desligada.")
+        return true
+    end
+
+    local cart = getCurrentCart()
+    if not cart then
+        notify("Carrinho", "Sente em um carrinho primeiro.")
+        return false
+    end
+
+    if killerActive then
+        killerSession = killerSession + 1
+        killerActive = false
+    end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    if stopBoost then stopBoost() end
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
+
+    -- Repor um bloqueio anterior antes de capturar o estado do carrinho atual.
+    restorePanicStop()
+    panicActive = true
+    for _, part in ipairs(cart:GetDescendants()) do
+        if part:IsA("BasePart") then
+            panicParts[part]             = part.Anchored
+            part.Anchored                = true
+            part.AssemblyLinearVelocity  = Vector3.zero
+            part.AssemblyAngularVelocity = Vector3.zero
+        end
+    end
+    notify("Carrinho", "Parada de emergÃªncia ligada.")
+    return true
+end
+
+local function pivotCartByReference(cart, desiredReferenceCFrame)
+    local reference = getCartPrimary(cart)
+    if not cart or not reference then return false end
+    return pcall(function()
+        local referenceOffset = cart:GetPivot():ToObjectSpace(reference.CFrame)
+        for _, part in ipairs(cart:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.AssemblyLinearVelocity = Vector3.zero
+                part.AssemblyAngularVelocity = Vector3.zero
+            end
+        end
+        cart:PivotTo(desiredReferenceCFrame * referenceOffset:Inverse())
+        for _, part in ipairs(cart:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.AssemblyLinearVelocity = Vector3.zero
+                part.AssemblyAngularVelocity = Vector3.zero
+            end
+        end
+    end)
+end
+
+local function stopCartControllersForTeleport()
+    cartMotionPauseUntil = os.clock() + 0.25
+    if killerActive then
+        killerSession = killerSession + 1
+        killerActive = false
+    end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    if stopBoost then stopBoost() end
+    restorePanicStop()
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
+    if panicToggleControl then
+        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+    end
+end
+
+local function teleportCart(cframe)
+    local cart = getCurrentCart()
+    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return false end
+    stopCartControllersForTeleport()
+    local ok = pivotCartByReference(cart, cframe)
+    if ok then
+        notify("Carrinho", "Carrinho movido para o checkpoint.")
+    else
+        notify("Carrinho", "NÃ£o foi possÃ­vel mover este carrinho.")
+    end
+    return ok
+end
+
+local STABILIZER_CONFIG = { NORMAL_FORCE = 2500, DOWNHILL_FORCE = 800 }
+local stabilizer = {
+    enabled = false,
+    cart = nil,
+    forces = {},
+    attachments = {},
+    heartbeat = nil,
+}
+
+local function cleanupStabilizer()
+    if stabilizer.heartbeat then stabilizer.heartbeat:Disconnect() stabilizer.heartbeat = nil end
+    for _, force in ipairs(stabilizer.forces) do
+        if force and force.Parent then force:Destroy() end
+    end
+    for _, attachment in ipairs(stabilizer.attachments) do
+        if attachment and attachment.Parent then attachment:Destroy() end
+    end
+    stabilizer.forces = {}
+    stabilizer.attachments = {}
+    stabilizer.cart   = nil
+end
+
+local function getWheels(cart)
+    local wheels   = {}
+    local keywords = { "wheel", "tire", "tyre", "roda", "pneu", "axle", "roue" }
+    for _, part in ipairs(cart:GetDescendants()) do
+        if part:IsA("BasePart") and not part.Anchored then
+            local name = part.Name:lower()
+            for _, kw in ipairs(keywords) do
+                if name:find(kw, 1, true) then
+                    table.insert(wheels, part)
+                    break
+                end
+            end
+        end
+    end
+    if #wheels == 0 then
+        local parts = {}
+        for _, part in ipairs(cart:GetDescendants()) do
+            if part:IsA("BasePart") and not part.Anchored then
+                table.insert(parts, part)
+            end
+        end
+        table.sort(parts, function(a, b) return a.Position.Y < b.Position.Y end)
+        local count = math.max(1, math.floor(#parts / 3))
+        for i = 1, math.min(count, #parts) do table.insert(wheels, parts[i]) end
+    end
+    return wheels
+end
+
+local function applyStabilizer(cart)
+    if not cart or not cart.Parent then return end
+    cleanupStabilizer()
+
+    local wheels = getWheels(cart)
+    if #wheels == 0 then notify("Estabilizador", "Nenhuma roda encontrada.") return end
+
+    stabilizer.cart = cart
+    for _, part in ipairs(wheels) do
+        local att = part:FindFirstChild("_CafezlStabilizer")
+        if not att then
+            att        = Instance.new("Attachment")
+            att.Name   = "_CafezlStabilizer"
+            att.Parent = part
+            table.insert(stabilizer.attachments, att)
+        end
+        local force = Instance.new("VectorForce")
+        force.Name       = "CafezlStabilizerForce"
+        force.Attachment0 = att
+        force.RelativeTo = Enum.ActuatorRelativeTo.World
+        force.Force      = Vector3.zero
+        force.Parent     = part
+        table.insert(stabilizer.forces, force)
+    end
+
+    local reference = cart.PrimaryPart or wheels[1]
+    stabilizer.heartbeat = RunService.Heartbeat:Connect(function()
+        if not reference or not reference.Parent then cleanupStabilizer() return end
+        local mag = 0
+        if stabilizer.enabled and not FLYING and not panicActive
+            and os.clock() >= cartMotionPauseUntil
+        then
+            mag = math.abs(reference.AssemblyLinearVelocity.Y) > 5
+                and STABILIZER_CONFIG.DOWNHILL_FORCE
+                or  STABILIZER_CONFIG.NORMAL_FORCE
+        end
+        local forceCount = math.max(#stabilizer.forces, 1)
+        for _, force in ipairs(stabilizer.forces) do
+            if force and force.Parent then
+                force.Force = Vector3.new(
+                    0,
+                    -(mag * force.Parent.AssemblyMass) / forceCount,
+                    0
+                )
+            end
+        end
+    end)
+end
+
+local function refreshStabilizer()
+    if stabilizer.enabled then
+        local cart = getCurrentCart()
+        if cart then applyStabilizer(cart)
+        else notify("Estabilizador", "Sente em um carrinho primeiro.") end
+    else
+        cleanupStabilizer()
+    end
+end
+
+local seatConnection
+local function watchSeat(character, readyHumanoid)
+    local humanoid = readyHumanoid or getHumanoid(character)
+    if not humanoid then return end
+    if seatConnection then
+        seatConnection:Disconnect()
+        seatConnection = nil
+    end
+    cacheCartFromSeat(humanoid.SeatPart)
+    seatConnection = trackConnection(humanoid.Seated:Connect(function(isSeated, seat)
+        if not isSeated then
+            cacheCartFromSeat(nil)
+            cleanupStabilizer()
+            restorePanicStop()
+            if stopBoost then stopBoost() end
+            if boostToggleControl then
+                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+            end
+            if panicToggleControl then
+                task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+            end
+        else
+            local cart = cacheCartFromSeat(seat)
+            if stabilizer.enabled then applyStabilizer(cart) end
+        end
+    end))
+end
+
+local function watchSeatWhenReady(character, restoreDesiredSettings)
+    if not character then return end
+    task.spawn(function()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+            or character:WaitForChild("Humanoid", 5)
+        if destroyed or not isCurrentSuiteGeneration()
+            or not character.Parent or not humanoid or not humanoid:IsA("Humanoid")
+        then
+            return
+        end
+        watchSeat(character, humanoid)
+        if restoreDesiredSettings and not fakeLagActive then
+            if desiredWalkSpeed then humanoid.WalkSpeed = desiredWalkSpeed end
+            if humanoid.UseJumpPower and desiredJumpPower then
+                humanoid.JumpPower = desiredJumpPower
+            elseif not humanoid.UseJumpPower and desiredJumpHeight then
+                humanoid.JumpHeight = desiredJumpHeight
+            end
+        end
+    end)
+end
+
+watchSeatWhenReady(LocalPlayer.Character, false)
+trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
+    cacheCartFromSeat(nil)
+    cleanupStabilizer()
+    restorePanicStop()
+    if panicToggleControl then
+        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+    end
+    fakeLagSession = fakeLagSession + 1
+    fakeLagActive = false
+    fakeLagHumanoid = nil
+    if stopBoost then stopBoost() end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    task.defer(resetCameraModes)
+    watchSeatWhenReady(character, true)
+end))
+
+-- =============================================================================
+-- Eliminador (Killer)
+-- =============================================================================
+local function findNearestFreeVehicleSeat()
+    local root = getRoot()
+    if not root then return nil end
+    local bestVS, bestVD = nil, math.huge
+    for _, inst in ipairs(workspace:GetDescendants()) do
+        if inst:IsA("VehicleSeat") and not inst.Occupant then
+            local dist = (root.Position - inst.Position).Magnitude
+            if dist < bestVD then bestVS = inst; bestVD = dist end
+        end
+    end
+    return bestVS
+end
+
+local function findPlayerByPartialName(value)
+    value = (value or ""):match("^%s*(.-)%s*$"):lower()
+    if value == "" then return nil end
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p.Name:lower() == value or p.DisplayName:lower() == value then return p end
+    end
+    for _, p in ipairs(Players:GetPlayers()) do
+        local n = p.Name:lower(); local d = p.DisplayName:lower()
+        if n:sub(1, #value) == value or d:sub(1, #value) == value then return p end
+    end
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p.Name:lower():find(value, 1, true) or p.DisplayName:lower():find(value, 1, true) then return p end
+    end
+    return nil
+end
+
+local function sitOnVehicleSeat(seat)
+    local root     = getRoot()
+    local humanoid = getHumanoid()
+    if not seat or not root or not humanoid or seat.Occupant then return false end
+    for _ = 1, 3 do
+        if not seat.Parent or seat.Occupant then break end
+        root.CFrame = seat.CFrame * CFrame.new(0, 2, 0)
+        task.wait(0.12)
+        pcall(function() seat:Sit(humanoid) end)
+        task.wait(0.2)
+        if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
+        humanoid.Sit = true
+        task.wait(0.12)
+        if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
+    end
+    return false
+end
+
+local function moveToTarget(targetRoot, duration, session)
+    local root    = getRoot()
+    local started = os.clock()
+    while os.clock() - started < duration do
+        if destroyed or not killerActive or session ~= killerSession then return false end
+        if not root or not root.Parent or not targetRoot or not targetRoot.Parent then return false end
+        local pos = targetRoot.Position - targetRoot.CFrame.LookVector * 1.2 + Vector3.new(0, 1.5, 0)
+        root.CFrame = CFrame.lookAt(pos, targetRoot.Position)
+        task.wait()
+    end
+    return true
+end
+
+local function finishKiller(message, session)
+    if session and session ~= killerSession then return end
+    killerSession = killerSession + 1
+    local humanoid = getHumanoid()
+    if humanoid then humanoid.Sit = false end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    killerActive = false
+    if message then notify("Eliminador", message) end
+end
+
+local function executeKiller(partialName)
+    if killerActive then notify("Eliminador", "Aguarde a tentativa atual terminar.") return end
+    local target = findPlayerByPartialName(partialName)
+    if not target or target == LocalPlayer then
+        notify("Eliminador", target == LocalPlayer and "Escolha outro jogador." or "Jogador nÃ£o encontrado.")
+        return
+    end
+
+    killerSession = killerSession + 1
+    local session = killerSession
+    killerActive = true
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    if stopBoost then stopBoost() end
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
+
+    local seat = findNearestFreeVehicleSeat()
+    if not seat then finishKiller("NÃ£o hÃ¡ carrinho livre por perto.", session) return end
+    if not sitOnVehicleSeat(seat) then finishKiller("NÃ£o foi possÃ­vel sentar no carrinho.", session) return end
+    if destroyed or session ~= killerSession then return end
+
+    -- O Eliminador controla o CFrame atÃ© o alvo; bloqueie WASD temporariamente
+    -- para nÃ£o deixar dois escritores moverem o mesmo carrinho.
+    if not startVehicleFly(false) then finishKiller("NÃ£o foi possÃ­vel iniciar o voo.", session) return end
+    task.wait(0.15)
+    if destroyed or session ~= killerSession then return end
+
+    local targetRoot
+    local deadline = os.clock() + 2
+    repeat
+        local char = target.Character
+        targetRoot = char and char:FindFirstChild("HumanoidRootPart")
+        if targetRoot then break end
+        task.wait(0.2)
+    until os.clock() >= deadline or destroyed or session ~= killerSession
+
+    if not targetRoot then finishKiller("Personagem do alvo nÃ£o carregou.", session) return end
+    local reached = moveToTarget(targetRoot, 3, session)
+    if session == killerSession then
+        finishKiller(reached and "Carrinho levado ao alvo." or "Tentativa cancelada.", session)
+    end
+end
+
+local function teleportPlayerOrCart(cframe)
+    local cart = getCurrentCart()
+    if cart then
+        stopCartControllersForTeleport()
+        return pivotCartByReference(cart, cframe)
+    end
+    return teleportCharacter(cframe)
+end
+
+trackConnection(LocalPlayer.CharacterAdded:Connect(function()
+    killerSession = killerSession + 1
+    killerActive = false
+end))
+
+-- =============================================================================
+-- VariÃ¡veis adiantadas (usadas nos callbacks de atalho)
+-- =============================================================================
+local getKavoTextBoxByLabel
+local restoreKavoTextBox
+local infiniteJump = false
+local espToggleControl
+local infiniteJumpToggleControl
+
+-- =============================================================================
+-- ABA: Jogador
+-- =============================================================================
+local PlayerSection = Window:NewTab("Jogador"):NewSection("ConfiguraÃ§Ãµes do Jogador")
+
+PlayerSection:NewSlider("Velocidade", "Velocidade de caminhada (padrÃ£o 16).", 500, 0, 16, function(value)
+    desiredWalkSpeed = value
+    local h = getHumanoid()
+    if h and not fakeLagActive then h.WalkSpeed = value end
+end)
+
+PlayerSection:NewButton("Redefinir Velocidade", "Volta para 16.", function()
+    desiredWalkSpeed = 16
+    local h = getHumanoid()
+    if h and not fakeLagActive then h.WalkSpeed = 16 end
+    notify("Velocidade", "Redefinida para 16.")
+end)
+
+infiniteJumpToggleControl = PlayerSection:NewToggle(
+    "Pulo Infinito", "Pula no ar. Tecla P.", function(state)
+        infiniteJump = state
+        notify("Pulo Infinito", state and "Ligado." or "Desligado.")
+    end
+)
+
+-- BUG CORRIGIDO: JumpRequest dispara bem, mas nÃ£o estava verificando se
+-- o humanoid existia antes de chamar ChangeState
+trackConnection(UserInputService.JumpRequest:Connect(function()
+    if destroyed or not infiniteJump then return end
+    local h = getHumanoid()
+    if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+end))
+
+local function giveClickTeleportTool()
+    local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+    if not backpack then return end
+    local character = LocalPlayer.Character
+    if backpack:FindFirstChild("NothriloClickTP")
+        or (character and character:FindFirstChild("NothriloClickTP")) then
+        notify("Teleporte por Clique", "A ferramenta jÃ¡ estÃ¡ na mochila.")
+        return
+    end
+    local tool = Instance.new("Tool")
+    tool.Name            = "NothriloClickTP"
+    tool.RequiresHandle  = false
+    tool:SetAttribute("CafezlOwner", "Nothrilo")
+    tool.Activated:Connect(function()
+        teleportCharacter(CFrame.new(mouse.Hit.Position + Vector3.new(0, 2.5, 0)))
+    end)
+    tool.Parent = backpack
+    table.insert(createdTools, tool)
+    notify("Teleporte por Clique", "Ferramenta criada. Clique no mapa para teleportar.")
+end
+
+PlayerSection:NewButton("Teleporte por Clique", "Cria ferramenta na mochila. Tecla T.", giveClickTeleportTool)
+
+PlayerSection:NewTextBox("Ir atÃ© Jogador", "Nome do jogador. Enter.", function(name)
+    local player = findPlayerByPartialName(name)
+    if not player then notify("Ir atÃ© Jogador", "Jogador nÃ£o encontrado.") return end
+    local targetRoot
+    local deadline = os.clock() + 2
+    repeat
+        local char = player.Character
+        targetRoot = char and char:FindFirstChild("HumanoidRootPart")
+        if targetRoot then break end
+        task.wait(0.2)
+    until os.clock() >= deadline
+    if not targetRoot then notify("Ir atÃ© Jogador", "Personagem nÃ£o carregou.") return end
+    teleportCharacter(targetRoot.CFrame * CFrame.new(0, 2, 0))
+    notify("Ir atÃ© Jogador", "Teleportado para " .. player.DisplayName .. ".")
+end)
+
+local function setVehicleFlyEnabled(enabled)
+    flyEnabled = enabled
+    if enabled then
+        if killerActive then
+            flyEnabled = false
+            notify("Voo do VeÃ­culo", "IndisponÃ­vel durante o Eliminador.")
+            task.defer(function()
+                if flyToggleControl then flyToggleControl:UpdateToggle(nil, false) end
+            end)
+            return
+        end
+        if panicActive then
+            restorePanicStop()
+            if panicToggleControl then
+                task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+            end
+        end
+        if stopBoost then stopBoost() end
+        if boostToggleControl then
+            task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+        end
+        if startVehicleFly() then
+            notify("Voo do VeÃ­culo", "Ligado.")
+        else
+            flyEnabled = false
+            task.defer(function()
+                if flyToggleControl then flyToggleControl:UpdateToggle(nil, false) end
+            end)
+        end
+    else
+        stopFly()
+        notify("Voo do VeÃ­culo", "Desligado.")
+    end
+end
+
+flyToggleControl = PlayerSection:NewToggle(
+    "Voo do VeÃ­culo", "Tecla V liga/desliga.", setVehicleFlyEnabled
+)
+
+espToggleControl = PlayerSection:NewToggle(
+    "ESP", "Destaca jogadores. Tecla L.", setESP
+)
+
+PlayerSection:NewTextBox("Velocidade do Voo", "Digite e aperte Enter.", function(value)
+    local n = tonumber(value)
+    if n and n > 0 then vehicleFlySpeed = n; notify("Voo", "Velocidade: " .. n)
+    else notify("Voo", "Digite um nÃºmero maior que zero.") end
+end)
+
+PlayerSection:NewButton("Redefinir Velocidade do Voo", "Volta para 1.", function()
+    vehicleFlySpeed = 1
+    restoreKavoTextBox("Velocidade do Voo", 1)
+    notify("Voo", "Velocidade redefinida para 1.")
+end)
+
+-- Novo: God Mode local (impede a morte localmente via Humanoid.Health)
+-- BUG CORRIGIDO: usar HealthChanged em vez de loop â€” mais limpo e sem
+-- lag acumulado quando o personagem respawna
+local godEnabled = false
+local godConn
+local godRespawnConn
+local godHumanoid
+local godOriginalMaxHealth
+local godOriginalHealth
+
+local function restoreGodHumanoid()
+    if godConn then godConn:Disconnect() godConn = nil end
+    local h = godHumanoid
+    if h and h.Parent and godOriginalMaxHealth then
+        h.MaxHealth = godOriginalMaxHealth
+        h.Health = math.clamp(godOriginalHealth or godOriginalMaxHealth, 1, godOriginalMaxHealth)
+    end
+    godHumanoid, godOriginalMaxHealth, godOriginalHealth = nil, nil, nil
+end
+
+local function connectGod()
+    restoreGodHumanoid()
+    local h = getHumanoid()
+    if not h then return end
+    godHumanoid = h
+    godOriginalMaxHealth = h.MaxHealth
+    godOriginalHealth = h.Health
+    h.MaxHealth = math.huge
+    h.Health = math.huge
+    godConn = h.HealthChanged:Connect(function()
+        if godEnabled and h.Parent and h.Health < 1 then h.Health = h.MaxHealth end
+    end)
+end
+
+local function setGodMode(state)
+    godEnabled = state
+    if not state then
+        restoreGodHumanoid()
+        notify("God Mode", "Desligado.")
+        return
+    end
+    connectGod()
+    if not godRespawnConn then
+        godRespawnConn = LocalPlayer.CharacterAdded:Connect(function()
+            task.wait(0.3)
+            if godEnabled then connectGod() end
+        end)
+    end
+    notify("God Mode", "Ligado (sÃ³ funciona localmente).")
+end
+
+PlayerSection:NewToggle(
+    "God Mode (local)",
+    "Impede que sua vida caia abaixo de 1 localmente.",
+    setGodMode
+)
+
+-- Novo: Anti-AFK â€” previne kick por inatividade
+local antiAfkEnabled = false
+local antiAfkConn
+PlayerSection:NewToggle("Anti-AFK", "MantÃ©m a sessÃ£o de teste ativa.", function(enabled)
+    antiAfkEnabled = enabled
+
+    if antiAfkConn then
+        antiAfkConn:Disconnect()
+        antiAfkConn = nil
+    end
+
+    if not enabled then
+        notify("Anti-AFK", "Desligado.")
+        return
+    end
+
+    antiAfkConn = LocalPlayer.Idled:Connect(function()
+        if not antiAfkEnabled then return end
+        pcall(function()
+            local virtualUser = game:GetService("VirtualUser")
+            virtualUser:CaptureController()
+            virtualUser:ClickButton2(Vector2.zero, workspace.CurrentCamera.CFrame)
+        end)
+    end)
+
+    notify("Anti-AFK", "Ligado.")
+end)
+
+-- =============================================================================
+-- ABA: Teleporte
+-- =============================================================================
+local TeleportSection = Window:NewTab("Teleporte"):NewSection("Teleportes")
+
+TeleportSection:NewButton("InÃ­cio", "Teleporta para o inÃ­cio da trilha.", function()
+    if teleportCharacter(CFrame.new(1, 3.11, 38)) then
+        notify("Teleporte", "Teleportado para o inÃ­cio.")
+    end
+end)
+
+TeleportSection:NewButton("BotÃ£o de Carrinho", "Teleporta para o botÃ£o do carrinho.", function()
+    if teleportCharacter(CFrame.new(-33, 3.11, 21.5) * CFrame.Angles(0, math.rad(180), 0)) then
+        notify("Teleporte", "Teleportado para o botÃ£o.")
+    end
+end)
+
+TeleportSection:NewButton("Equipe Suffering", "Teleporta para a Ã¡rea Suffering.", function()
+    if teleportCharacter(CFrame.new(
+        -416.844727, 163.402969, 171.087555,
+        0.0174489655, 5.45878223e-08, 0.99984777,
+        -4.55684486e-08, 1, -5.38008926e-08,
+        -0.99984777, -4.46227411e-08, 0.0174489655
+    )) then
+        notify("Teleporte", "Teleportado para Suffering.")
+    end
+end)
+
+TeleportSection:NewButton("InsÃ­gnia Secreta", "Teleporta para a Secret Badge da referÃªncia.", function()
+    if teleportCharacter(CFrame.new(234.500259, 2.28650475, 296.495483)) then
+        notify("Teleporte", "Teleportado para a insÃ­gnia secreta.")
+    end
+end)
+
+TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", function()
+    local misc  = workspace:FindFirstChild("Misc")
+    local giver = misc and misc:FindFirstChild("Giver")
+    local part  = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart", true))
+    if not part then notify("Teleporte", "Misc.Giver nÃ£o encontrado.") return end
+    if teleportPlayerOrCart(part.CFrame * CFrame.new(0, 3, 0)) then
+        notify("Teleporte", "Teleportado para a sala secreta.")
+    end
+end)
+
+local CHECKPOINTS = {
+    [1] = CFrame.new(-430.898926, 164.75, 101.645676) * CFrame.Angles(0, math.rad(90),  0),
+    [2] = CFrame.new(511.88,       3.69,  306.59)     * CFrame.Angles(0, math.rad(270), 0),
+    [3] = CFrame.new(171.09,       2.78, -410.31)     * CFrame.Angles(0, math.rad(90),  0),
+}
+
+local function teleportToCheckpoint(number)
+    local dest = CHECKPOINTS[number]
+    if dest then teleportCart(dest) end
+end
+
+-- =============================================================================
+-- ABA: Carrinho
+-- =============================================================================
+local CartTab     = Window:NewTab("Carrinho")
+local CartSection = CartTab:NewSection("Controle do Carrinho")
+
+panicToggleControl = CartSection:NewToggle(
+    "Parada de EmergÃªncia",
+    "Para e trava o carrinho.",
+    function(state)
+        local applied = setPanicStop(state)
+        if state and not applied then
+            task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+        end
+    end
+)
+
+CartSection:NewButton("Ir ao Checkpoint 1", "NumPad 1.", function() teleportToCheckpoint(1) end)
+CartSection:NewButton("Ir ao Checkpoint 2", "NumPad 2.", function() teleportToCheckpoint(2) end)
+CartSection:NewButton("Ir ao Checkpoint 3", "NumPad 3.", function() teleportToCheckpoint(3) end)
+
+-- Novo: Velocidade do carrinho em tempo real
+CartSection:NewButton("Ver Velocidade do Carrinho", "Mostra studs/s na notificaÃ§Ã£o.", function()
+    local cart = getCurrentCart()
+    if not cart then notify("Velocidade", "Sente em um carrinho primeiro.") return end
+    local primary = getCartPrimary(cart)
+    if not primary then notify("Velocidade", "Estrutura nÃ£o reconhecida.") return end
+    local vel = primary.AssemblyLinearVelocity.Magnitude
+    notify("Velocidade do Cart", string.format("%.1f studs/s", vel))
+end)
+
+-- Novo: Ejetar do carrinho
+CartSection:NewButton("Ejetar do Carrinho", "Sai do assento atual.", function()
+    local h = getHumanoid()
+    if h then
+        h.Sit = false
+        notify("Carrinho", "Ejetado.")
+    else
+        notify("Carrinho", "Personagem nÃ£o encontrado.")
+    end
+end)
+
+local StabilizerSection = CartTab:NewSection("Estabilizador")
+
+StabilizerSection:NewToggle("Estabilizador do Carrinho", "MantÃ©m estÃ¡vel enquanto sentado.", function(state)
+    stabilizer.enabled = state
+    refreshStabilizer()
+    if state and getCurrentCart() then notify("Estabilizador", "Ligado.")
+    elseif not state then notify("Estabilizador", "Desligado.") end
+end)
+
+StabilizerSection:NewTextBox("ForÃ§a Normal", "PadrÃ£o 2500. Enter.", function(value)
+    local n = tonumber(value)
+    if n and n > 0 then
+        STABILIZER_CONFIG.NORMAL_FORCE = n
+        restoreKavoTextBox("ForÃ§a Normal", n)
+        notify("Estabilizador", "ForÃ§a normal: " .. n)
+    else
+        notify("Estabilizador", "Digite um nÃºmero maior que zero.")
+    end
+end)
+
+StabilizerSection:NewTextBox("ForÃ§a em Descidas", "PadrÃ£o 800. Enter.", function(value)
+    local n = tonumber(value)
+    if n and n > 0 then
+        STABILIZER_CONFIG.DOWNHILL_FORCE = n
+        restoreKavoTextBox("ForÃ§a em Descidas", n)
+        notify("Estabilizador", "ForÃ§a descida: " .. n)
+    else
+        notify("Estabilizador", "Digite um nÃºmero maior que zero.")
+    end
+end)
+
+StabilizerSection:NewButton("Redefinir ForÃ§as", "Volta para 2500 e 800.", function()
+    STABILIZER_CONFIG.NORMAL_FORCE    = 2500
+    STABILIZER_CONFIG.DOWNHILL_FORCE  = 800
+    restoreKavoTextBox("ForÃ§a Normal", 2500)
+    restoreKavoTextBox("ForÃ§a em Descidas", 800)
+    refreshStabilizer()
+    notify("Estabilizador", "ForÃ§as redefinidas.")
+end)
+
+-- =============================================================================
+-- ABA: Cart+ (boost, anti-flip, freio automÃ¡tico)
+-- =============================================================================
+local BoostSection  = Window:NewTab("Cart+"):NewSection("Boost e FÃ­sica")
+
+local boostActive     = false
+local boostForce      = 500
+local boostConnection
+local boostBodyForce  = nil
+local boostAttachment
+local boostAttachmentCreated = false
+local boostCartRoot
+
+stopBoost = function()
+    boostActive = false
+    if boostConnection then boostConnection:Disconnect() boostConnection = nil end
+    if boostBodyForce and boostBodyForce.Parent then
+        boostBodyForce:Destroy()
+    end
+    if boostAttachmentCreated and boostAttachment and boostAttachment.Parent then
+        boostAttachment:Destroy()
+    end
+    boostBodyForce = nil
+    boostAttachment = nil
+    boostAttachmentCreated = false
+    boostCartRoot = nil
+end
+
+local function startBoost()
+    stopBoost()
+    if panicActive or FLYING or killerActive then
+        notify("Boost", "IndisponÃ­vel durante parada, voo ou Eliminador.")
+        return false
+    end
+    local cart = getCurrentCart()
+    if not cart then notify("Boost", "Sente em um carrinho primeiro.") return false end
+    local primary = getCartPrimary(cart)
+    if not primary then notify("Boost", "Estrutura do carrinho nÃ£o reconhecida.") return false end
+    boostCartRoot = primary.AssemblyRootPart or primary
+
+    -- VectorForce substitui BodyForce, que Ã© uma API legada do Roblox.
+    local attachment = primary:FindFirstChild("NothriloBoostAttachment")
+    if not attachment then
+        attachment = Instance.new("Attachment")
+        attachment.Name = "NothriloBoostAttachment"
+        attachment.Parent = primary
+        boostAttachmentCreated = true
+    end
+    boostAttachment = attachment
+
+    local bf = Instance.new("VectorForce")
+    bf.Name = "NothriloBoost"
+    bf.Attachment0 = attachment
+    bf.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+    bf.ApplyAtCenterOfMass = true
+    bf.Force = Vector3.zero
+    bf.Parent = primary
+    boostBodyForce = bf
+
+    boostActive = true
+    boostConnection = RunService.Heartbeat:Connect(function()
+        local currentCart = getCurrentCart()
+        local currentPrimary = currentCart and getCartPrimary(currentCart)
+        local currentRoot = currentPrimary and (currentPrimary.AssemblyRootPart or currentPrimary)
+        if not boostActive or panicActive or FLYING or killerActive
+            or not primary.Parent or not bf.Parent
+            or currentCart ~= cart or currentRoot ~= boostCartRoot
+        then
+            stopBoost()
+            if boostToggleControl then
+                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+            end
+            return
+        end
+        -- No espaÃ§o da Attachment0, frente Ã© o eixo Z negativo.
+        bf.Force = Vector3.new(0, 0, -boostForce * primary.AssemblyMass * 60)
+    end)
+    notify("Boost", "Ligado â€” forÃ§a " .. boostForce .. ".")
+    return true
+end
+
+boostToggleControl = BoostSection:NewToggle(
+    "Boost do Carrinho", "Empurra pra frente. Tecla B.", function(state)
+        if state then
+            if not startBoost() then
+                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+            end
+        else
+            stopBoost()
+            notify("Boost", "Desligado.")
+        end
+    end
+)
+
+BoostSection:NewSlider("ForÃ§a do Boost", "Intensidade (padrÃ£o 500).", 3000, 0, 500, function(value)
+    boostForce = value
+    if boostActive and not startBoost() then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
+end)
+
+-- Anti-Flip com cooldown correto
+local antiFlipEnabled  = false
+local antiFlipCooldown = false
+local antiFlipConn
+
+BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticamente.", function(state)
+    antiFlipEnabled = state
+    if antiFlipConn then antiFlipConn:Disconnect() antiFlipConn = nil end
+    if not state then
+        notify("Anti-Flip", "Desligado.")
+        return
+    end
+
+    antiFlipConn = RunService.Heartbeat:Connect(function()
+        if not antiFlipEnabled or antiFlipCooldown or panicActive or FLYING or killerActive
+            or os.clock() < cartMotionPauseUntil
+        then return end
+        local cart = getCurrentCart()
+        if not cart then return end
+        local primary = getCartPrimary(cart)
+        if not primary or not primary.Parent then return end
+
+        local dot = primary.CFrame.UpVector:Dot(Vector3.new(0, 1, 0))
+        if dot < 0.5 then
+            antiFlipCooldown = true
+            local pos  = primary.CFrame.Position
+            local look = Vector3.new(primary.CFrame.LookVector.X, 0, primary.CFrame.LookVector.Z)
+            look = look.Magnitude > 0.01 and look.Unit or Vector3.new(1, 0, 0)
+            pivotCartByReference(
+                cart,
+                CFrame.new(pos + Vector3.new(0, 2, 0), pos + Vector3.new(0, 2, 0) + look)
+            )
+            notify("Anti-Flip", "Carrinho endireitado.")
+            task.wait(1.5)
+            antiFlipCooldown = false
+        end
+    end)
+    notify("Anti-Flip", "Ligado.")
+end)
+
+-- Freio automÃ¡tico ao detectar queda livre
+local autobrakeEnabled  = false
+local autobrakeCooldown = false
+local autobrakeConn
+
+BoostSection:NewToggle("Freio AutomÃ¡tico", "Trava ao detectar queda livre.", function(state)
+    autobrakeEnabled = state
+    if autobrakeConn then autobrakeConn:Disconnect() autobrakeConn = nil end
+    if not state then
+        notify("Freio AutomÃ¡tico", "Desligado.")
+        return
+    end
+
+    autobrakeConn = RunService.Heartbeat:Connect(function()
+        if not autobrakeEnabled or autobrakeCooldown or panicActive or FLYING or killerActive
+            or os.clock() < cartMotionPauseUntil
+        then return end
+        local cart = getCurrentCart()
+        if not cart then return end
+        local primary = getCartPrimary(cart)
+        if not primary then return end
+
+        if primary.AssemblyLinearVelocity.Y < -35 then
+            autobrakeCooldown = true
+            if boostActive then
+                stopBoost()
+                if boostToggleControl then
+                    task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+                end
+            end
+            for _, part in ipairs(cart:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.AssemblyLinearVelocity  = Vector3.zero
+                    part.AssemblyAngularVelocity = Vector3.zero
+                end
+            end
+            notify("Freio AutomÃ¡tico", "Queda detectada â€” travado.")
+            task.wait(1)
+            autobrakeCooldown = false
+        end
+    end)
+    notify("Freio AutomÃ¡tico", "Ligado.")
+end)
+
+-- =============================================================================
+-- ABA: Extras (jogador)
+-- =============================================================================
+local ExtrasSection = Window:NewTab("Extras"):NewSection("Movimento e FÃ­sica")
+
+-- Noclip corrigido: CanCollide precisa ser reposto a cada Stepped
+-- porque o motor fÃ­sico reseta automaticamente
+local noclipEnabled = false
+local noclipOriginal = {}
+
+local function restoreNoclip()
+    for part, canCollide in pairs(noclipOriginal) do
+        if part and part.Parent then
+            part.CanCollide = canCollide
+        end
+    end
+    table.clear(noclipOriginal)
+end
+
+trackConnection(RunService.Stepped:Connect(function()
+    if not noclipEnabled then return end
+    local character = LocalPlayer.Character
+    if not character then return end
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            if noclipOriginal[part] == nil then
+                noclipOriginal[part] = part.CanCollide
+            end
+            part.CanCollide = false
+        end
+    end
+end))
+
+ExtrasSection:NewToggle("Noclip", "Atravessa paredes durante o teste.", function(enabled)
+    noclipEnabled = enabled
+    if not enabled then restoreNoclip() end
+    notify("Noclip", enabled and "Ligado." or "Desligado.")
+end)
+
+-- InvisÃ­vel local: LocalTransparencyModifier sÃ³ afeta o cliente local
+local invisEnabled = false
+local invisOriginal = {}
+
+local function setLocalInvisible(enabled)
+    local character = LocalPlayer.Character
+    if not character then return end
+
+    for _, object in ipairs(character:GetDescendants()) do
+        if object:IsA("BasePart") or object:IsA("Decal") then
+            if enabled and invisOriginal[object] == nil then
+                invisOriginal[object] = object.LocalTransparencyModifier
+            end
+            object.LocalTransparencyModifier = enabled and 1 or (invisOriginal[object] or 0)
+        end
+    end
+
+    if not enabled then table.clear(invisOriginal) end
+end
+
+ExtrasSection:NewToggle("InvisÃ­vel (local)", "SÃ³ vocÃª se vÃª transparente.", function(enabled)
+    invisEnabled = enabled
+    setLocalInvisible(enabled)
+    notify("InvisÃ­vel", enabled and "Ligado (sÃ³ vocÃª vÃª)." or "Desligado.")
+end)
+
+trackConnection(LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.25)
+    if invisEnabled and not destroyed then setLocalInvisible(true) end
+end))
+
+ExtrasSection:NewSlider("Jump Power", "Altura do pulo (padrÃ£o 50).", 300, 0, 50, function(value)
+    desiredJumpPower = value
+    desiredJumpHeight = 7.2 * (value / 50)
+    local h = getHumanoid()
+    if h and not fakeLagActive then
+        if h.UseJumpPower then h.JumpPower = desiredJumpPower
+        else h.JumpHeight = desiredJumpHeight end
+    end
+end)
+
+ExtrasSection:NewButton("Redefinir Jump Power", "Volta para 50.", function()
+    desiredJumpPower = 50
+    desiredJumpHeight = 7.2
+    local h = getHumanoid()
+    if h and not fakeLagActive then
+        if h.UseJumpPower then h.JumpPower = desiredJumpPower
+        else h.JumpHeight = desiredJumpHeight end
+    end
+    notify("Jump Power", "Redefinido.")
+end)
+
+ExtrasSection:NewSlider("Gravidade", "Gravidade global (padrÃ£o 196.2).", 400, 0, originalGravity, function(value)
+    workspace.Gravity = value
+end)
+
+ExtrasSection:NewButton("Redefinir Gravidade", "Volta ao valor original do jogo.", function()
+    workspace.Gravity = originalGravity
+    notify("Gravidade", "Valor original restaurado.")
+end)
+
+-- Salvar / restaurar posiÃ§Ã£o (funciona pra jogador e carrinho)
+local savedPosition = nil
+ExtrasSection:NewButton("Salvar PosiÃ§Ã£o Atual", "Salva onde vocÃª estÃ¡.", function()
+    local root = getRoot()
+    if not root then notify("PosiÃ§Ã£o", "Personagem nÃ£o encontrado.") return end
+    savedPosition = root.CFrame
+    local p = root.Position
+    notify("PosiÃ§Ã£o", string.format("Salva em %.0f, %.0f, %.0f", p.X, p.Y, p.Z))
+end)
+
+ExtrasSection:NewButton("Voltar Ã  PosiÃ§Ã£o Salva", "Teleporta de volta.", function()
+    if not savedPosition then notify("PosiÃ§Ã£o", "Nenhuma posiÃ§Ã£o salva ainda.") return end
+    teleportCharacter(savedPosition)
+    notify("PosiÃ§Ã£o", "Teleportado.")
+end)
+
+-- =============================================================================
+-- ABA: Mapa
+-- =============================================================================
+local MapSection = Window:NewTab("Mapa"):NewSection("ExploraÃ§Ã£o")
+
+-- Ir atÃ© parte por nome â€” busca com prioridade (exato > comeÃ§o > contÃ©m)
+MapSection:NewTextBox("Ir atÃ© Parte", "Nome da parte no workspace. Enter.", function(value)
+    value = value:match("^%s*(.-)%s*$"):lower()
+    if value == "" then return end
+
+    local best, bestPriority = nil, 0
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            local name = obj.Name:lower()
+            local priority = 0
+            if name == value then priority = 3
+            elseif name:sub(1, #value) == value then priority = 2
+            elseif name:find(value, 1, true) then priority = 1
+            end
+            if priority > bestPriority then best = obj; bestPriority = priority end
+        end
+    end
+
+    if not best then notify("Mapa", "Parte '" .. value .. "' nÃ£o encontrada.") return end
+    teleportCharacter(best.CFrame * CFrame.new(0, 4, 0))
+    notify("Mapa", "Teleportado para: " .. best.Name)
+end)
+
+-- Listar partes no output (F9 pra ver)
+MapSection:NewButton("Listar Partes no Output (F9)", "Imprime 30 BaseParts no console.", function()
+    print("[Nothrilo] === BaseParts no Workspace ===")
+    local count = 0
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and count < 30 then
+            print(("[Nothrilo] %s  pos: %s"):format(obj:GetFullName(), tostring(obj.Position)))
+            count = count + 1
+        end
+    end
+    print(("[Nothrilo] %d partes listadas. Abra F9 para ver."):format(count))
+    notify("Mapa", count .. " partes no output (F9).")
+end)
+
+-- Carrinho: encontra pelo assento, nÃ£o pelo nome do Model nem por SpawnLocation.
+local function findNearestCartSeat()
+    local root = getRoot()
+    if not root then return nil end
+
+    for _, wantedClass in ipairs({ "VehicleSeat", "Seat" }) do
+        local nearest, nearestDistance = nil, math.huge
+        for _, object in ipairs(workspace:GetDescendants()) do
+            if object:IsA(wantedClass) then
+                local distance = (root.Position - object.Position).Magnitude
+                if distance < nearestDistance then
+                    nearest = object
+                    nearestDistance = distance
+                end
+            end
+        end
+        if nearest then return nearest end
+    end
+
+    return nil
+end
+
+MapSection:NewButton("Ir ao Carrinho", "Procura o assento do carrinho mais prÃ³ximo.", function()
+    local seat = findNearestCartSeat()
+    if not seat then
+        notify("Carrinho", "Nenhum assento de carrinho foi encontrado.")
+        return
+    end
+
+    if teleportCharacter(seat.CFrame * CFrame.new(0, 4, 0)) then
+        notify("Carrinho", "Teleportado para o carrinho.")
+    end
+end)
+
+-- CÃ¢mera livre â€” WASD + Q/E, desacoplada do personagem
+local freecamActive = false
+local freecamConn
+local freecamSpeed  = 1
+local freecamToggleControl
+
+local function stopFreecam()
+    freecamActive = false
+    if freecamConn then freecamConn:Disconnect() freecamConn = nil end
+    releaseCameraMode("freecam")
+end
+
+cameraModeStoppers.freecam = function()
+    if freecamToggleControl then
+        freecamToggleControl:UpdateToggle(nil, false)
+    else
+        stopFreecam()
+    end
+end
+
+freecamToggleControl = MapSection:NewToggle("CÃ¢mera Livre", "WASD move, Q/E sobe e desce.", function(state)
+    if not state then
+        stopFreecam()
+        notify("CÃ¢mera Livre", "Desligada.")
+        return
+    end
+
+    claimCameraMode("freecam")
+    freecamActive = true
+    local camera = workspace.CurrentCamera
+    if not camera then
+        stopFreecam()
+        task.defer(function() freecamToggleControl:UpdateToggle(nil, false) end)
+        return
+    end
+
+    camera.CameraType = Enum.CameraType.Scriptable
+    local cf = camera.CFrame
+
+    freecamConn = RunService.RenderStepped:Connect(function()
+        if not freecamActive then return end
+        local move = Vector3.zero
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + cf.LookVector  end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - cf.LookVector  end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move - cf.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + cf.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.E) then move = move + Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Q) then move = move - Vector3.new(0, 1, 0) end
+        if move.Magnitude > 0 then
+            cf = CFrame.new(cf.Position + move * freecamSpeed) * (cf - cf.Position)
+        end
+        camera.CFrame = cf
+        camera.Focus = cf * CFrame.new(0, 0, -12)
+    end)
+
+    notify("CÃ¢mera Livre", "WASD move, Q/E sobe e desce. Desative para voltar.")
+end)
+
+MapSection:NewSlider("Velocidade da CÃ¢mera Livre", "Velocidade de movimento (1â€“10).", 10, 1, freecamSpeed, function(value)
+    freecamSpeed = value
+end)
+
+-- =============================================================================
+-- ABA: Eliminador
+-- =============================================================================
+local KillerSection = Window:NewTab("Eliminador"):NewSection("Controle de Alvo")
+local targetName    = ""
+
+KillerSection:NewTextBox("Nome do Alvo", "Parte do nome. Enter.", function(value)
+    targetName = value
+end)
+
+KillerSection:NewButton("AlcanÃ§ar Alvo", "Usa o carrinho livre mais prÃ³ximo.", function()
+    if not targetName or targetName:match("^%s*$") then
+        notify("Eliminador", "Digite uma parte do nome primeiro.")
+        return
+    end
+    local requested = targetName
+    task.spawn(function()
+        local ok, err = xpcall(function()
+            executeKiller(requested)
+        end, debug.traceback)
+        if not ok then
+            warn(MENU_NAME .. " Killer: " .. err)
+            if killerActive then finishKiller("Erro na tentativa. Tente de novo.") end
+        end
+    end)
+end)
+
+-- =============================================================================
+-- ABA: Troll
+-- =============================================================================
+local TrollSection = Window:NewTab("Troll"):NewSection("DiversÃ£o")
+
+-- CÃ¢mera giratÃ³ria com duraÃ§Ã£o ajustÃ¡vel
+local spinDuration = 5
+local spinConn
+
+local function stopSpin(silent)
+    if spinConn then spinConn:Disconnect() spinConn = nil end
+    releaseCameraMode("spin")
+    if not silent then notify("Troll", "CÃ¢mera voltou ao normal.") end
+end
+
+cameraModeStoppers.spin = function() stopSpin(true) end
+
+TrollSection:NewButton("CÃ¢mera GiratÃ³ria", "Gira a cÃ¢mera por alguns segundos.", function()
+    stopSpin(true)
+    claimCameraMode("spin")
+    local camera = workspace.CurrentCamera
+    if not camera then releaseCameraMode("spin") return end
+    camera.CameraType = Enum.CameraType.Scriptable
+    local startTime  = os.clock()
+    local origin     = camera.CFrame
+
+    spinConn = RunService.RenderStepped:Connect(function()
+        local elapsed = os.clock() - startTime
+        if elapsed >= spinDuration then
+            stopSpin(false)
+            return
+        end
+        local angle = elapsed * math.pi * 2
+        camera.CFrame = CFrame.new(origin.Position)
+            * CFrame.Angles(0, angle, 0)
+            * CFrame.new(0, 0, -10)
+        camera.Focus = CFrame.new(origin.Position)
+    end)
+    notify("Troll", "CÃ¢mera girando por " .. spinDuration .. "s.")
+end)
+
+TrollSection:NewSlider("DuraÃ§Ã£o CÃ¢mera (s)", "Segundos de giro.", 30, 1, spinDuration, function(value)
+    spinDuration = value
+end)
+
+-- Fake Lag ajustÃ¡vel
+local fakeLagDuration = 2
+
+local function restoreFakeLag()
+    local h = fakeLagHumanoid
+    fakeLagActive = false
+    if h and h.Parent then
+        h.WalkSpeed = desiredWalkSpeed or 16
+        if h.UseJumpPower then h.JumpPower = desiredJumpPower or 50
+        else h.JumpHeight = desiredJumpHeight or 7.2 end
+    end
+    fakeLagHumanoid = nil
+end
+
+TrollSection:NewButton("Fake Lag", "Congela vocÃª por alguns segundos.", function()
+    local h = getHumanoid()
+    if not h then return end
+    if not fakeLagActive then
+        desiredWalkSpeed = desiredWalkSpeed or h.WalkSpeed
+        desiredJumpPower = desiredJumpPower or h.JumpPower
+        desiredJumpHeight = desiredJumpHeight or h.JumpHeight
+    elseif fakeLagHumanoid ~= h then
+        restoreFakeLag()
+    end
+    fakeLagSession = fakeLagSession + 1
+    local session = fakeLagSession
+    fakeLagActive = true
+    fakeLagHumanoid = h
+    h.WalkSpeed = 0
+    if h.UseJumpPower then h.JumpPower = 0 else h.JumpHeight = 0 end
+    notify("Troll", "Fake lag por " .. fakeLagDuration .. "s.")
+    task.spawn(function()
+        task.wait(fakeLagDuration)
+        if session ~= fakeLagSession or destroyed then return end
+        restoreFakeLag()
+        notify("Troll", "Fake lag encerrado.")
+    end)
+end)
+
+TrollSection:NewSlider("DuraÃ§Ã£o Fake Lag (s)", "DuraÃ§Ã£o em segundos.", 15, 1, fakeLagDuration, function(value)
+    fakeLagDuration = value
+end)
+
+-- Spectate â€” segue outro jogador com a cÃ¢mera
+local spectating  = false
+local spectateConn
+
+local function stopSpectate(silent)
+    spectating = false
+    if spectateConn then spectateConn:Disconnect() spectateConn = nil end
+    releaseCameraMode("spectate")
+    if not silent then notify("Spectate", "Parado.") end
+end
+
+cameraModeStoppers.spectate = function() stopSpectate(true) end
+
+TrollSection:NewTextBox("Spectate Jogador", "Nome do jogador. Enter para seguir.", function(value)
+    local player = findPlayerByPartialName(value)
+    if not player or player == LocalPlayer then notify("Spectate", "Escolha outro jogador.") return end
+    stopSpectate(true)
+    claimCameraMode("spectate")
+    spectating = true
+    local camera = workspace.CurrentCamera
+    if not camera then stopSpectate(true) return end
+    camera.CameraType = Enum.CameraType.Scriptable
+
+    spectateConn = RunService.RenderStepped:Connect(function()
+        if not spectating then return end
+        local char = player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not root then stopSpectate(false) return end
+        camera.CFrame = CFrame.new(root.Position + Vector3.new(0, 8, -14), root.Position)
+        camera.Focus = CFrame.new(root.Position)
+    end)
+    notify("Spectate", "Seguindo " .. player.DisplayName .. ".")
+end)
+
+TrollSection:NewButton("Parar Spectate", "Para de seguir.", function()
+    stopSpectate(false)
+end)
+
+-- Teleporte aleatÃ³rio â€” filtra partes visÃ­veis e grandes
+TrollSection:NewButton("Teleporte AleatÃ³rio", "Te joga em uma parte aleatÃ³ria.", function()
+    local parts = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart")
+            and obj.Transparency < 0.9
+            and obj.Size.Magnitude > 2
+            and obj ~= workspace.Terrain
+        then
+            table.insert(parts, obj)
+        end
+    end
+    if #parts == 0 then notify("Troll", "Nenhuma parte Ãºtil encontrada.") return end
+    local target = parts[math.random(1, #parts)]
+    teleportCharacter(target.CFrame * CFrame.new(0, 5, 0))
+    notify("Troll", "Caiu em: " .. target.Name)
+end)
+
+-- =============================================================================
+-- Minimizar / reabrir + drag
+-- =============================================================================
+local function findMenuGui()
+    local fallback
+    for _, guiRoot in ipairs(guiRoots) do
+        for _, gui in ipairs(guiRoot:GetChildren()) do
+            if gui:IsA("ScreenGui") then
+                local main   = gui:FindFirstChild("Main", true)
+                local header = main and main:FindFirstChild("MainHeader")
+                local title  = header and header:FindFirstChild("title")
+                if title and title:IsA("TextLabel") and title.Text == UI_TITLE then
+                    return gui
+                end
+                if main and header then fallback = gui end
+                for _, descendant in ipairs(gui:GetDescendants()) do
+                    if descendant:IsA("TextLabel") and descendant.Text == UI_TITLE then
+                        return gui
+                    end
+                end
+            end
+        end
+    end
+    return fallback
+end
+
+local menuGui = Window and Window.gui or findMenuGui()
+if not bootstrapAlive() then
+    abortBootstrap()
+    return
+end
+
+local commandsTabButton
+if not menuGui then
+    warn(MENU_NAME .. ": nÃ£o foi possÃ­vel localizar a janela clÃ¡ssica local.")
+    menuGui = Instance.new("ScreenGui")
+    menuGui.Name = "NothriloFallbackHost"
+    menuGui.ResetOnSpawn = false
+    menuGui.Parent = CoreGui
+end
+
+-- Textbox helper: encontra pela label ao lado
+getKavoTextBoxByLabel = function(labelText)
+    for _, element in ipairs(menuGui:GetDescendants()) do
+        if element:IsA("TextButton") and element.Name == "textboxElement" then
+            local title = element:FindFirstChild("togName")
+            local input = element:FindFirstChildOfClass("TextBox")
+            if title and title.Text == labelText and input then return input end
+        end
+    end
+    return nil
+end
+
+restoreKavoTextBox = function(labelText, value)
+    task.delay(0.22, function()
+        local input = getKavoTextBoxByLabel(labelText)
+        if input and input.Parent then input.Text = tostring(value) end
+    end)
+end
+
+local function configureKavoTextBox(labelText, placeholder, value)
+    local input = getKavoTextBoxByLabel(labelText)
+    if not input then return end
+    input.PlaceholderText = placeholder
+    if value ~= nil then input.Text = tostring(value) end
+end
+
+-- Traduz placeholders para PT-BR
+for _, object in ipairs(menuGui:GetDescendants()) do
+    if object:IsA("TextBox") and object.PlaceholderText == "Type here!" then
+        object.PlaceholderText = "Digite aqui..."
+    end
+end
+
+configureKavoTextBox("Ir atÃ© Jogador",    "Nome ou comeÃ§o do nome", nil)
+configureKavoTextBox("Velocidade do Voo", "Digite a velocidade",    nil)
+configureKavoTextBox("Nome do Alvo",      "Nome ou comeÃ§o do nome", nil)
+configureKavoTextBox("ForÃ§a Normal",      "2500", 2500)
+configureKavoTextBox("ForÃ§a em Descidas", "800",  800)
+
+-- Badges de atalho (quadrinhos com a tecla no canto direito de cada item)
+local customKeybindIcons = {}
+
+local function addShortcutBadge(labelText, keyText)
+    -- No toque a linha inteira jÃ¡ Ã© o controle; esconder teclas libera espaÃ§o
+    -- para nomes maiores e evita colisÃ£o com o Ã­cone de informaÃ§Ã£o.
+    if UserInputService.TouchEnabled then return end
+    for _, element in ipairs(menuGui:GetDescendants()) do
+        if element:IsA("TextButton") then
+            local title
+            for _, child in ipairs(element:GetDescendants()) do
+                if child:IsA("TextLabel") and child.Text == labelText then
+                    title = child; break
+                end
+            end
+
+            if title and not element:FindFirstChild("NothriloShortcut_" .. keyText) then
+                local badgeWidth = keyText == "1/2/3" and 42 or 21
+                local badge      = Instance.new("TextButton")
+                badge.Name           = "NothriloShortcut_" .. keyText
+                badge.Size           = UDim2.fromOffset(badgeWidth, 21)
+                badge.Position       = UDim2.new(1, -(badgeWidth + 31), 0, 6)
+                badge.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
+                badge.BorderSizePixel = 0
+                badge.AutoButtonColor = false
+                badge.Font           = Enum.Font.GothamBold
+                badge.Text           = keyText
+                badge.TextColor3     = Theme.SchemeColor
+                badge.TextSize       = keyText == "1/2/3" and 9 or 12
+                badge.ZIndex         = 3
+                badge.Parent         = element
+                Instance.new("UICorner", badge).CornerRadius = UDim.new(0, 5)
+                table.insert(customKeybindIcons, badge)
+
+                -- Reserve espaÃ§o real: a Kavo original deixava textos longos
+                -- passarem por baixo do atalho e do Ã­cone de informaÃ§Ã£o.
+                if title.Parent == element then
+                    title.Size = UDim2.new(1, -(badgeWidth + 70), 1, 0)
+                end
+
+                badge.Activated:Connect(function()
+                    if     keyText == "V"     then flyToggleControl:UpdateToggle(nil, not flyEnabled)
+                    elseif keyText == "L"     then espToggleControl:UpdateToggle(nil, not espEnabled)
+                    elseif keyText == "P"     then infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump)
+                    elseif keyText == "T"     then giveClickTeleportTool()
+                    elseif keyText == "1"     then teleportToCheckpoint(1)
+                    elseif keyText == "2"     then teleportToCheckpoint(2)
+                    elseif keyText == "3"     then teleportToCheckpoint(3)
+                    elseif keyText == "1/2/3" then notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
+                    elseif keyText == "B"     then boostToggleControl:UpdateToggle(nil, not boostActive)
+                    elseif keyText == "K"     then setMenuVisible(false)
+                    elseif keyText == "X" and destroyNothrilo then destroyNothrilo()
+                    end
+                end)
+                return
+            end
+        end
+    end
+end
+
+-- Badges das abas originais
+addShortcutBadge("Voo do VeÃ­culo",      "V")
+addShortcutBadge("ESP",                 "L")
+addShortcutBadge("Pulo Infinito",       "P")
+addShortcutBadge("Teleporte por Clique","T")
+addShortcutBadge("Boost do Carrinho",   "B")
+addShortcutBadge("Ir ao Checkpoint 1",  "1")
+addShortcutBadge("Ir ao Checkpoint 2",  "2")
+addShortcutBadge("Ir ao Checkpoint 3",  "3")
+
+-- Sistema de toast
+local toastGui = Instance.new("ScreenGui")
+toastGui.Name           = "NothriloNotifications"
+toastGui.ResetOnSpawn   = false
+toastGui.IgnoreGuiInset = true
+toastGui.DisplayOrder   = 10001
+toastGui.Parent         = menuGui.Parent
+
+toastContainer = Instance.new("Frame")
+toastContainer.Name               = "ToastContainer"
+toastContainer.AnchorPoint        = Vector2.new(1, 0)
+toastContainer.Position           = UDim2.new(1, -18, 0, 20)
+toastContainer.Size               = UDim2.fromOffset(300, 300)
+toastContainer.BackgroundTransparency = 1
+toastContainer.Parent             = toastGui
+
+local toastLayout = Instance.new("UIListLayout")
+toastLayout.Padding    = UDim.new(0, 8)
+toastLayout.SortOrder  = Enum.SortOrder.LayoutOrder
+toastLayout.Parent     = toastContainer
+
+-- Drag helper (mouse e touch)
+local function enableDrag(target, handle, onDragEnd)
+    target.Active = true
+    handle.Active = true
+    local dragging, dragInput, dragStart, startPos, wasDragged = false, nil, nil, nil, false
+
+    local function updatePos(input)
+        local delta = input.Position - dragStart
+        if delta.Magnitude > 6 then wasDragged = true end
+        target.Position = UDim2.new(
+            startPos.X.Scale,  startPos.X.Offset + delta.X,
+            startPos.Y.Scale,  startPos.Y.Offset + delta.Y
+        )
+    end
+
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1
+        and input.UserInputType ~= Enum.UserInputType.Touch then return end
+        dragging   = true
+        wasDragged = false
+        dragStart  = input.Position
+        startPos   = target.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                if onDragEnd then onDragEnd(wasDragged) end
+            end
+        end)
+    end)
+
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    trackConnection(UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then updatePos(input) end
+    end))
+end
+
+-- Launcher (botÃ£o para reabrir quando minimizado)
+local launcherGui = Instance.new("ScreenGui")
+launcherGui.Name           = "NothriloLauncher"
+launcherGui.ResetOnSpawn   = false
+launcherGui.IgnoreGuiInset = true
+launcherGui.DisplayOrder   = 10000
+launcherGui.Parent         = menuGui.Parent
+
+local launcher = Instance.new("TextButton")
+launcher.Name             = "OpenNothriloMenu"
+launcher.Size             = UDim2.fromOffset(178, 50)
+launcher.Position         = UDim2.new(0, 16, 0.5, -25)
+launcher.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+launcher.BorderSizePixel  = 0
+launcher.AutoButtonColor  = false
+launcher.Font             = Enum.Font.GothamBold
+launcher.Text             = "    " .. string.upper(MENU_NAME)
+launcher.TextColor3       = Color3.fromRGB(255, 255, 255)
+launcher.TextSize         = 16
+launcher.TextXAlignment   = Enum.TextXAlignment.Left
+launcher.Visible          = false
+launcher.Parent           = launcherGui
+Instance.new("UICorner", launcher).CornerRadius = UDim.new(0, 8)
+
+local launcherStroke = Instance.new("UIStroke")
+launcherStroke.Thickness = 2
+launcherStroke.Parent    = launcher
+
+local launcherIcon = Instance.new("TextLabel")
+launcherIcon.BackgroundTransparency = 1
+launcherIcon.Size     = UDim2.fromOffset(38, 50)
+launcherIcon.Position = UDim2.fromOffset(6, 0)
+launcherIcon.Font     = Enum.Font.GothamBold
+launcherIcon.Text     = "N"
+launcherIcon.TextSize = 20
+launcherIcon.Parent   = launcher
+
+setMenuVisible = function(visible)
+    if destroyed then return end
+    menuGui.Enabled    = visible
+    launcher.Visible   = not visible
+end
+
+local main   = menuGui:FindFirstChild("Main")
+local header = main and main:FindFirstChild("MainHeader")
+local originalClose = header and header:FindFirstChild("close")
+if originalClose then
+    originalClose.Visible = false
+    originalClose.Active  = false
+end
+
+    if header then
+        local minimize = Instance.new("TextButton")
+        minimize.Name             = "Minimize"
+        minimize.Size             = UDim2.fromOffset(34, 34)
+        minimize.Position         = UDim2.new(1, -34, 0, 0)
+        minimize.BackgroundTransparency = 1
+        minimize.AutoButtonColor  = false
+        minimize.Font             = Enum.Font.GothamBold
+        minimize.Text             = "â€”"
+        minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
+        minimize.TextSize         = 18
+    minimize.Parent           = header
+    minimize.MouseButton1Click:Connect(function() setMenuVisible(false) end)
+    enableDrag(main, header)
+end
+
+local launcherLastDrag = 0
+enableDrag(launcher, launcher, function(wasDragged)
+    if wasDragged then launcherLastDrag = os.clock() end
+end)
+launcher.Activated:Connect(function()
+    if os.clock() - launcherLastDrag < 0.25 then return end
+    setMenuVisible(true)
+end)
+
+-- =============================================================================
+-- Atalhos de teclado globais
+-- =============================================================================
+trackConnection(UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if destroyed or gameProcessed or UserInputService:GetFocusedTextBox() then return end
+
+    if input.KeyCode == Enum.KeyCode.V then
+        flyToggleControl:UpdateToggle(nil, not flyEnabled)
+    elseif input.KeyCode == Enum.KeyCode.L then
+        espToggleControl:UpdateToggle(nil, not espEnabled)
+    elseif input.KeyCode == Enum.KeyCode.P then
+        infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump)
+    elseif input.KeyCode == Enum.KeyCode.T then
+        giveClickTeleportTool()
+    elseif input.KeyCode == Enum.KeyCode.B then
+        boostToggleControl:UpdateToggle(nil, not boostActive)
+    elseif input.KeyCode == Enum.KeyCode.KeypadOne then
+        teleportToCheckpoint(1)
+    elseif input.KeyCode == Enum.KeyCode.KeypadTwo then
+        teleportToCheckpoint(2)
+    elseif input.KeyCode == Enum.KeyCode.KeypadThree then
+        teleportToCheckpoint(3)
+    elseif input.KeyCode == Enum.KeyCode.K then
+        setMenuVisible(not menuGui.Enabled)
+    elseif input.KeyCode == Enum.KeyCode.X then
+        destroyNothrilo()
+    end
+end))
+
+-- =============================================================================
+-- DestruiÃ§Ã£o limpa
+-- =============================================================================
+local running = true
+destroyNothrilo = function()
+    if destroyed then return end
+    destroyed    = true
+    running      = false
+    killerActive = false
+    killerSession = killerSession + 1
+    infiniteJump = false
+
+    fakeLagSession = fakeLagSession + 1
+    restoreFakeLag()
+    stopSpin(true)
+    stopSpectate(true)
+    stopFreecam()
+
+    noclipEnabled = false
+    restoreNoclip()
+    invisEnabled = false
+    setLocalInvisible(false)
+
+    godEnabled = false
+    if godRespawnConn then godRespawnConn:Disconnect(); godRespawnConn = nil end
+    restoreGodHumanoid()
+
+    antiAfkEnabled = false
+    if antiAfkConn then antiAfkConn:Disconnect(); antiAfkConn = nil end
+
+    stopFly()
+    stopBoost()
+    espEnabled   = false
+    espSession   = espSession + 1
+    clearESP()
+    stabilizer.enabled = false
+    cleanupStabilizer()
+    restorePanicStop()
+    workspace.Gravity = originalGravity
+
+    if antiFlipConn    then antiFlipConn:Disconnect()    antiFlipConn    = nil end
+    if autobrakeConn   then autobrakeConn:Disconnect()   autobrakeConn   = nil end
+    activeCameraMode = nil
+    restoreDefaultCamera()
+
+    for index = #runtimeConnections, 1, -1 do
+        local connection = runtimeConnections[index]
+        pcall(function() connection:Disconnect() end)
+        runtimeConnections[index] = nil
+    end
+
+    for index = #createdTools, 1, -1 do
+        local tool = createdTools[index]
+        if tool and tool.Parent then tool:Destroy() end
+        createdTools[index] = nil
+    end
+
+    if flyMobileGui and flyMobileGui.Parent then flyMobileGui:Destroy() end
+    if toastGui     and toastGui.Parent     then toastGui:Destroy()     end
+    if launcherGui  and launcherGui.Parent  then launcherGui:Destroy()  end
+    if menuGui      and menuGui.Parent      then menuGui:Destroy()      end
+    if runtime      and runtime.Parent      then runtime:Destroy()      end
+end
+
+-- =============================================================================
+-- ABA: Comandos (atalhos listados)
+-- =============================================================================
+local CommandsSection = Window:NewTab("Comandos"):NewSection("Atalhos")
+commandsTabButton     = menuGui:FindFirstChild("ComandosTabButton", true)
+
+CommandsSection:NewButton("V  â€¢  Voo do VeÃ­culo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
+CommandsSection:NewButton("L  â€¢  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
+CommandsSection:NewButton("P  â€¢  Pulo Infinito",        "Tecla P", function() infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump) end)
+CommandsSection:NewButton("T  â€¢  Teleporte por Clique", "Tecla T", giveClickTeleportTool)
+CommandsSection:NewButton("B  â€¢  Boost do Carrinho",    "Tecla B", function() boostToggleControl:UpdateToggle(nil, not boostActive) end)
+CommandsSection:NewButton("NumPad 1/2/3  â€¢  Checkpoints","Teclado numÃ©rico", function()
+    notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
+end)
+CommandsSection:NewButton("K  â€¢  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
+CommandsSection:NewButton("X  â€¢  Fechar o Nothrilo",    "Tecla X", destroyNothrilo)
+
+addShortcutBadge("V  â€¢  Voo do VeÃ­culo",        "V")
+addShortcutBadge("L  â€¢  ESP",                   "L")
+addShortcutBadge("P  â€¢  Pulo Infinito",         "P")
+addShortcutBadge("T  â€¢  Teleporte por Clique",  "T")
+addShortcutBadge("B  â€¢  Boost do Carrinho",     "B")
+addShortcutBadge("NumPad 1/2/3  â€¢  Checkpoints","1/2/3")
+addShortcutBadge("K  â€¢  Minimizar / Abrir",     "K")
+addShortcutBadge("X  â€¢  Fechar o Nothrilo",     "X")
+
+task.delay(0.3, function()
+    if not menuGui or not menuGui.Parent then return end
+    addShortcutBadge("V  â€¢  Voo do VeÃ­culo",        "V")
+    addShortcutBadge("L  â€¢  ESP",                   "L")
+    addShortcutBadge("P  â€¢  Pulo Infinito",         "P")
+    addShortcutBadge("T  â€¢  Teleporte por Clique",  "T")
+    addShortcutBadge("B  â€¢  Boost do Carrinho",     "B")
+    addShortcutBadge("NumPad 1/2/3  â€¢  Checkpoints","1/2/3")
+    addShortcutBadge("K  â€¢  Minimizar / Abrir",     "K")
+    addShortcutBadge("X  â€¢  Fechar o Nothrilo",     "X")
+end)
+
+-- =============================================================================
+-- ABA: Interface
+-- =============================================================================
+local GuiSection = Window:NewTab("Interface"):NewSection("Interface")
+
+GuiSection:NewButton("Fechar Menu", "Fecha agora; a tecla X tambÃ©m funciona.", destroyNothrilo)
+addShortcutBadge("Fechar Menu", "X")
+
+-- PublicaÃ§Ã£o atÃ´mica: a janela sÃ³ aparece depois que todas as abas, comandos e
+-- listeners pertencentes a esta geraÃ§Ã£o terminaram de ser montados.
+if not bootstrapAlive() then
+    abortBootstrap()
+    return
+end
+menuGui.Enabled = false
+if os.clock() < startup.beganAt + startup.seconds then
+    if startup.status then startup.status.Text = "FunÃ§Ãµes prontas â€¢ terminando carregamento seguro..." end
+    repeat
+        RunService.RenderStepped:Wait()
+        if not bootstrapAlive() then
+            abortBootstrap()
+            return
+        end
+    until os.clock() >= startup.beganAt + startup.seconds
+end
+if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
+menuGui.Enabled = true
+
+-- =============================================================================
+-- Loop RGB
+-- =============================================================================
+task.spawn(function()
+    while running and not destroyed and menuGui.Parent and launcherGui.Parent do
+        local rgb = Color3.fromHSV((os.clock() * 0.12) % 1, 0.85, 1)
+        ClassicUI:ChangeColor("SchemeColor", rgb)
+        if commandsTabButton and commandsTabButton.Parent then
+            commandsTabButton.BackgroundColor3 = rgb
+        end
+        launcherStroke.Color = rgb
+        launcherIcon.TextColor3 = rgb
+        for i = #customKeybindIcons, 1, -1 do
+            local icon = customKeybindIcons[i]
+            if icon and icon.Parent then icon.TextColor3 = rgb
+            else table.remove(customKeybindIcons, i) end
+        end
+        for i = #toastStrokes, 1, -1 do
+            local stroke = toastStrokes[i]
+            if stroke and stroke.Parent then stroke.Color = rgb
+            else table.remove(toastStrokes, i) end
+        end
+        task.wait(0.30)
+    end
+end)
+
+notify(MENU_NAME, "Feito por Cafezl  â€¢  K minimiza e reabre o menu.")

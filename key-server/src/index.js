@@ -263,7 +263,7 @@ async function startProvider(request, env, url) {
 
   if (provider === "linkvertise") {
     const link = String(env.LINKVERTISE_URL || "").trim();
-    if (!/^https:\/\/(?:linkvertise\.com|link-to\.net)\//i.test(link)) return errorPage("A opção Linkvertise ainda não foi configurada.", 503);
+    if (!/^https:\/\/(?:linkvertise\.com|link-to\.net|direct-link\.net)\//i.test(link)) return errorPage("A opção Linkvertise ainda não foi configurada.", 503);
     return new Response(null, { status: 302, headers: { Location: link, ...headers } });
   }
 

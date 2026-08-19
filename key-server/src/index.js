@@ -2,6 +2,16 @@ const PRODUCT = "nothrilo";
 const SESSION_COOKIE = "nothrilo_key_session";
 const DEFAULT_SESSION_TTL = 15 * 60;
 const DEFAULT_KEY_TTL = 24 * 60 * 60;
+const DEFAULT_START_WINDOW = 10 * 60;
+const DEFAULT_START_IP_LIMIT = 30;
+const DEFAULT_START_USER_LIMIT = 10;
+const DEFAULT_START_PAIR_LIMIT = 6;
+const DEFAULT_PENDING_IP_LIMIT = 20;
+const DEFAULT_PENDING_USER_LIMIT = 4;
+const DEFAULT_PENDING_PAIR_LIMIT = 3;
+const DEFAULT_CLEANUP_INTERVAL = 15 * 60;
+const DEFAULT_CLEANUP_PAGE_SIZE = 128;
+const DEFAULT_CLEANUP_MAX_PAGES = 16;
 
 const encoder = new TextEncoder();
 
@@ -94,6 +104,11 @@ function sessionCookie(sessionId, maxAge) {
   return `${SESSION_COOKIE}=${encodeURIComponent(sessionId)}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax`;
 }
 
+function clientAddress(request) {
+  const value = String(request.headers.get("CF-Connecting-IP") || "").trim().toLowerCase();
+  return /^[0-9a-f:.]{3,64}$/i.test(value) ? value : "unknown";
+}
+
 function appendQuery(urlString, name, value) {
   const separator = urlString.includes("?") ? "&" : "?";
   return `${urlString}${separator}${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
@@ -138,13 +153,13 @@ function landingPage(origin) {
   return pageShell("Nothrilo Key", body);
 }
 
-function errorPage(message, status = 400) {
+function errorPage(message, status = 400, headers = {}) {
   const body = `
     <div class="brand">Nothrilo 🇧🇷</div>
     <h1 class="title">Não deu certo</h1>
     <p class="muted">${escapeHtml(message)}</p>
     <div class="status bad">Volte ao menu e tente novamente.</div>`;
-  return html(pageShell("Erro — Nothrilo Key", body), status);
+  return html(pageShell("Erro — Nothrilo Key", body), status, headers);
 }
 
 function keyPage(key, expiresAt, provider) {
@@ -200,13 +215,22 @@ async function internalRequest(env, path, init = {}) {
   return stub.fetch(`https://key-store.internal${path}`, init);
 }
 
-async function createSession(env, provider, userId) {
+async function createSession(env, provider, userId, clientKey) {
   const response = await internalRequest(env, "/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ provider, userId }),
+    body: JSON.stringify({ provider, userId, clientKey }),
   });
-  return response.json();
+  return { status: response.status, data: await response.json() };
+}
+
+async function cancelSession(env, sessionId) {
+  const response = await internalRequest(env, "/cancel", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId }),
+  });
+  return { status: response.status, data: await response.json() };
 }
 
 async function completeSession(env, sessionId, provider, proofId) {
@@ -232,46 +256,82 @@ async function verifyIssuedKey(env, credential, userId) {
   return { status: response.status, data: await response.json() };
 }
 
+function providerConfiguration(env, provider) {
+  if (provider === "workink") {
+    const baseLink = String(env.WORKINK_URL || "").trim();
+    const expectedLinkId = String(env.WORKINK_LINK_ID || "").trim();
+    return /^https:\/\/work\.ink\//i.test(baseLink) && expectedLinkId
+      ? { ok: true, baseLink }
+      : { ok: false, message: "A opção Work.ink ainda não foi configurada." };
+  }
+  if (provider === "linkvertise") {
+    const link = String(env.LINKVERTISE_URL || "").trim();
+    return /^https:\/\/(?:linkvertise\.com|link-to\.net|direct-link\.net)\//i.test(link)
+      ? { ok: true, link }
+      : { ok: false, message: "A opção Linkvertise ainda não foi configurada." };
+  }
+  const link = String(env.LOOTLABS_URL || "").trim();
+  return /^https:\/\/loot-link\.com\//i.test(link)
+    ? { ok: true, link }
+    : { ok: false, message: "A opção LootLabs ainda não foi configurada." };
+}
+
 async function startProvider(request, env, url) {
   const provider = normalizeProvider(url.searchParams.get("provider"));
   const userId = normalizeUserId(url.searchParams.get("userId") || url.searchParams.get("uid"));
   if (!provider || !userId) return errorPage("Provedor ou usuário inválido.");
 
-  const created = await createSession(env, provider, userId);
-  if (!created.ok) return errorPage("Não foi possível iniciar esta sessão.", 503);
-  const sessionId = created.sessionId;
+  const configuration = providerConfiguration(env, provider);
+  if (!configuration.ok) return errorPage(configuration.message, 503);
+
+  const clientKey = await sha256Hex(`ip:${clientAddress(request)}`);
+  const created = await createSession(env, provider, userId, clientKey);
+  if (!created.data.ok) {
+    if (created.status === 429) {
+      const retryAfter = asPositiveInt(created.data.retryAfter, 60, 1, 3600);
+      const message = created.data.error === "too_many_pending"
+        ? "Você já tem tentativas abertas. Termine uma delas ou aguarde alguns minutos."
+        : "Muitas tentativas em pouco tempo. Aguarde um pouco e tente novamente.";
+      return errorPage(message, 429, { "Retry-After": String(retryAfter) });
+    }
+    return errorPage("Não foi possível iniciar esta sessão.", 503);
+  }
+  const sessionId = created.data.sessionId;
   const maxAge = asPositiveInt(env.SESSION_TTL_SECONDS, DEFAULT_SESSION_TTL, 300, 3600);
   const headers = { "Set-Cookie": sessionCookie(sessionId, maxAge) };
 
   if (provider === "workink") {
-    const baseLink = String(env.WORKINK_URL || "").trim();
-    const expectedLinkId = String(env.WORKINK_LINK_ID || "").trim();
-    if (!/^https:\/\/work\.ink\//i.test(baseLink) || !expectedLinkId) {
-      return errorPage("A opção Work.ink ainda não foi configurada.", 503);
-    }
     const destination = `${url.origin}/v1/nothrilo/key/callback/workink?session=${encodeURIComponent(sessionId)}&token={TOKEN}`;
     const overrideUrl = `https://work.ink/_api/v2/override?destination=${encodeURIComponent(destination)}`;
-    const overrideResponse = await fetch(overrideUrl, { headers: { Accept: "application/json" } });
-    if (!overrideResponse.ok) return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
+    let overrideResponse;
+    try {
+      overrideResponse = await fetch(overrideUrl, { headers: { Accept: "application/json" } });
+    } catch {
+      await cancelSession(env, sessionId).catch(() => null);
+      return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
+    }
+    if (!overrideResponse.ok) {
+      await cancelSession(env, sessionId).catch(() => null);
+      return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
+    }
     const override = await overrideResponse.json().catch(() => null);
-    if (!override || typeof override.sr !== "string" || !override.sr) return errorPage("Work.ink retornou uma sessão inválida.", 502);
+    if (!override || typeof override.sr !== "string" || !override.sr) {
+      await cancelSession(env, sessionId).catch(() => null);
+      return errorPage("Work.ink retornou uma sessão inválida.", 502);
+    }
     return new Response(null, {
       status: 302,
-      headers: { Location: appendQuery(baseLink, "sr", override.sr), ...headers },
+      headers: { Location: appendQuery(configuration.baseLink, "sr", override.sr), ...headers },
     });
   }
 
   if (provider === "linkvertise") {
-    const link = String(env.LINKVERTISE_URL || "").trim();
-    if (!/^https:\/\/(?:linkvertise\.com|link-to\.net|direct-link\.net)\//i.test(link)) return errorPage("A opção Linkvertise ainda não foi configurada.", 503);
-    return new Response(null, { status: 302, headers: { Location: link, ...headers } });
+    return new Response(null, { status: 302, headers: { Location: configuration.link, ...headers } });
   }
 
-  const lootLink = String(env.LOOTLABS_URL || "").trim();
-  if (!/^https:\/\/loot-link\.com\//i.test(lootLink)) return errorPage("A opção LootLabs ainda não foi configurada.", 503);
   return new Response(null, {
     status: 302,
-    headers: { Location: appendQuery(lootLink, "puid", sessionId), ...headers },
+    headers: { Location: appendQuery(configuration.link, "puid", sessionId), ...headers },
   });
 }
 
@@ -350,11 +410,119 @@ export class KeyStore {
     this.state = state;
     this.storage = state.storage;
     this.env = env;
+    this.mutationQueue = Promise.resolve();
   }
 
-  async ensureAlarm() {
+  async withMutationLock(operation) {
+    let release;
+    const previous = this.mutationQueue;
+    this.mutationQueue = new Promise((resolve) => {
+      release = resolve;
+    });
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
+  }
+
+  async ensureAlarm(delayMs) {
+    const interval = asPositiveInt(this.env.CLEANUP_INTERVAL_SECONDS, DEFAULT_CLEANUP_INTERVAL, 60, 6 * 60 * 60) * 1000;
+    const target = Date.now() + Math.min(Number(delayMs) > 0 ? Number(delayMs) : interval, interval);
     const alarm = await this.storage.getAlarm();
-    if (alarm == null) await this.storage.setAlarm(Date.now() + 6 * 60 * 60 * 1000);
+    if (alarm == null || alarm > target) await this.storage.setAlarm(target);
+  }
+
+  async removePendingSession(session) {
+    const now = Date.now();
+    const keys = Array.isArray(session?.pendingKeys) ? session.pendingKeys : [];
+    for (const key of keys) {
+      if (!/^pending:(?:ip|user|pair):[a-f0-9]{64}$/i.test(key)) continue;
+      const record = await this.storage.get(key);
+      if (!record || !Array.isArray(record.sessions)) continue;
+      const sessions = record.sessions.filter((entry) => (
+        entry && entry.sessionId !== session.sessionId && Number(entry.expiresAt || 0) > now
+      ));
+      if (sessions.length === 0) {
+        await this.storage.delete(key);
+      } else {
+        await this.storage.put(key, {
+          sessions,
+          expiresAt: Math.max(...sessions.map((entry) => entry.expiresAt)),
+        });
+      }
+    }
+  }
+
+  async createRateLimitedSession(provider, userId, clientKey) {
+    return this.withMutationLock(async () => {
+      const now = Date.now();
+      const sessionTtl = asPositiveInt(this.env.SESSION_TTL_SECONDS, DEFAULT_SESSION_TTL, 300, 3600);
+      const windowSeconds = asPositiveInt(this.env.START_RATE_WINDOW_SECONDS, DEFAULT_START_WINDOW, 60, 3600);
+      const userKey = await sha256Hex(`user:${userId}`);
+      const pairKey = await sha256Hex(`pair:${clientKey}:${userId}`);
+      const rateSpecs = [
+        ["ip", clientKey, asPositiveInt(this.env.START_RATE_IP_LIMIT, DEFAULT_START_IP_LIMIT, 5, 500)],
+        ["user", userKey, asPositiveInt(this.env.START_RATE_USER_LIMIT, DEFAULT_START_USER_LIMIT, 3, 100)],
+        ["pair", pairKey, asPositiveInt(this.env.START_RATE_PAIR_LIMIT, DEFAULT_START_PAIR_LIMIT, 2, 50)],
+      ];
+      const rateRecords = [];
+      for (const [kind, key, limit] of rateSpecs) {
+        const storageKey = `rate:${kind}:${key}`;
+        const stored = await this.storage.get(storageKey);
+        const record = stored && Number(stored.expiresAt || 0) > now
+          ? { count: Number(stored.count || 0), expiresAt: Number(stored.expiresAt) }
+          : { count: 0, expiresAt: now + windowSeconds * 1000 };
+        if (record.count >= limit) {
+          return json({
+            ok: false,
+            error: "rate_limited",
+            retryAfter: Math.max(1, Math.ceil((record.expiresAt - now) / 1000)),
+          }, 429);
+        }
+        rateRecords.push({ storageKey, record });
+      }
+
+      const pendingSpecs = [
+        ["ip", clientKey, asPositiveInt(this.env.MAX_PENDING_IP, DEFAULT_PENDING_IP_LIMIT, 3, 200)],
+        ["user", userKey, asPositiveInt(this.env.MAX_PENDING_USER, DEFAULT_PENDING_USER_LIMIT, 1, 20)],
+        ["pair", pairKey, asPositiveInt(this.env.MAX_PENDING_PAIR, DEFAULT_PENDING_PAIR_LIMIT, 1, 10)],
+      ];
+      const pendingRecords = [];
+      for (const [kind, key, limit] of pendingSpecs) {
+        const storageKey = `pending:${kind}:${key}`;
+        const stored = await this.storage.get(storageKey);
+        const sessions = Array.isArray(stored?.sessions)
+          ? stored.sessions.filter((entry) => entry && Number(entry.expiresAt || 0) > now)
+          : [];
+        if (sessions.length >= limit) {
+          return json({ ok: false, error: "too_many_pending", retryAfter: sessionTtl }, 429);
+        }
+        pendingRecords.push({ storageKey, sessions });
+      }
+
+      const sessionId = randomHex(16);
+      const expiresAt = now + sessionTtl * 1000;
+      for (const { storageKey, record } of rateRecords) {
+        await this.storage.put(storageKey, { count: record.count + 1, expiresAt: record.expiresAt });
+      }
+      for (const record of pendingRecords) {
+        record.sessions.push({ sessionId, expiresAt });
+        await this.storage.put(record.storageKey, { sessions: record.sessions, expiresAt });
+      }
+      await this.storage.put(`session:${sessionId}`, {
+        sessionId,
+        provider,
+        userId,
+        status: "pending",
+        pendingKeys: pendingRecords.map((record) => record.storageKey),
+        createdAt: now,
+        expiresAt,
+      });
+      await this.ensureAlarm(Math.min(sessionTtl, windowSeconds) * 1000);
+      return json({ ok: true, sessionId, expiresAt });
+    });
   }
 
   async issueKey(session) {
@@ -379,20 +547,25 @@ export class KeyStore {
       const body = await request.json().catch(() => null);
       const provider = normalizeProvider(body?.provider);
       const userId = normalizeUserId(body?.userId);
-      if (!provider || !userId) return json({ ok: false, error: "invalid_session" }, 400);
-      const sessionId = randomHex(16);
-      const ttl = asPositiveInt(this.env.SESSION_TTL_SECONDS, DEFAULT_SESSION_TTL, 300, 3600);
-      const now = Date.now();
-      await this.storage.put(`session:${sessionId}`, {
-        sessionId,
-        provider,
-        userId,
-        status: "pending",
-        createdAt: now,
-        expiresAt: now + ttl * 1000,
+      const clientKey = String(body?.clientKey || "");
+      if (!provider || !userId || !/^[a-f0-9]{64}$/i.test(clientKey)) return json({ ok: false, error: "invalid_session" }, 400);
+      return this.createRateLimitedSession(provider, userId, clientKey.toLowerCase());
+    }
+
+    if (url.pathname === "/cancel" && request.method === "POST") {
+      const body = await request.json().catch(() => null);
+      const sessionId = String(body?.sessionId || "");
+      if (!/^[a-f0-9]{32}$/i.test(sessionId)) return json({ ok: false, error: "invalid_session" }, 400);
+      return this.withMutationLock(async () => {
+        const sessionKey = `session:${sessionId}`;
+        const session = await this.storage.get(sessionKey);
+        if (!session) return json({ ok: true });
+        if (session.status === "pending") {
+          await this.storage.delete(sessionKey);
+          await this.removePendingSession(session);
+        }
+        return json({ ok: true });
       });
-      await this.ensureAlarm();
-      return json({ ok: true, sessionId, expiresAt: now + ttl * 1000 });
     }
 
     if (url.pathname === "/complete" && request.method === "POST") {
@@ -401,24 +574,27 @@ export class KeyStore {
       const provider = normalizeProvider(body?.provider);
       const proofId = String(body?.proofId || "");
       if (!/^[a-f0-9]{32}$/i.test(sessionId) || !provider || !proofId) return json({ ok: false, error: "invalid_completion" }, 400);
-      const sessionKey = `session:${sessionId}`;
-      const session = await this.storage.get(sessionKey);
-      if (!session || session.expiresAt <= Date.now() || session.provider !== provider) return json({ ok: false, error: "expired_session" }, 410);
-      if (session.status === "complete" && session.key) {
-        return json({ ok: true, key: session.key, expiresAt: session.keyExpiresAt, provider });
-      }
-      const proofHash = await sha256Hex(`${provider}:${proofId}`);
-      const proofKey = `proof:${proofHash}`;
-      if (await this.storage.get(proofKey)) return json({ ok: false, error: "proof_already_used" }, 409);
-      const issued = await this.issueKey(session);
-      session.status = "complete";
-      session.key = issued.key;
-      session.keyExpiresAt = issued.expiresAt;
-      session.expiresAt = Math.max(session.expiresAt, Date.now() + 15 * 60 * 1000);
-      await this.storage.put(proofKey, { expiresAt: issued.expiresAt });
-      await this.storage.put(sessionKey, session);
-      await this.ensureAlarm();
-      return json({ ok: true, key: issued.key, expiresAt: issued.expiresAt, provider });
+      return this.withMutationLock(async () => {
+        const sessionKey = `session:${sessionId}`;
+        const session = await this.storage.get(sessionKey);
+        if (!session || session.expiresAt <= Date.now() || session.provider !== provider) return json({ ok: false, error: "expired_session" }, 410);
+        if (session.status === "complete" && session.key) {
+          return json({ ok: true, key: session.key, expiresAt: session.keyExpiresAt, provider });
+        }
+        const proofHash = await sha256Hex(`${provider}:${proofId}`);
+        const proofKey = `proof:${proofHash}`;
+        if (await this.storage.get(proofKey)) return json({ ok: false, error: "proof_already_used" }, 409);
+        const issued = await this.issueKey(session);
+        session.status = "complete";
+        session.key = issued.key;
+        session.keyExpiresAt = issued.expiresAt;
+        session.expiresAt = Math.max(session.expiresAt, Date.now() + 15 * 60 * 1000);
+        await this.storage.put(proofKey, { expiresAt: issued.expiresAt });
+        await this.storage.put(sessionKey, session);
+        await this.removePendingSession(session);
+        await this.ensureAlarm();
+        return json({ ok: true, key: issued.key, expiresAt: issued.expiresAt, provider });
+      });
     }
 
     if (url.pathname === "/status") {
@@ -454,27 +630,29 @@ export class KeyStore {
       }
 
       if (!/^NOTH-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){4}$/.test(key)) return json({ ok: false, error: "invalid_key" }, 401);
-      const keyHash = await sha256Hex(key);
-      const keyRecordKey = `key:${keyHash}`;
-      const record = await this.storage.get(keyRecordKey);
-      if (!record || record.product !== PRODUCT || record.userId !== userId || record.expiresAt <= Date.now()) {
-        return json({ ok: false, error: "invalid_key" }, 401);
-      }
-      const issuedLease = /^NLEASE-[a-f0-9]{64}$/i.test(record.lease)
-        ? record.lease
-        : `NLEASE-${randomHex(32)}`;
-      const leaseHash = await sha256Hex(issuedLease);
-      record.lease = issuedLease;
-      await this.storage.put(keyRecordKey, record);
-      await this.storage.put(`lease:${leaseHash}`, { ...record, expiresAt: record.expiresAt });
-      await this.ensureAlarm();
-      return json({
-        ok: true,
-        product: PRODUCT,
-        provider: record.provider,
-        expiresAt: record.expiresAt,
-        ttlSeconds: Math.max(0, Math.floor((record.expiresAt - Date.now()) / 1000)),
-        lease: issuedLease,
+      return this.withMutationLock(async () => {
+        const keyHash = await sha256Hex(key);
+        const keyRecordKey = `key:${keyHash}`;
+        const record = await this.storage.get(keyRecordKey);
+        if (!record || record.product !== PRODUCT || record.userId !== userId || record.expiresAt <= Date.now()) {
+          return json({ ok: false, error: "invalid_key" }, 401);
+        }
+        const issuedLease = /^NLEASE-[a-f0-9]{64}$/i.test(record.lease)
+          ? record.lease
+          : `NLEASE-${randomHex(32)}`;
+        const leaseHash = await sha256Hex(issuedLease);
+        record.lease = issuedLease;
+        await this.storage.put(keyRecordKey, record);
+        await this.storage.put(`lease:${leaseHash}`, { ...record, expiresAt: record.expiresAt });
+        await this.ensureAlarm();
+        return json({
+          ok: true,
+          product: PRODUCT,
+          provider: record.provider,
+          expiresAt: record.expiresAt,
+          ttlSeconds: Math.max(0, Math.floor((record.expiresAt - Date.now()) / 1000)),
+          lease: issuedLease,
+        });
       });
     }
 
@@ -482,16 +660,43 @@ export class KeyStore {
   }
 
   async alarm() {
-    const now = Date.now();
-    const records = await this.storage.list();
-    const expired = [];
-    for (const [key, value] of records) {
-      if (value && Number(value.expiresAt || 0) <= now) expired.push(key);
-    }
-    if (expired.length) await this.storage.delete(expired);
-    if ((await this.storage.list({ limit: 1 })).size > 0) {
-      await this.storage.setAlarm(now + 6 * 60 * 60 * 1000);
-    }
+    return this.withMutationLock(async () => {
+      const now = Date.now();
+      const pageSize = asPositiveInt(this.env.CLEANUP_PAGE_SIZE, DEFAULT_CLEANUP_PAGE_SIZE, 8, 512);
+      const maxPages = asPositiveInt(this.env.CLEANUP_MAX_PAGES, DEFAULT_CLEANUP_MAX_PAGES, 1, 64);
+      const interval = asPositiveInt(this.env.CLEANUP_INTERVAL_SECONDS, DEFAULT_CLEANUP_INTERVAL, 60, 6 * 60 * 60) * 1000;
+      let startAfter;
+      let pageCount = 0;
+      let hasMore = false;
+      let nextExpiry = Number.POSITIVE_INFINITY;
+
+      while (pageCount < maxPages) {
+        const options = { limit: pageSize };
+        if (startAfter) options.startAfter = startAfter;
+        const records = await this.storage.list(options);
+        if (records.size === 0) break;
+        pageCount += 1;
+        const expired = [];
+        for (const [key, value] of records) {
+          startAfter = key;
+          const expiresAt = Number(value?.expiresAt || 0);
+          if (expiresAt <= now) expired.push(key);
+          else nextExpiry = Math.min(nextExpiry, expiresAt);
+        }
+        if (expired.length) await this.storage.delete(expired);
+        if (records.size < pageSize) break;
+      }
+
+      if (startAfter && pageCount >= maxPages) {
+        hasMore = (await this.storage.list({ startAfter, limit: 1 })).size > 0;
+      }
+      if ((await this.storage.list({ limit: 1 })).size > 0) {
+        const delay = hasMore
+          ? 60 * 1000
+          : Math.max(60 * 1000, Math.min(interval, nextExpiry - now));
+        await this.storage.setAlarm(now + (Number.isFinite(delay) ? delay : interval));
+      }
+    });
   }
 }
 
@@ -500,7 +705,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders() });
     const url = new URL(request.url);
 
-    if (url.pathname === "/" && request.method === "GET") return landingPage(url.origin);
+    if (url.pathname === "/" && request.method === "GET") return html(landingPage(url.origin));
     if (url.pathname === "/v1/nothrilo/key/health") return json({ ok: true, product: PRODUCT });
     if (url.pathname === "/v1/nothrilo/key/start" && request.method === "GET") return startProvider(request, env, url);
     if (url.pathname === "/v1/nothrilo/key/callback/workink" && request.method === "GET") return workinkCallback(env, url);

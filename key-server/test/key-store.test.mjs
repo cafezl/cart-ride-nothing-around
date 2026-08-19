@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { KeyStore } from "../src/index.js";
+import worker, { KeyStore } from "../src/index.js";
 
 class MemoryStorage {
   constructor() {
     this.values = new Map();
     this.alarm = null;
+    this.listLimits = [];
   }
 
   async get(key) {
-    return this.values.get(key);
+    const value = this.values.get(key);
+    return value === undefined ? undefined : structuredClone(value);
   }
 
   async put(key, value) {
@@ -21,8 +23,11 @@ class MemoryStorage {
   }
 
   async list(options = {}) {
+    this.listLimits.push(options.limit);
     const entries = [...this.values.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
       .filter(([key]) => !options.prefix || key.startsWith(options.prefix))
+      .filter(([key]) => !options.startAfter || key > options.startAfter)
       .slice(0, options.limit || Number.MAX_SAFE_INTEGER);
     return new Map(entries);
   }
@@ -45,11 +50,15 @@ async function call(store, path, body) {
   return { status: response.status, body: await response.json() };
 }
 
+function sessionRequest(provider, userId, clientKey = "c".repeat(64)) {
+  return { provider, userId, clientKey };
+}
+
 test("creates, completes and verifies a 24-hour key", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
 
-  const created = await call(store, "/session", { provider: "workink", userId: "123456" });
+  const created = await call(store, "/session", sessionRequest("workink", "123456"));
   assert.equal(created.status, 200);
   assert.match(created.body.sessionId, /^[a-f0-9]{32}$/);
 
@@ -84,11 +93,29 @@ test("creates, completes and verifies a 24-hour key", async () => {
   assert.equal(wrongUser.body.ok, false);
 });
 
+test("serializes concurrent lease creation for one key", async () => {
+  const storage = new MemoryStorage();
+  const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const created = await call(store, "/session", sessionRequest("workink", "123456"));
+  const completed = await call(store, "/complete", {
+    sessionId: created.body.sessionId,
+    provider: "workink",
+    proofId: "11111111-2222-4333-8444-555555555555",
+  });
+
+  const results = await Promise.all(Array.from({ length: 20 }, () => (
+    call(store, "/verify", { key: completed.body.key, userId: "123456" })
+  )));
+  assert.equal(results.every((result) => result.status === 200), true);
+  assert.equal(new Set(results.map((result) => result.body.lease)).size, 1);
+  assert.equal((await storage.list({ prefix: "lease:" })).size, 1);
+});
+
 test("does not allow one provider proof to issue two keys", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
-  const first = await call(store, "/session", { provider: "linkvertise", userId: "10" });
-  const second = await call(store, "/session", { provider: "linkvertise", userId: "20" });
+  const first = await call(store, "/session", sessionRequest("linkvertise", "10"));
+  const second = await call(store, "/session", sessionRequest("linkvertise", "20"));
   const proof = "a".repeat(64);
 
   const accepted = await call(store, "/complete", {
@@ -107,13 +134,32 @@ test("does not allow one provider proof to issue two keys", async () => {
   assert.equal(rejected.body.error, "proof_already_used");
 });
 
+test("atomically consumes one proof under concurrent completions", async () => {
+  const storage = new MemoryStorage();
+  const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const sessions = await Promise.all(Array.from({ length: 8 }, (_, index) => (
+    call(store, "/session", sessionRequest("linkvertise", String(index + 1)))
+  )));
+  const proof = "b".repeat(64);
+
+  const results = await Promise.all(sessions.map((session) => call(store, "/complete", {
+    sessionId: session.body.sessionId,
+    provider: "linkvertise",
+    proofId: proof,
+  })));
+  assert.equal(results.filter((result) => result.status === 200).length, 1);
+  assert.equal(results.filter((result) => result.status === 409).length, 7);
+  assert.equal((await storage.list({ prefix: "key:" })).size, 1);
+  assert.equal((await storage.list({ prefix: "proof:" })).size, 1);
+});
+
 test("rejects invalid providers and expired sessions", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "300", KEY_TTL_SECONDS: "86400" });
-  const invalid = await call(store, "/session", { provider: "unknown", userId: "123" });
+  const invalid = await call(store, "/session", sessionRequest("unknown", "123"));
   assert.equal(invalid.status, 400);
 
-  const created = await call(store, "/session", { provider: "lootlabs", userId: "123" });
+  const created = await call(store, "/session", sessionRequest("lootlabs", "123"));
   const record = await storage.get(`session:${created.body.sessionId}`);
   record.expiresAt = Date.now() - 1;
   await storage.put(`session:${created.body.sessionId}`, record);
@@ -125,4 +171,136 @@ test("rejects invalid providers and expired sessions", async () => {
   });
   assert.equal(expired.status, 410);
   assert.equal(expired.body.error, "expired_session");
+});
+
+test("root route returns an HTML response", async () => {
+  const response = await worker.fetch(new Request("https://nothrilo.test/"), {});
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type"), /^text\/html/);
+  assert.match(await response.text(), /Nothrilo Key/);
+});
+
+test("rate limits starts by IP, user and pair without blocking normal retries", async () => {
+  const storage = new MemoryStorage();
+  const store = new KeyStore({ storage }, {
+    SESSION_TTL_SECONDS: "900",
+    KEY_TTL_SECONDS: "86400",
+    START_RATE_IP_LIMIT: "30",
+    START_RATE_USER_LIMIT: "10",
+    START_RATE_PAIR_LIMIT: "3",
+    MAX_PENDING_IP: "20",
+    MAX_PENDING_USER: "10",
+    MAX_PENDING_PAIR: "10",
+  });
+  const request = sessionRequest("linkvertise", "42");
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    assert.equal((await call(store, "/session", request)).status, 200);
+  }
+  const limited = await call(store, "/session", request);
+  assert.equal(limited.status, 429);
+  assert.equal(limited.body.error, "rate_limited");
+  assert.ok(limited.body.retryAfter > 0);
+});
+
+test("releases pending quota after a session completes", async () => {
+  const storage = new MemoryStorage();
+  const store = new KeyStore({ storage }, {
+    SESSION_TTL_SECONDS: "900",
+    KEY_TTL_SECONDS: "86400",
+    START_RATE_IP_LIMIT: "30",
+    START_RATE_USER_LIMIT: "10",
+    START_RATE_PAIR_LIMIT: "10",
+    MAX_PENDING_IP: "20",
+    MAX_PENDING_USER: "2",
+    MAX_PENDING_PAIR: "2",
+  });
+  const request = sessionRequest("linkvertise", "99");
+  const first = await call(store, "/session", request);
+  assert.equal(first.status, 200);
+  assert.equal((await call(store, "/session", request)).status, 200);
+  const blocked = await call(store, "/session", request);
+  assert.equal(blocked.status, 429);
+  assert.equal(blocked.body.error, "too_many_pending");
+
+  const completed = await call(store, "/complete", {
+    sessionId: first.body.sessionId,
+    provider: "linkvertise",
+    proofId: "d".repeat(64),
+  });
+  assert.equal(completed.status, 200);
+  assert.equal((await call(store, "/session", request)).status, 200);
+});
+
+test("rejects an unconfigured provider before touching Durable Object state", async () => {
+  let bindingCalls = 0;
+  const env = {
+    LOOTLABS_URL: "REPLACE_AFTER_DEPLOY",
+    KEY_STORE: {
+      idFromName() {
+        bindingCalls += 1;
+        return "unused";
+      },
+    },
+  };
+  const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=lootlabs&userId=123", {
+    headers: { "CF-Connecting-IP": "203.0.113.10" },
+  });
+  const response = await worker.fetch(request, env);
+  assert.equal(response.status, 503);
+  assert.equal(bindingCalls, 0);
+});
+
+test("starts a configured provider through the public Worker route", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const env = {
+    SESSION_TTL_SECONDS: "900",
+    LINKVERTISE_URL: "https://direct-link.net/123/example",
+    KEY_STORE: {
+      idFromName(name) {
+        return name;
+      },
+      get() {
+        return {
+          fetch(url, init) {
+            return keyStore.fetch(new Request(url, init));
+          },
+        };
+      },
+    },
+  };
+  const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=linkvertise&userId=123", {
+    headers: { "CF-Connecting-IP": "203.0.113.10" },
+  });
+  const response = await worker.fetch(request, env);
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get("location"), env.LINKVERTISE_URL);
+  assert.match(response.headers.get("set-cookie"), /nothrilo_key_session=[a-f0-9]{32}/);
+  assert.equal((await storage.list({ prefix: "session:" })).size, 1);
+});
+
+test("cleans expired records in bounded pages and reschedules remaining work", async () => {
+  const storage = new MemoryStorage();
+  const now = Date.now();
+  for (let index = 0; index < 30; index += 1) {
+    await storage.put(`expired:${String(index).padStart(2, "0")}`, { expiresAt: now - 1 });
+  }
+  await storage.put("live:record", { expiresAt: now + 60 * 60 * 1000 });
+  const store = new KeyStore({ storage }, {
+    CLEANUP_PAGE_SIZE: "8",
+    CLEANUP_MAX_PAGES: "2",
+    CLEANUP_INTERVAL_SECONDS: "900",
+  });
+
+  storage.listLimits = [];
+  await store.alarm();
+  assert.equal([...storage.values.keys()].filter((key) => key.startsWith("expired:")).length, 14);
+  assert.equal(storage.listLimits.every((limit) => Number.isInteger(limit) && limit <= 8), true);
+  assert.ok(storage.alarm <= Date.now() + 61 * 1000);
+
+  storage.listLimits = [];
+  await store.alarm();
+  assert.equal([...storage.values.keys()].filter((key) => key.startsWith("expired:")).length, 0);
+  assert.equal(storage.values.has("live:record"), true);
+  assert.equal(storage.listLimits.every((limit) => Number.isInteger(limit) && limit <= 8), true);
 });

@@ -21,6 +21,8 @@ Todas as keys dão o mesmo acesso por 24 horas. Não existe Premium e nenhuma fu
   usuário e combinação dos dois. Também limita sessões simultâneas pendentes.
 - A limpeza do Durable Object é paginada e reagendada, evitando carregar todo o
   armazenamento de uma vez.
+- As chamadas às APIs dos provedores têm timeout de 10 segundos para uma falha
+  externa não prender o Worker.
 
 Isto é uma barreira prática, não DRM absoluto: qualquer código entregue a um executor pode ser analisado ou alterado.
 
@@ -42,6 +44,10 @@ Isto é uma barreira prática, não DRM absoluto: qualquer código entregue a um
    - `LOOTLABS_POSTBACK_SECRET`
 
 O segredo do postback deve ter pelo menos 32 caracteres aleatórios. O token Linkvertise possui 64 caracteres.
+O LootLabs exige o segredo na URL do postback; por isso essa URL deve ser tratada
+como credencial, nunca publicada, e o segredo deve ser rotacionado se aparecer em
+logs ou capturas. A observabilidade detalhada permanece desligada para reduzir a
+exposição.
 
 ### Limites padrão
 

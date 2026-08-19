@@ -4623,4 +4623,3 @@ task.spawn(function()
 end)
 
 notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")
-

@@ -12,6 +12,7 @@ const DEFAULT_PENDING_PAIR_LIMIT = 3;
 const DEFAULT_CLEANUP_INTERVAL = 15 * 60;
 const DEFAULT_CLEANUP_PAGE_SIZE = 128;
 const DEFAULT_CLEANUP_MAX_PAGES = 16;
+const DEFAULT_PROVIDER_TIMEOUT_MS = 10 * 1000;
 
 const encoder = new TextEncoder();
 
@@ -94,7 +95,11 @@ function readCookie(request, name) {
     const index = part.indexOf("=");
     if (index < 0) continue;
     if (part.slice(0, index).trim() === name) {
-      return decodeURIComponent(part.slice(index + 1).trim());
+      try {
+        return decodeURIComponent(part.slice(index + 1).trim());
+      } catch {
+        return null;
+      }
     }
   }
   return null;
@@ -120,6 +125,29 @@ function providerLabel(provider) {
     lootlabs: "LootLabs",
     linkvertise: "Linkvertise",
   }[provider] || provider;
+}
+
+async function providerFetch(env, input, init = {}, responseType = "json") {
+  const timeoutMs = asPositiveInt(env.PROVIDER_TIMEOUT_MS, DEFAULT_PROVIDER_TIMEOUT_MS, 100, 30 * 1000);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(input, { ...init, signal: controller.signal });
+    let body;
+    if (responseType === "text") {
+      body = await response.text();
+    } else {
+      try {
+        body = await response.json();
+      } catch (error) {
+        if (controller.signal.aborted) throw error;
+        body = null;
+      }
+    }
+    return { response, body };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function pageShell(title, body, script = "") {
@@ -202,7 +230,8 @@ function pendingLootlabsPage() {
           return;
         }
         if(!data.ok&&data.error!=='pending') throw new Error(data.error||'invalid');
-      }catch(error){if(attempts>40){status.className='status bad';status.textContent='A confirmação demorou demais. Volte ao menu e tente novamente.';return}}
+      }catch(error){}
+      if(attempts>=40){status.className='status bad';status.textContent='A confirmação demorou demais. Volte ao menu e tente novamente.';return}
       setTimeout(poll,1500);
     }
     poll();`;
@@ -304,8 +333,11 @@ async function startProvider(request, env, url) {
     const destination = `${url.origin}/v1/nothrilo/key/callback/workink?session=${encodeURIComponent(sessionId)}&token={TOKEN}`;
     const overrideUrl = `https://work.ink/_api/v2/override?destination=${encodeURIComponent(destination)}`;
     let overrideResponse;
+    let override;
     try {
-      overrideResponse = await fetch(overrideUrl, { headers: { Accept: "application/json" } });
+      const providerResult = await providerFetch(env, overrideUrl, { headers: { Accept: "application/json" } });
+      overrideResponse = providerResult.response;
+      override = providerResult.body;
     } catch {
       await cancelSession(env, sessionId).catch(() => null);
       return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
@@ -314,7 +346,6 @@ async function startProvider(request, env, url) {
       await cancelSession(env, sessionId).catch(() => null);
       return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
     }
-    const override = await overrideResponse.json().catch(() => null);
     if (!override || typeof override.sr !== "string" || !override.sr) {
       await cancelSession(env, sessionId).catch(() => null);
       return errorPage("Work.ink retornou uma sessão inválida.", 502);
@@ -342,8 +373,15 @@ async function workinkCallback(env, url) {
     return errorPage("Token Work.ink inválido.");
   }
   const endpoint = `https://work.ink/_api/v2/token/isValid/${encodeURIComponent(token)}?deleteToken=1`;
-  const response = await fetch(endpoint, { headers: { Accept: "application/json" } });
-  const result = await response.json().catch(() => null);
+  let response;
+  let result;
+  try {
+    const providerResult = await providerFetch(env, endpoint, { headers: { Accept: "application/json" } });
+    response = providerResult.response;
+    result = providerResult.body;
+  } catch {
+    return errorPage("Work.ink demorou para responder. Tente novamente.", 502);
+  }
   const expectedLinkId = String(env.WORKINK_LINK_ID || "").trim();
   const linkMatches = expectedLinkId !== "" && String(result?.info?.linkId ?? "") === expectedLinkId;
   const notExpired = Number(result?.info?.expiresAfter || 0) > Date.now();
@@ -365,8 +403,15 @@ async function linkvertiseCallback(request, env, url) {
   const endpoint = new URL("https://publisher.linkvertise.com/api/v1/anti_bypassing");
   endpoint.searchParams.set("token", secret);
   endpoint.searchParams.set("hash", hash);
-  const response = await fetch(endpoint, { method: "POST" });
-  const verdict = (await response.text()).trim().toUpperCase();
+  let response;
+  let verdict;
+  try {
+    const providerResult = await providerFetch(env, endpoint, { method: "POST" }, "text");
+    response = providerResult.response;
+    verdict = providerResult.body.trim().toUpperCase();
+  } catch {
+    return errorPage("Linkvertise demorou para responder. Tente novamente.", 502);
+  }
   if (!response.ok || verdict !== "TRUE") return errorPage("A conclusão do Linkvertise não pôde ser confirmada.", 403);
   const completed = await completeSession(env, sessionId, "linkvertise", hash);
   if (!completed.data.ok) return errorPage("Esta conclusão já foi usada ou expirou.", completed.status);

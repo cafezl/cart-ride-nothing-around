@@ -121,6 +121,212 @@ test("creates, completes and verifies a 24-hour key", async () => {
   assert.equal(wrongUser.body.ok, false);
 });
 
+test("issues an owner test key only with the admin secret and binds it to one UserId", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, { KEY_TTL_SECONDS: "86400" });
+  const secret = "s".repeat(64);
+  const env = {
+    ADMIN_ISSUE_SECRET: secret,
+    KEY_STORE: bindingFor(keyStore),
+  };
+  const request = new Request("https://nothrilo.test/v1/nothrilo/key/admin/issue", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      "CF-Connecting-IP": "203.0.113.25",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId: "123456789" }),
+  });
+  const response = await worker.fetch(request, env);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("cache-control"), /no-store/);
+  assert.equal(response.headers.get("access-control-allow-origin"), null);
+  const issued = await response.json();
+  assert.equal(issued.ok, true);
+  assert.equal(issued.userId, "123456789");
+  assert.equal(issued.provider, "owner-test");
+  assert.match(issued.key, /^NOTH-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){4}$/);
+  assert.ok(issued.ttlSeconds > 86390 && issued.ttlSeconds <= 86400);
+
+  const valid = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: issued.key, userId: "123456789" }),
+  }), env);
+  assert.equal(valid.status, 200);
+  assert.equal((await valid.json()).provider, "owner-test");
+
+  const wrongUser = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: issued.key, userId: "987654321" }),
+  }), env);
+  assert.equal(wrongUser.status, 401);
+});
+
+test("rejects missing or incorrect admin secrets before touching Durable Object state", async () => {
+  let bindingCalls = 0;
+  const env = {
+    ADMIN_ISSUE_SECRET: "a".repeat(64),
+    KEY_STORE: {
+      idFromName() {
+        bindingCalls += 1;
+        return "unused";
+      },
+    },
+  };
+
+  for (const authorization of [undefined, `Bearer ${"b".repeat(64)}`]) {
+    const headers = { "Content-Type": "application/json" };
+    if (authorization) headers.Authorization = authorization;
+    const response = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/admin/issue", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ userId: "123456789" }),
+    }), env);
+    assert.equal(response.status, 401);
+    assert.match(response.headers.get("www-authenticate"), /^Bearer /);
+    assert.match(response.headers.get("cache-control"), /no-store/);
+  }
+  assert.equal(bindingCalls, 0);
+});
+
+test("rejects an oversized admin issuance body even without Content-Length", async () => {
+  let bindingCalls = 0;
+  const secret = "z".repeat(64);
+  const env = {
+    ADMIN_ISSUE_SECRET: secret,
+    KEY_STORE: {
+      idFromName() {
+        bindingCalls += 1;
+        return "unused";
+      },
+    },
+  };
+  const request = new Request("https://nothrilo.test/v1/nothrilo/key/admin/issue", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId: "123", padding: "x".repeat(2000) }),
+  });
+  request.headers.delete("Content-Length");
+  const response = await worker.fetch(request, env);
+  assert.equal(response.status, 413);
+  assert.equal((await response.json()).error, "request_too_large");
+  assert.equal(bindingCalls, 0);
+});
+
+test("rate limits manual owner key issuance by IP and returns Retry-After", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, {
+    KEY_TTL_SECONDS: "86400",
+    ADMIN_ISSUE_RATE_WINDOW_SECONDS: "600",
+    ADMIN_ISSUE_RATE_IP_LIMIT: "2",
+    ADMIN_ISSUE_RATE_USER_LIMIT: "10",
+  });
+  const secret = "r".repeat(64);
+  const env = { ADMIN_ISSUE_SECRET: secret, KEY_STORE: bindingFor(keyStore) };
+
+  async function issue(userId) {
+    return worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/admin/issue", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "CF-Connecting-IP": "198.51.100.50",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    }), env);
+  }
+
+  assert.equal((await issue("1")).status, 200);
+  assert.equal((await issue("2")).status, 200);
+  const limited = await issue("3");
+  assert.equal(limited.status, 429);
+  assert.ok(Number(limited.headers.get("retry-after")) > 0);
+  assert.deepEqual((await limited.json()).error, "rate_limited");
+});
+
+test("manual owner keys really expire instead of becoming permanent", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, { KEY_TTL_SECONDS: "86400" });
+  const secret = "e".repeat(64);
+  const env = { ADMIN_ISSUE_SECRET: secret, KEY_STORE: bindingFor(keyStore) };
+  const issuedResponse = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/admin/issue", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      "CF-Connecting-IP": "192.0.2.10",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId: "123456789" }),
+  }), env);
+  const issued = await issuedResponse.json();
+  const keyEntries = await storage.list({ prefix: "key:" });
+  assert.equal(keyEntries.size, 1);
+  const [keyRecordKey, keyRecord] = [...keyEntries.entries()][0];
+  keyRecord.expiresAt = Date.now() - 1;
+  await storage.put(keyRecordKey, keyRecord);
+
+  const expired = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: issued.key, userId: "123456789" }),
+  }), env);
+  assert.equal(expired.status, 401);
+  assert.deepEqual(await expired.json(), { ok: false, error: "invalid_key" });
+});
+
+test("expires both key and lease and requires a fresh completion", async () => {
+  const storage = new MemoryStorage();
+  const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+
+  const firstSession = await call(store, "/session", sessionRequest("workink", "123456"));
+  const firstCompletion = await call(store, "/complete", {
+    sessionId: firstSession.body.sessionId,
+    provider: "workink",
+    proofId: "21111111-2222-4333-8444-555555555555",
+  });
+  const firstVerification = await call(store, "/verify", {
+    key: firstCompletion.body.key,
+    userId: "123456",
+  });
+  assert.equal(firstVerification.status, 200);
+
+  for (const [storageKey, record] of storage.values) {
+    if (storageKey.startsWith("key:") || storageKey.startsWith("lease:")) {
+      record.expiresAt = Date.now() - 1;
+      storage.values.set(storageKey, record);
+    }
+  }
+
+  const expiredKey = await call(store, "/verify", {
+    key: firstCompletion.body.key,
+    userId: "123456",
+  });
+  assert.equal(expiredKey.status, 401);
+  assert.equal(expiredKey.body.error, "invalid_key");
+
+  const expiredLease = await call(store, "/verify", {
+    lease: firstVerification.body.lease,
+    userId: "123456",
+  });
+  assert.equal(expiredLease.status, 401);
+  assert.equal(expiredLease.body.error, "invalid_lease");
+
+  const nextSession = await call(store, "/session", sessionRequest("workink", "123456"));
+  const nextCompletion = await call(store, "/complete", {
+    sessionId: nextSession.body.sessionId,
+    provider: "workink",
+    proofId: "31111111-2222-4333-8444-555555555555",
+  });
+  assert.equal(nextCompletion.status, 200);
+  assert.notEqual(nextCompletion.body.key, firstCompletion.body.key);
+});
+
 test("serializes concurrent lease creation for one key", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });

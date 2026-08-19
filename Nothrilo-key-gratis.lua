@@ -411,7 +411,7 @@ end
 
     local header = Instance.new("Frame")
     header.Name = "Header"
-    header.Size = UDim2.new(1, 0, 0, 62)
+    header.Size = UDim2.new(1, 0, 0, 68)
     header.BackgroundColor3 = Theme.Header
     header.BorderSizePixel = 0
     header.Parent = card
@@ -419,31 +419,31 @@ end
     local brandDot = Instance.new("Frame")
     brandDot.AnchorPoint = Vector2.new(0, 0.5)
     brandDot.Position = UDim2.new(0, 18, 0.5, 0)
-    brandDot.Size = UDim2.fromOffset(12, 12)
+    brandDot.Size = UDim2.fromOffset(13, 13)
     brandDot.BackgroundColor3 = Theme.SchemeColor
     brandDot.BorderSizePixel = 0
     brandDot.Parent = header
     Instance.new("UICorner", brandDot).CornerRadius = UDim.new(1, 0)
 
     local title = Instance.new("TextLabel")
-    title.Position = UDim2.new(0, 40, 0, 10)
-    title.Size = UDim2.new(1, -88, 0, 23)
+    title.Position = UDim2.new(0, 42, 0, 8)
+    title.Size = UDim2.new(1, -96, 0, 27)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBold
     title.Text = "Nothrilo • Key grátis"
     title.TextColor3 = Theme.TextColor
-    title.TextSize = 17
+    title.TextSize = 19
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = header
 
     local headerSub = Instance.new("TextLabel")
-    headerSub.Position = UDim2.new(0, 40, 0, 33)
-    headerSub.Size = UDim2.new(1, -88, 0, 17)
+    headerSub.Position = UDim2.new(0, 42, 0, 36)
+    headerSub.Size = UDim2.new(1, -96, 0, 20)
     headerSub.BackgroundTransparency = 1
     headerSub.Font = Enum.Font.Gotham
     headerSub.Text = "1 anúncio • menu completo por 24 horas"
-    headerSub.TextColor3 = Color3.fromRGB(170, 170, 181)
-    headerSub.TextSize = 11
+    headerSub.TextColor3 = Color3.fromRGB(214, 214, 224)
+    headerSub.TextSize = 13
     headerSub.TextXAlignment = Enum.TextXAlignment.Left
     headerSub.Parent = header
 
@@ -451,7 +451,7 @@ end
     close.Name = "Close"
     close.AnchorPoint = Vector2.new(1, 0.5)
     close.Position = UDim2.new(1, -10, 0.5, 0)
-    close.Size = UDim2.fromOffset(42, 42)
+    close.Size = UDim2.fromOffset(46, 46)
     close.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
     close.BorderSizePixel = 0
     close.AutoButtonColor = true
@@ -464,11 +464,11 @@ end
 
     local content = Instance.new("ScrollingFrame")
     content.Name = "Content"
-    content.Position = UDim2.fromOffset(0, 62)
-    content.Size = UDim2.new(1, 0, 1, -62)
+    content.Position = UDim2.fromOffset(0, 68)
+    content.Size = UDim2.new(1, 0, 1, -68)
     content.BackgroundTransparency = 1
     content.BorderSizePixel = 0
-    content.ScrollBarThickness = 3
+    content.ScrollBarThickness = 5
     content.ScrollBarImageColor3 = Theme.SchemeColor
     content.ScrollingDirection = Enum.ScrollingDirection.Y
     content.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -478,15 +478,15 @@ end
     local padding = Instance.new("UIPadding")
     padding.PaddingLeft = UDim.new(0, 18)
     padding.PaddingRight = UDim.new(0, 18)
-    padding.PaddingTop = UDim.new(0, 16)
-    padding.PaddingBottom = UDim.new(0, 18)
+    padding.PaddingTop = UDim.new(0, 14)
+    padding.PaddingBottom = UDim.new(0, 16)
     padding.Parent = content
 
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = Enum.FillDirection.Vertical
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 9)
+    layout.Padding = UDim.new(0, 10)
     layout.Parent = content
 
     local function label(text, height, font, size, color)
@@ -507,17 +507,17 @@ end
     local intro = label(
         "Escolha uma opção, conclua as etapas no navegador e cole a key aqui. Work.ink, LootLabs e Linkvertise liberam exatamente as mesmas funções.",
         58,
-        Enum.Font.Gotham,
-        13,
-        Color3.fromRGB(210, 210, 220)
+        Enum.Font.GothamMedium,
+        15,
+        Color3.fromRGB(238, 238, 244)
     )
     intro.LayoutOrder = 1
 
-    local providerTitle = label("ESCOLHA ONDE PEGAR A KEY", 18, Enum.Font.GothamBold, 11, Color3.fromRGB(160, 160, 174))
+    local providerTitle = label("ESCOLHA ONDE PEGAR A KEY", 22, Enum.Font.GothamBold, 13, Color3.fromRGB(218, 218, 228))
     providerTitle.LayoutOrder = 2
 
     local providerRow = Instance.new("Frame")
-    providerRow.Size = UDim2.new(1, 0, 0, 50)
+    providerRow.Size = UDim2.new(1, 0, 0, 54)
     providerRow.BackgroundTransparency = 1
     providerRow.LayoutOrder = 3
     providerRow.Parent = content
@@ -530,16 +530,16 @@ end
 
     local linkBox = Instance.new("TextBox")
     linkBox.Name = "KeyLink"
-    linkBox.Size = UDim2.new(1, 0, 0, 42)
+    linkBox.Size = UDim2.new(1, 0, 0, 46)
     linkBox.BackgroundColor3 = Theme.ElementColor
     linkBox.BorderSizePixel = 0
     linkBox.ClearTextOnFocus = false
     linkBox.Font = Enum.Font.Code
     linkBox.PlaceholderText = "O link escolhido aparece aqui"
-    linkBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 133)
+    linkBox.PlaceholderColor3 = Color3.fromRGB(188, 188, 201)
     linkBox.Text = ""
-    linkBox.TextColor3 = Color3.fromRGB(220, 220, 230)
-    linkBox.TextSize = 11
+    linkBox.TextColor3 = Color3.fromRGB(240, 240, 246)
+    linkBox.TextSize = 13
     linkBox.TextTruncate = Enum.TextTruncate.AtEnd
     linkBox.TextXAlignment = Enum.TextXAlignment.Left
     linkBox.LayoutOrder = 4
@@ -549,19 +549,23 @@ end
     linkPadding.PaddingLeft = UDim.new(0, 12)
     linkPadding.PaddingRight = UDim.new(0, 12)
     linkPadding.Parent = linkBox
+    local linkStroke = Instance.new("UIStroke")
+    linkStroke.Color = Color3.fromRGB(62, 62, 76)
+    linkStroke.Thickness = 1
+    linkStroke.Parent = linkBox
 
     local keyBox = Instance.new("TextBox")
     keyBox.Name = "KeyInput"
-    keyBox.Size = UDim2.new(1, 0, 0, 48)
+    keyBox.Size = UDim2.new(1, 0, 0, 52)
     keyBox.BackgroundColor3 = Theme.ElementColor
     keyBox.BorderSizePixel = 0
     keyBox.ClearTextOnFocus = false
-    keyBox.Font = Enum.Font.Code
+    keyBox.Font = Enum.Font.RobotoMono
     keyBox.PlaceholderText = "Cole sua key: NOTH-XXXX-XXXX-XXXX-XXXX-XXXX"
-    keyBox.PlaceholderColor3 = Color3.fromRGB(126, 126, 140)
+    keyBox.PlaceholderColor3 = Color3.fromRGB(195, 195, 208)
     keyBox.Text = ""
     keyBox.TextColor3 = Theme.TextColor
-    keyBox.TextSize = 13
+    keyBox.TextSize = 15
     keyBox.TextXAlignment = Enum.TextXAlignment.Left
     keyBox.LayoutOrder = 5
     keyBox.Parent = content
@@ -571,26 +575,26 @@ end
     keyPadding.PaddingRight = UDim.new(0, 14)
     keyPadding.Parent = keyBox
     local keyStroke = Instance.new("UIStroke")
-    keyStroke.Color = Color3.fromRGB(50, 50, 62)
+    keyStroke.Color = Color3.fromRGB(72, 72, 88)
     keyStroke.Thickness = 1
     keyStroke.Parent = keyBox
 
     local verifyButton = Instance.new("TextButton")
     verifyButton.Name = "Verify"
-    verifyButton.Size = UDim2.new(1, 0, 0, 48)
+    verifyButton.Size = UDim2.new(1, 0, 0, 52)
     verifyButton.BackgroundColor3 = Theme.SchemeColor
     verifyButton.BorderSizePixel = 0
     verifyButton.AutoButtonColor = true
     verifyButton.Font = Enum.Font.GothamBold
     verifyButton.Text = "VALIDAR E ABRIR O NOTHRILO"
     verifyButton.TextColor3 = Color3.fromRGB(8, 8, 10)
-    verifyButton.TextSize = 13
+    verifyButton.TextSize = 14
     verifyButton.LayoutOrder = 6
     verifyButton.Parent = content
     Instance.new("UICorner", verifyButton).CornerRadius = UDim.new(0, 13)
 
     local statusPanel = Instance.new("Frame")
-    statusPanel.Size = UDim2.new(1, 0, 0, 56)
+    statusPanel.Size = UDim2.new(1, 0, 0, 62)
     statusPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
     statusPanel.BorderSizePixel = 0
     statusPanel.LayoutOrder = 7
@@ -600,22 +604,22 @@ end
     local statusDot = Instance.new("Frame")
     statusDot.AnchorPoint = Vector2.new(0, 0.5)
     statusDot.Position = UDim2.new(0, 13, 0.5, 0)
-    statusDot.Size = UDim2.fromOffset(9, 9)
+    statusDot.Size = UDim2.fromOffset(10, 10)
     statusDot.BackgroundColor3 = Theme.SchemeColor
     statusDot.BorderSizePixel = 0
     statusDot.Parent = statusPanel
     Instance.new("UICorner", statusDot).CornerRadius = UDim.new(1, 0)
 
     local statusText = Instance.new("TextLabel")
-    statusText.Position = UDim2.new(0, 32, 0, 6)
-    statusText.Size = UDim2.new(1, -44, 1, -12)
+    statusText.Position = UDim2.new(0, 35, 0, 6)
+    statusText.Size = UDim2.new(1, -48, 1, -12)
     statusText.BackgroundTransparency = 1
     statusText.Font = Enum.Font.Gotham
     statusText.Text = keyServerReady
         and "Escolha uma opção para gerar sua key grátis."
         or "O servidor de keys ainda não foi conectado nesta build."
-    statusText.TextColor3 = Color3.fromRGB(205, 205, 216)
-    statusText.TextSize = 12
+    statusText.TextColor3 = Color3.fromRGB(232, 232, 240)
+    statusText.TextSize = 14
     statusText.TextWrapped = true
     statusText.TextXAlignment = Enum.TextXAlignment.Left
     statusText.TextYAlignment = Enum.TextYAlignment.Center
@@ -623,10 +627,10 @@ end
 
     local privacy = label(
         "🔐 Todas as funções são grátis após a key. Nenhuma senha é pedida.",
-        36,
-        Enum.Font.Gotham,
-        11,
-        Color3.fromRGB(145, 145, 158)
+        42,
+        Enum.Font.GothamMedium,
+        13,
+        Color3.fromRGB(205, 205, 216)
     )
     privacy.LayoutOrder = 8
 
@@ -644,7 +648,7 @@ end
         elseif state == "bad" then
             statusText.TextColor3 = Color3.fromRGB(255, 116, 148)
         else
-            statusText.TextColor3 = Color3.fromRGB(205, 205, 216)
+            statusText.TextColor3 = Color3.fromRGB(232, 232, 240)
         end
     end
 
@@ -669,7 +673,7 @@ end
         button.Font = Enum.Font.GothamBold
         button.Text = provider.text
         button.TextColor3 = Theme.TextColor
-        button.TextSize = provider.id == "linkvertise" and 11 or 12
+        button.TextSize = 14
         button.Parent = providerRow
         Instance.new("UICorner", button).CornerRadius = UDim.new(0, 12)
         local stroke = Instance.new("UIStroke")
@@ -765,7 +769,26 @@ end
                 and tonumber(data.ttlSeconds)
                 and tonumber(data.ttlSeconds) > 5
             then
-                saveKeyCache(data.lease, data.ttlSeconds)
+                local remainingTtl = math.floor(math.clamp(tonumber(data.ttlSeconds), 1, KEY_MAX_TTL))
+                saveKeyCache(data.lease, remainingTtl)
+                -- os.clock() é monotônico durante esta execução: mudar o relógio
+                -- do PC não prolonga um menu que já foi autorizado.
+                local accessDeadline = os.clock() + remainingTtl
+                task.spawn(function()
+                    while not destroyed and isCurrentSuiteGeneration() do
+                        local remaining = accessDeadline - os.clock()
+                        if remaining <= 0 then break end
+                        task.wait(math.max(0.25, math.min(30, remaining)))
+                    end
+                    if destroyed or not isCurrentSuiteGeneration() or os.clock() < accessDeadline then return end
+                    clearKeyCache()
+                    if destroyNothrilo then
+                        destroyNothrilo()
+                    else
+                        destroyed = true
+                        if runtime and runtime.Parent then runtime:Destroy() end
+                    end
+                end)
                 setStatus("Acesso liberado! Abrindo o Nothrilo completo...", "good")
                 task.wait(0.45)
                 if gateAlive() and requestSerial == thisRequest then
@@ -799,12 +822,22 @@ end
         local viewport = camera and camera.ViewportSize or Vector2.new(800, 600)
         if viewport == lastViewport then return end
         lastViewport = viewport
-        local width = math.max(284, math.min(530, viewport.X - 24))
-        local height = math.max(350, math.min(510, viewport.Y - 24))
+        local width = math.max(284, math.min(600, viewport.X - 16))
+        local height = math.max(350, math.min(550, viewport.Y - 16))
         card.Size = UDim2.fromOffset(width, height)
-        title.TextSize = width < 360 and 15 or 17
-        headerSub.TextSize = width < 360 and 10 or 11
-        intro.TextSize = width < 360 and 12 or 13
+        local narrow = width < 390
+        title.TextSize = narrow and 17 or 19
+        headerSub.TextSize = narrow and 12 or 13
+        intro.TextSize = narrow and 14 or 15
+        providerTitle.TextSize = narrow and 12 or 13
+        linkBox.TextSize = narrow and 12 or 13
+        keyBox.TextSize = narrow and 13 or 15
+        verifyButton.TextSize = narrow and 13 or 14
+        statusText.TextSize = narrow and 13 or 14
+        privacy.TextSize = narrow and 12 or 13
+        for _, stroke in ipairs(providerStrokes) do
+            stroke.Parent.TextSize = narrow and 12 or 14
+        end
     end
     resizeGate()
 

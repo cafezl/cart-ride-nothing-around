@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import vm from "node:vm";
 import worker, { KeyStore } from "../src/index.js";
 
 class MemoryStorage {
@@ -52,6 +53,33 @@ async function call(store, path, body) {
 
 function sessionRequest(provider, userId, clientKey = "c".repeat(64)) {
   return { provider, userId, clientKey };
+}
+
+function bindingFor(store) {
+  return {
+    idFromName(name) {
+      return name;
+    },
+    get() {
+      return {
+        fetch(url, init) {
+          return store.fetch(new Request(url, init));
+        },
+      };
+    },
+  };
+}
+
+function neverRespond(_input, init = {}) {
+  return new Promise((_resolve, reject) => {
+    const abort = () => {
+      const error = new Error("aborted");
+      error.name = "AbortError";
+      reject(error);
+    };
+    if (init.signal?.aborted) abort();
+    else init.signal?.addEventListener("abort", abort, { once: true });
+  });
 }
 
 test("creates, completes and verifies a 24-hour key", async () => {
@@ -180,6 +208,47 @@ test("root route returns an HTML response", async () => {
   assert.match(await response.text(), /Nothrilo Key/);
 });
 
+test("handles malformed session cookies without throwing", async () => {
+  const request = new Request("https://nothrilo.test/v1/nothrilo/key/status", {
+    headers: { Cookie: "nothrilo_key_session=%" },
+  });
+  const response = await worker.fetch(request, {});
+  assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), { ok: false, error: "missing_session" });
+});
+
+test("stops LootLabs pending polling after about 60 seconds", async () => {
+  const response = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/callback/lootlabs"), {});
+  const page = await response.text();
+  const script = page.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script);
+
+  const scheduled = [];
+  let fetchCalls = 0;
+  const elements = {
+    status: { className: "", textContent: "" },
+    result: { innerHTML: "" },
+  };
+  vm.runInNewContext(script, {
+    document: { getElementById: (id) => elements[id] },
+    fetch: async () => {
+      fetchCalls += 1;
+      return { json: async () => ({ ok: false, error: "pending", status: "pending" }) };
+    },
+    setTimeout: (callback) => scheduled.push(callback),
+    navigator: { clipboard: { writeText: async () => {} } },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  while (scheduled.length > 0) {
+    const callback = scheduled.shift();
+    await callback();
+  }
+
+  assert.equal(fetchCalls, 40);
+  assert.match(elements.status.textContent, /demorou demais/);
+  assert.equal(scheduled.length, 0);
+});
+
 test("rate limits starts by IP, user and pair without blocking normal retries", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, {
@@ -256,18 +325,7 @@ test("starts a configured provider through the public Worker route", async () =>
   const env = {
     SESSION_TTL_SECONDS: "900",
     LINKVERTISE_URL: "https://direct-link.net/123/example",
-    KEY_STORE: {
-      idFromName(name) {
-        return name;
-      },
-      get() {
-        return {
-          fetch(url, init) {
-            return keyStore.fetch(new Request(url, init));
-          },
-        };
-      },
-    },
+    KEY_STORE: bindingFor(keyStore),
   };
   const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=linkvertise&userId=123", {
     headers: { "CF-Connecting-IP": "203.0.113.10" },
@@ -277,6 +335,54 @@ test("starts a configured provider through the public Worker route", async () =>
   assert.equal(response.headers.get("location"), env.LINKVERTISE_URL);
   assert.match(response.headers.get("set-cookie"), /nothrilo_key_session=[a-f0-9]{32}/);
   assert.equal((await storage.list({ prefix: "session:" })).size, 1);
+});
+
+test("times out an unresponsive provider and cancels its pending session", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const env = {
+    SESSION_TTL_SECONDS: "900",
+    PROVIDER_TIMEOUT_MS: "100",
+    WORKINK_URL: "https://work.ink/example/nothrilo",
+    WORKINK_LINK_ID: "123",
+    KEY_STORE: bindingFor(keyStore),
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = neverRespond;
+  try {
+    const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=workink&userId=123", {
+      headers: { "CF-Connecting-IP": "203.0.113.10" },
+    });
+    const response = await worker.fetch(request, env);
+    assert.equal(response.status, 502);
+    assert.equal((await storage.list({ prefix: "session:" })).size, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("times out Linkvertise verification without completing the session", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const created = await call(keyStore, "/session", sessionRequest("linkvertise", "123"));
+  const env = {
+    PROVIDER_TIMEOUT_MS: "100",
+    LINKVERTISE_ANTI_BYPASS_TOKEN: "f".repeat(64),
+    KEY_STORE: bindingFor(keyStore),
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = neverRespond;
+  try {
+    const request = new Request(`https://nothrilo.test/v1/nothrilo/key/callback/linkvertise?hash=${"e".repeat(64)}`, {
+      headers: { Cookie: `nothrilo_key_session=${created.body.sessionId}` },
+    });
+    const response = await worker.fetch(request, env);
+    assert.equal(response.status, 502);
+    const session = await storage.get(`session:${created.body.sessionId}`);
+    assert.equal(session.status, "pending");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("cleans expired records in bounded pages and reschedules remaining work", async () => {

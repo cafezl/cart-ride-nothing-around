@@ -13,6 +13,9 @@ const DEFAULT_CLEANUP_INTERVAL = 15 * 60;
 const DEFAULT_CLEANUP_PAGE_SIZE = 128;
 const DEFAULT_CLEANUP_MAX_PAGES = 16;
 const DEFAULT_PROVIDER_TIMEOUT_MS = 10 * 1000;
+const DEFAULT_ADMIN_ISSUE_WINDOW = 15 * 60;
+const DEFAULT_ADMIN_ISSUE_IP_LIMIT = 6;
+const DEFAULT_ADMIN_ISSUE_USER_LIMIT = 3;
 
 const encoder = new TextEncoder();
 
@@ -31,6 +34,23 @@ function json(data, status = 200, headers = {}) {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",
       ...corsHeaders(),
+      ...headers,
+    },
+  });
+}
+
+function privateJson(data, status = 200, headers = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store, max-age=0",
+      Pragma: "no-cache",
+      Expires: "0",
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+      "X-Robots-Tag": "noindex, nofollow, noarchive",
+      Vary: "Authorization",
       ...headers,
     },
   });
@@ -87,6 +107,24 @@ async function sha256Hex(value) {
   return [...new Uint8Array(digest)]
     .map((part) => part.toString(16).padStart(2, "0"))
     .join("");
+}
+
+async function secretsEqual(provided, configured) {
+  const left = String(provided ?? "");
+  const right = String(configured ?? "");
+  const [leftDigest, rightDigest] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(left)),
+    crypto.subtle.digest("SHA-256", encoder.encode(right)),
+  ]);
+  const leftBytes = new Uint8Array(leftDigest);
+  const rightBytes = new Uint8Array(rightDigest);
+  let difference = left.length === right.length ? 0 : 1;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index] ^ rightBytes[index];
+  }
+  const configuredLengthIsSafe = right.length >= 32 && right.length <= 512;
+  const providedLengthIsSafe = left.length >= 32 && left.length <= 512;
+  return configuredLengthIsSafe && providedLengthIsSafe && difference === 0;
 }
 
 function readCookie(request, name) {
@@ -285,6 +323,15 @@ async function verifyIssuedKey(env, credential, userId) {
   return { status: response.status, data: await response.json() };
 }
 
+async function issueManualOwnerKey(env, userId, clientKey) {
+  const response = await internalRequest(env, "/manual-issue", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, clientKey }),
+  });
+  return { status: response.status, data: await response.json() };
+}
+
 function providerConfiguration(env, provider) {
   if (provider === "workink") {
     const baseLink = String(env.WORKINK_URL || "").trim();
@@ -450,6 +497,46 @@ async function verifyKeyRequest(request, env) {
   return json(verified.data, verified.status);
 }
 
+async function manualOwnerIssueRequest(request, env) {
+  const contentLength = Number.parseInt(request.headers.get("Content-Length") || "0", 10);
+  if (Number.isFinite(contentLength) && contentLength > 1024) {
+    return privateJson({ ok: false, error: "request_too_large" }, 413);
+  }
+
+  const authorization = String(request.headers.get("Authorization") || "");
+  const providedSecret = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  const configuredSecret = String(env.ADMIN_ISSUE_SECRET || "");
+  if (!await secretsEqual(providedSecret, configuredSecret)) {
+    return privateJson({ ok: false, error: "unauthorized" }, 401, {
+      "WWW-Authenticate": 'Bearer realm="nothrilo-owner"',
+    });
+  }
+
+  let rawBody;
+  try {
+    rawBody = await request.text();
+  } catch {
+    return privateJson({ ok: false, error: "invalid_json" }, 400);
+  }
+  if (rawBody.length > 1024) return privateJson({ ok: false, error: "request_too_large" }, 413);
+  let body;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    return privateJson({ ok: false, error: "invalid_json" }, 400);
+  }
+  const userId = normalizeUserId(body?.userId);
+  if (!userId) return privateJson({ ok: false, error: "invalid_user_id" }, 400);
+
+  const clientKey = await sha256Hex(`admin-ip:${clientAddress(request)}`);
+  const issued = await issueManualOwnerKey(env, userId, clientKey);
+  const headers = {};
+  if (issued.status === 429) {
+    headers["Retry-After"] = String(asPositiveInt(issued.data.retryAfter, 60, 1, 24 * 60 * 60));
+  }
+  return privateJson(issued.data, issued.status, headers);
+}
+
 export class KeyStore {
   constructor(state, env) {
     this.state = state;
@@ -570,6 +657,53 @@ export class KeyStore {
     });
   }
 
+  async createRateLimitedManualKey(userId, clientKey) {
+    return this.withMutationLock(async () => {
+      const now = Date.now();
+      const windowSeconds = asPositiveInt(
+        this.env.ADMIN_ISSUE_RATE_WINDOW_SECONDS,
+        DEFAULT_ADMIN_ISSUE_WINDOW,
+        60,
+        24 * 60 * 60,
+      );
+      const userKey = await sha256Hex(`admin-user:${userId}`);
+      const rateSpecs = [
+        ["ip", clientKey, asPositiveInt(this.env.ADMIN_ISSUE_RATE_IP_LIMIT, DEFAULT_ADMIN_ISSUE_IP_LIMIT, 1, 100)],
+        ["user", userKey, asPositiveInt(this.env.ADMIN_ISSUE_RATE_USER_LIMIT, DEFAULT_ADMIN_ISSUE_USER_LIMIT, 1, 50)],
+      ];
+      const records = [];
+      for (const [kind, key, limit] of rateSpecs) {
+        const storageKey = `admin-rate:${kind}:${key}`;
+        const stored = await this.storage.get(storageKey);
+        const record = stored && Number(stored.expiresAt || 0) > now
+          ? { count: Number(stored.count || 0), expiresAt: Number(stored.expiresAt) }
+          : { count: 0, expiresAt: now + windowSeconds * 1000 };
+        if (record.count >= limit) {
+          return json({
+            ok: false,
+            error: "rate_limited",
+            retryAfter: Math.max(1, Math.ceil((record.expiresAt - now) / 1000)),
+          }, 429);
+        }
+        records.push({ storageKey, record });
+      }
+
+      for (const { storageKey, record } of records) {
+        await this.storage.put(storageKey, { count: record.count + 1, expiresAt: record.expiresAt });
+      }
+      const issued = await this.issueKey({ userId, provider: "owner-test" });
+      await this.ensureAlarm(Math.min(windowSeconds * 1000, issued.expiresAt - now));
+      return json({
+        ok: true,
+        key: issued.key,
+        userId,
+        provider: issued.provider,
+        expiresAt: issued.expiresAt,
+        ttlSeconds: Math.max(0, Math.floor((issued.expiresAt - Date.now()) / 1000)),
+      });
+    });
+  }
+
   async issueKey(session) {
     const raw = randomHex(10).toUpperCase();
     const key = `NOTH-${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}-${raw.slice(12, 16)}-${raw.slice(16, 20)}`;
@@ -595,6 +729,16 @@ export class KeyStore {
       const clientKey = String(body?.clientKey || "");
       if (!provider || !userId || !/^[a-f0-9]{64}$/i.test(clientKey)) return json({ ok: false, error: "invalid_session" }, 400);
       return this.createRateLimitedSession(provider, userId, clientKey.toLowerCase());
+    }
+
+    if (url.pathname === "/manual-issue" && request.method === "POST") {
+      const body = await request.json().catch(() => null);
+      const userId = normalizeUserId(body?.userId);
+      const clientKey = String(body?.clientKey || "");
+      if (!userId || !/^[a-f0-9]{64}$/i.test(clientKey)) {
+        return json({ ok: false, error: "invalid_manual_issue" }, 400);
+      }
+      return this.createRateLimitedManualKey(userId, clientKey.toLowerCase());
     }
 
     if (url.pathname === "/cancel" && request.method === "POST") {
@@ -752,6 +896,9 @@ export default {
 
     if (url.pathname === "/" && request.method === "GET") return html(landingPage(url.origin));
     if (url.pathname === "/v1/nothrilo/key/health") return json({ ok: true, product: PRODUCT });
+    if (url.pathname === "/v1/nothrilo/key/admin/issue" && request.method === "POST") {
+      return manualOwnerIssueRequest(request, env);
+    }
     if (url.pathname === "/v1/nothrilo/key/start" && request.method === "GET") return startProvider(request, env, url);
     if (url.pathname === "/v1/nothrilo/key/callback/workink" && request.method === "GET") return workinkCallback(env, url);
     if (url.pathname === "/v1/nothrilo/key/callback/linkvertise" && request.method === "GET") return linkvertiseCallback(request, env, url);

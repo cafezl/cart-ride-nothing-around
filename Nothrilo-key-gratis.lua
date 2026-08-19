@@ -173,17 +173,14 @@ local Theme = {
 -- =============================================================================
 -- Key grátis — todos os provedores liberam o menu inteiro por 24 horas
 -- =============================================================================
--- A URL real é colocada na publicação final. O override facilita testar outra
--- implantação sem editar o arquivo:
--- Opcional: use getgenv().NothriloKeyServerUrl para apontar uma build de teste.
+-- Endpoint oficial fixo da build pública. Não aceite override pelo ambiente do
+-- executor, pois uma URL controlada por terceiros poderia simular uma resposta
+-- válida e liberar o menu sem concluir a key.
 do
 local HttpService = game:GetService("HttpService")
 local keyGateGui
 local function runFreeKeyGate()
-local KEY_SERVER_PLACEHOLDER = "https://nothrilo-key.urielcafe01.workers.dev"
-local keyServerUrl = tostring(suiteEnvironment.NothriloKeyServerUrl or KEY_SERVER_PLACEHOLDER)
-    :match("^%s*(.-)%s*$")
-    :gsub("/+$", "")
+local keyServerUrl = "https://nothrilo-key.urielcafe01.workers.dev"
 local keyServerReady = keyServerUrl:match("^https://") ~= nil
     and not keyServerUrl:find("__NOTHRILO_", 1, true)
 
@@ -4626,3 +4623,4 @@ task.spawn(function()
 end)
 
 notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")
+

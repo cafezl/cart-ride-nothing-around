@@ -17,6 +17,10 @@ Todas as keys dão o mesmo acesso por 24 horas. Não existe Premium e nenhuma fu
 - Work.ink e Linkvertise são validados diretamente nas APIs oficiais e consumidos uma vez.
 - LootLabs usa postback com rota secreta, sessão curta e `unique_id` de uso único.
 - O armazenamento forte é um Durable Object SQLite; não depende da consistência eventual do KV.
+- O início de key valida o provedor antes de gravar e limita tentativas por IP,
+  usuário e combinação dos dois. Também limita sessões simultâneas pendentes.
+- A limpeza do Durable Object é paginada e reagendada, evitando carregar todo o
+  armazenamento de uma vez.
 
 Isto é uma barreira prática, não DRM absoluto: qualquer código entregue a um executor pode ser analisado ou alterado.
 
@@ -38,6 +42,15 @@ Isto é uma barreira prática, não DRM absoluto: qualquer código entregue a um
    - `LOOTLABS_POSTBACK_SECRET`
 
 O segredo do postback deve ter pelo menos 32 caracteres aleatórios. O token Linkvertise possui 64 caracteres.
+
+### Limites padrão
+
+Em uma janela de 10 minutos são aceitos até 30 inícios por IP, 10 por usuário e
+6 pela mesma combinação IP/usuário. Podem ficar pendentes ao mesmo tempo até 20
+sessões por IP, 4 por usuário e 3 pela mesma combinação. Esses valores podem ser
+ajustados com `START_RATE_WINDOW_SECONDS`, `START_RATE_IP_LIMIT`,
+`START_RATE_USER_LIMIT`, `START_RATE_PAIR_LIMIT`, `MAX_PENDING_IP`,
+`MAX_PENDING_USER` e `MAX_PENDING_PAIR`.
 
 ## Rotas usadas pelo Lua
 

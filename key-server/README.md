@@ -42,12 +42,47 @@ Isto é uma barreira prática, não DRM absoluto: qualquer código entregue a um
 
    - `LINKVERTISE_ANTI_BYPASS_TOKEN`
    - `LOOTLABS_POSTBACK_SECRET`
+   - `ADMIN_ISSUE_SECRET` (segredo aleatório de pelo menos 32 caracteres)
 
 O segredo do postback deve ter pelo menos 32 caracteres aleatórios. O token Linkvertise possui 64 caracteres.
 O LootLabs exige o segredo na URL do postback; por isso essa URL deve ser tratada
 como credencial, nunca publicada, e o segredo deve ser rotacionado se aparecer em
 logs ou capturas. A observabilidade detalhada permanece desligada para reduzir a
 exposição.
+
+## Key manual do dono
+
+Existe uma rota administrativa para emitir uma key de teste sem criar uma key
+universal e sem colocar segredo no Lua ou no GitHub. A key continua vinculada ao
+`UserId` numérico informado e expira normalmente após 24 horas.
+
+Primeiro, grave um segredo aleatório forte de pelo menos 32 caracteres. O comando
+abaixo pede o valor de forma interativa; não coloque o valor na própria linha de
+comando:
+
+```powershell
+pnpm exec wrangler secret put ADMIN_ISSUE_SECRET
+```
+
+Para emitir uma key, use o script auxiliar. Ele pede o segredo com a entrada
+oculta e o envia somente no cabeçalho HTTPS, sem colocá-lo no histórico do
+terminal nem nos argumentos do processo:
+
+```powershell
+.\scripts\issue-owner-key.ps1 `
+  -WorkerUrl "https://nothrilo-key.SUA-CONTA.workers.dev" `
+  -UserId "USER_ID_NUMERICO"
+```
+
+Não use nome de exibição ou nome de usuário no lugar do `UserId`. A rota não tem
+CORS, responde com `Cache-Control: no-store` e limita, por padrão, 6 emissões por
+IP e 3 por usuário a cada 15 minutos. Os limites podem ser ajustados com
+`ADMIN_ISSUE_RATE_WINDOW_SECONDS`, `ADMIN_ISSUE_RATE_IP_LIMIT` e
+`ADMIN_ISSUE_RATE_USER_LIMIT`.
+
+Ao vencer, uma key não se renova nem vira permanente: é necessário concluir um
+provedor novamente ou emitir outra key administrativa. A nova key é aleatória e
+diferente da anterior.
 
 ### Limites padrão
 
@@ -63,6 +98,9 @@ ajustados com `START_RATE_WINDOW_SECONDS`, `START_RATE_IP_LIMIT`,
 - Obter link: `GET /v1/nothrilo/key/start?provider=PROVEDOR&userId=USER_ID`
 - Validar key: `POST /v1/nothrilo/key/verify`
 - Saúde: `GET /v1/nothrilo/key/health`
+
+A rota `POST /v1/nothrilo/key/admin/issue` é somente administrativa. Ela nunca
+deve ser chamada pelo Lua distribuído nem receber o segredo por query string.
 
 Corpo de validação:
 

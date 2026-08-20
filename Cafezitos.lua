@@ -1335,17 +1335,10 @@ local function startVehicleFly(inputEnabled)
         flySavedState.fallingDown = humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown)
     end)
 
-    -- R-77 deixa o Humanoid sentado intacto; alterar PlatformStand/AutoRotate
-    -- nesse estado pode quebrar a solda do VehicleSeat.
-    flySavedState.humanoidModified = humanoid.SeatPart == nil
-    if flySavedState.humanoidModified then
-        humanoid.AutoRotate = false
-        humanoid.PlatformStand = true
-        pcall(function()
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    false)
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-        end)
-    end
+    -- O Vehicle Fly original do DEV R-77 usa sFLY(true): ele nunca coloca o
+    -- Humanoid em PlatformStand. Isso preserva a solda do VehicleSeat e evita
+    -- que o carrinho solte/entorte assim que o voo liga.
+    flySavedState.humanoidModified = false
 
     local control     = { F=0, B=0, L=0, R=0, Q=0, E=0 }
     FLYING = true
@@ -1370,12 +1363,12 @@ local function startVehicleFly(inputEnabled)
     flyKeyDown = UserInputService.InputBegan:Connect(function(input, processed)
         if not flySavedState.inputEnabled or processed or UserInputService:GetFocusedTextBox() then return end
         local key = input.KeyCode
-        if     key == Enum.KeyCode.W then control.F =  1
-        elseif key == Enum.KeyCode.S then control.B = -1
-        elseif key == Enum.KeyCode.A then control.L = -1
-        elseif key == Enum.KeyCode.D then control.R =  1
-        elseif key == Enum.KeyCode.E then control.Q =  1
-        elseif key == Enum.KeyCode.Q then control.E = -1
+        if     key == Enum.KeyCode.W then control.F =  vehicleFlySpeed
+        elseif key == Enum.KeyCode.S then control.B = -vehicleFlySpeed
+        elseif key == Enum.KeyCode.A then control.L = -vehicleFlySpeed
+        elseif key == Enum.KeyCode.D then control.R =  vehicleFlySpeed
+        elseif key == Enum.KeyCode.E then control.Q =  vehicleFlySpeed * 2
+        elseif key == Enum.KeyCode.Q then control.E = -vehicleFlySpeed * 2
         end
     end)
 
@@ -1406,12 +1399,12 @@ local function startVehicleFly(inputEnabled)
             end
 
             if flySavedState.inputEnabled and UserInputService.KeyboardEnabled then
-                control.F = UserInputService:IsKeyDown(Enum.KeyCode.W) and  1 or 0
-                control.B = UserInputService:IsKeyDown(Enum.KeyCode.S) and -1 or 0
-                control.L = UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0
-                control.R = UserInputService:IsKeyDown(Enum.KeyCode.D) and  1 or 0
-                control.Q = UserInputService:IsKeyDown(Enum.KeyCode.E) and  1 or 0
-                control.E = UserInputService:IsKeyDown(Enum.KeyCode.Q) and -1 or 0
+                control.F = UserInputService:IsKeyDown(Enum.KeyCode.W) and  vehicleFlySpeed or 0
+                control.B = UserInputService:IsKeyDown(Enum.KeyCode.S) and -vehicleFlySpeed or 0
+                control.L = UserInputService:IsKeyDown(Enum.KeyCode.A) and -vehicleFlySpeed or 0
+                control.R = UserInputService:IsKeyDown(Enum.KeyCode.D) and  vehicleFlySpeed or 0
+                control.Q = UserInputService:IsKeyDown(Enum.KeyCode.E) and  vehicleFlySpeed * 2 or 0
+                control.E = UserInputService:IsKeyDown(Enum.KeyCode.Q) and -vehicleFlySpeed * 2 or 0
             end
 
             local keyboardMoving = flySavedState.inputEnabled and ((control.L + control.R ~= 0)
@@ -1436,10 +1429,17 @@ local function startVehicleFly(inputEnabled)
             )
 
             if keyboardMoving then
-                local direction = camera.CFrame.LookVector * (control.F + control.B)
-                    + camera.CFrame.RightVector * (control.L + control.R)
-                    + Vector3.new(0, control.Q + control.E, 0)
-                bodyVelocity.Velocity = direction * (vehicleFlySpeed * 50)
+                -- Mesma equação do sFLY(true) do DEV R-77. Os controles já
+                -- carregam o multiplicador de velocidade; aplicar de novo aqui
+                -- deixava o valor quadrático e diferente do menu de referência.
+                local cameraCFrame = camera.CFrame
+                local direction = cameraCFrame.LookVector * (control.F + control.B)
+                    + ((cameraCFrame * CFrame.new(
+                        control.L + control.R,
+                        (control.F + control.B + control.Q + control.E) * 0.2,
+                        0
+                    )).Position - cameraCFrame.Position)
+                bodyVelocity.Velocity = direction * 50
             elseif mobileMoving then
                 bodyVelocity.Velocity =
                     Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * 50)
@@ -1526,8 +1526,11 @@ local function cacheCurrentCart(humanoid, seat)
     cartCache.seat = seat
     cartCache.assemblyRoot = seat.AssemblyRootPart
     cartCache.cart = findCartFromSeat(seat)
-    cartCache.primary = cartCache.assemblyRoot
-        or (cartCache.cart and cartCache.cart.PrimaryPart)
+    -- Os checkpoints do menu antigo foram gravados para o PrimaryPart do
+    -- carrinho. Usar AssemblyRootPart primeiro deslocava e girava o modelo em
+    -- relação às coordenadas originais.
+    cartCache.primary = (cartCache.cart and cartCache.cart.PrimaryPart)
+        or cartCache.assemblyRoot
     return cartCache.cart
 end
 
@@ -1555,12 +1558,12 @@ end
 -- Retorna a parte principal do carrinho de forma robusta
 local function getCartPrimary(cart)
     if not cart then return nil end
-    if cartCache.cart == cart and cartCache.primary and cartCache.primary.Parent then
-        return cartCache.primary
-    end
     if cart.PrimaryPart then
         if cartCache.cart == cart then cartCache.primary = cart.PrimaryPart end
         return cart.PrimaryPart
+    end
+    if cartCache.cart == cart and cartCache.primary and cartCache.primary.Parent then
+        return cartCache.primary
     end
     local humanoid = getHumanoid()
     local seat = humanoid and humanoid.SeatPart
@@ -3560,3 +3563,4 @@ if Window.gui and Window.gui.Parent then Window.gui.Enabled = true end
 if startup.status and startup.status.Parent then startup.status.Text = "Pronto!" end
 if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
 notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")
+

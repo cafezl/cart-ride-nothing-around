@@ -2526,10 +2526,10 @@ local FLYING         = false
 local vehicleFlySpeed = 1
 local flyKeyDown
 local flyKeyUp
-local flyHumanoid
-local flyAutoRotate
-local flyPlatformStand
-local flySavedState = { freefall = nil, fallingDown = nil, inputEnabled = true }
+-- O DEV R-77 aplica os BodyMovers sem forçar PlatformStand/AutoRotate. Isso é
+-- importante quando o jogador liga o VFly fora de um carrinho: o Humanoid não
+-- fica preso em um estado diferente depois que o voo termina.
+local flySavedState = { inputEnabled = true }
 local mouse        = LocalPlayer:GetMouse()
 local flyTouchUp   = 0
 local flyTouchDown = 0
@@ -2636,37 +2636,15 @@ local function stopFly()
     flySavedState.gyro = nil
     flySavedState.velocity = nil
 
-    local humanoid = flyHumanoid or getHumanoid()
-    if humanoid then
-        if flySavedState.humanoidChanged then
-            if flyPlatformStand ~= nil then humanoid.PlatformStand = flyPlatformStand end
-            if flyAutoRotate ~= nil then humanoid.AutoRotate = flyAutoRotate end
-            pcall(function()
-                local freefall = flySavedState.freefall
-                local fallingDown = flySavedState.fallingDown
-                humanoid:SetStateEnabled(
-                    Enum.HumanoidStateType.Freefall,
-                    freefall == nil and true or freefall
-                )
-                humanoid:SetStateEnabled(
-                    Enum.HumanoidStateType.FallingDown,
-                    fallingDown == nil and true or fallingDown
-                )
-            end)
-        end
-    end
-    flyHumanoid     = nil
-    flyAutoRotate   = nil
-    flyPlatformStand = nil
-    flySavedState.freefall = nil
-    flySavedState.fallingDown = nil
-    flySavedState.humanoidChanged = false
     flySavedState.startedSeated = false
     flySavedState.inputEnabled = true
     releaseCameraMode("fly")
 end
 
 local function startVehicleFly(inputEnabled)
+    -- VFly e a rota automática escrevem no mesmo HumanoidRootPart. A ação mais
+    -- recente vence e a anterior restaura qualquer Anchor antes de sair.
+    if cameraModeStoppers.autoWin then cameraModeStoppers.autoWin(true) end
     stopFly()
     local session = flySession
     if destroyed or not isCurrentSuiteGeneration() then return false end
@@ -2685,24 +2663,8 @@ local function startVehicleFly(inputEnabled)
         end
     end)
 
-    flyHumanoid      = humanoid
-    flyAutoRotate    = humanoid.AutoRotate
-    flyPlatformStand = humanoid.PlatformStand
     flySavedState.inputEnabled = inputEnabled ~= false
     flySavedState.startedSeated = humanoid.SeatPart ~= nil
-    flySavedState.humanoidChanged = humanoid.SeatPart == nil
-    if flySavedState.humanoidChanged then
-        pcall(function()
-            flySavedState.freefall = humanoid:GetStateEnabled(Enum.HumanoidStateType.Freefall)
-            flySavedState.fallingDown = humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown)
-        end)
-        humanoid.AutoRotate = false
-        humanoid.PlatformStand = true
-        pcall(function()
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    false)
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-        end)
-    end
 
     local control     = { F=0, B=0, L=0, R=0, Q=0, E=0 }
     local lastControl = { F=0, B=0, L=0, R=0, Q=0, E=0 }
@@ -2735,6 +2697,13 @@ local function startVehicleFly(inputEnabled)
         elseif key == "e" then control.Q =  vehicleFlySpeed * 2
         elseif key == "q" then control.E = -vehicleFlySpeed * 2
         end
+        -- O R-77 reafirma Track quando chega uma tecla. Alguns executores
+        -- devolvem a câmera para Custom depois de abrir/fechar a interface.
+        pcall(function()
+            if workspace.CurrentCamera then
+                workspace.CurrentCamera.CameraType = Enum.CameraType.Track
+            end
+        end)
     end)
 
     flyKeyUp = mouse.KeyUp:Connect(function(key)
@@ -2771,7 +2740,23 @@ local function startVehicleFly(inputEnabled)
             local keyboardMoving = (control.L + control.R ~= 0)
                 or (control.F + control.B ~= 0)
                 or (control.Q + control.E ~= 0)
-            local mobileDir     = humanoid.MoveDirection
+            local mobileDir = humanoid.MoveDirection
+            -- Em alguns jogos/executores o thumbstick dirige o VehicleSeat,
+            -- mas Humanoid.MoveDirection permanece zero. Recupere a intenção
+            -- do toque usando ThrottleFloat/SteerFloat na base da câmera.
+            if flySavedState.inputEnabled and UserInputService.TouchEnabled
+                and Vector3.new(mobileDir.X, 0, mobileDir.Z).Magnitude <= 0.05
+            then
+                local seat = humanoid.SeatPart
+                local camera = workspace.CurrentCamera
+                if seat and seat:IsA("VehicleSeat") and camera then
+                    local flatLook = Vector3.new(camera.CFrame.LookVector.X, 0, camera.CFrame.LookVector.Z)
+                    local flatRight = Vector3.new(camera.CFrame.RightVector.X, 0, camera.CFrame.RightVector.Z)
+                    if flatLook.Magnitude > 0.01 then flatLook = flatLook.Unit end
+                    if flatRight.Magnitude > 0.01 then flatRight = flatRight.Unit end
+                    mobileDir = flatLook * seat.ThrottleFloat + flatRight * seat.SteerFloat
+                end
+            end
             local mobileMoving  = flySavedState.inputEnabled and UserInputService.TouchEnabled and (
                 Vector3.new(mobileDir.X, 0, mobileDir.Z).Magnitude > 0.05
                 or flyTouchUp ~= 0 or flyTouchDown ~= 0
@@ -3007,7 +2992,65 @@ local function pivotCartByReference(cart, desiredReferenceCFrame)
     end)
 end
 
-local function stopCartControllersForTeleport()
+-- Os três CFrames de checkpoint do menu antigo foram capturados para o
+-- PrimaryPart do carrinho. Usar o VehicleSeat como referência (como fazia a
+-- revisão anterior) soma um offset diferente e deixa posição/rotação erradas.
+-- Preferimos exatamente o Model imediato do assento, igual ao menu funcional,
+-- e só usamos o invólucro detectado quando ele também possui PrimaryPart.
+local function getCheckpointCartModel(cart)
+    local humanoid = getHumanoid()
+    local seat = humanoid and humanoid.SeatPart
+    local seatModel = seat and seat.Parent
+    if seatModel and seatModel:IsA("Model") and seatModel.PrimaryPart then
+        return seatModel
+    end
+    if cart and cart:IsA("Model") and cart.PrimaryPart then
+        return cart
+    end
+    return nil
+end
+
+local function pivotCartByPrimaryPart(cart, desiredPrimaryCFrame)
+    local checkpointCart = getCheckpointCartModel(cart)
+    if not checkpointCart then return false, "missing_primary" end
+
+    local ok = pcall(function()
+        for _, part in ipairs(checkpointCart:GetDescendants()) do
+            if part:IsA("BasePart") and not part.Anchored then
+                pcall(function()
+                    part.AssemblyLinearVelocity = Vector3.zero
+                    part.AssemblyAngularVelocity = Vector3.zero
+                end)
+            end
+        end
+
+        -- Mantém o mesmo referencial das funções 1/2/3 originais do Kavo.
+        checkpointCart:SetPrimaryPartCFrame(desiredPrimaryCFrame)
+
+        local primary = checkpointCart.PrimaryPart
+        if primary then
+            pcall(function()
+                primary.AssemblyLinearVelocity = Vector3.zero
+                primary.AssemblyAngularVelocity = Vector3.zero
+            end)
+        end
+        for _, part in ipairs(checkpointCart:GetDescendants()) do
+            if part:IsA("BasePart") and not part.Anchored then
+                pcall(function()
+                    part.AssemblyLinearVelocity = Vector3.zero
+                    part.AssemblyAngularVelocity = Vector3.zero
+                end)
+            end
+        end
+    end)
+    if ok then return true, nil end
+    return false, "pivot_failed"
+end
+
+local function stopCartControllersForTeleport(keepAutoWin)
+    if not keepAutoWin and cameraModeStoppers.autoWin then
+        cameraModeStoppers.autoWin(true)
+    end
     cartMotionPauseUntil = os.clock() + 0.25
     if killerActive then
         killerSession = killerSession + 1
@@ -3029,12 +3072,16 @@ local function stopCartControllersForTeleport()
 end
 
 local function teleportCart(cframe)
+    -- Mesmo sem carrinho atual, apertar um checkpoint é uma nova ação e deve
+    -- interromper a rota automática antes de retornar o aviso.
+    stopCartControllersForTeleport()
     local cart = getCurrentCart()
     if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return false end
-    stopCartControllersForTeleport()
-    local ok = pivotCartByReference(cart, cframe)
+    local ok, reason = pivotCartByPrimaryPart(cart, cframe)
     if ok then
         notify("Carrinho", "Carrinho movido para o checkpoint.")
+    elseif reason == "missing_primary" then
+        notify("Carrinho", "O modelo deste carrinho não possui PrimaryPart.")
     else
         notify("Carrinho", "Não foi possível mover este carrinho.")
     end
@@ -3211,6 +3258,7 @@ end
 
 watchSeatWhenReady(LocalPlayer.Character, false)
 trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
+    if cameraModeStoppers.autoWin then cameraModeStoppers.autoWin(true) end
     cacheCartFromSeat(nil)
     cleanupStabilizer()
     restorePanicStop()
@@ -3235,6 +3283,7 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
 end))
 
 trackConnection(LocalPlayer.CharacterRemoving:Connect(function()
+    if cameraModeStoppers.autoWin then cameraModeStoppers.autoWin(true) end
     killerSession = killerSession + 1
     killerActive = false
     cacheCartFromSeat(nil)
@@ -3292,10 +3341,12 @@ local function sitOnVehicleSeat(seat, session)
     local humanoid = getHumanoid(nil, 5)
     if destroyed or not isCurrentSuiteGeneration()
         or (session and session ~= killerSession)
-        or not seat or not root or not humanoid or seat.Occupant
+        or not seat or not root or not humanoid
+        or (seat.Occupant and seat.Occupant ~= humanoid)
     then
         return false
     end
+    if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
 
     if humanoid.SeatPart and humanoid.SeatPart ~= seat then
         humanoid.Sit = false
@@ -3308,16 +3359,19 @@ local function sitOnVehicleSeat(seat, session)
     end
 
     for _ = 1, 3 do
+        if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
         if destroyed or not isCurrentSuiteGeneration()
             or (session and session ~= killerSession)
-            or not seat.Parent or seat.Occupant
+            or not seat.Parent or (seat.Occupant and seat.Occupant ~= humanoid)
         then
             break
         end
         root.CFrame = seat.CFrame * CFrame.new(0, 2, 0)
         task.wait(0.12)
+        if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
         if destroyed or (session and session ~= killerSession)
-            or not seat.Parent or not humanoid.Parent or seat.Occupant
+            or not seat.Parent or not humanoid.Parent
+            or (seat.Occupant and seat.Occupant ~= humanoid)
         then
             break
         end
@@ -3385,6 +3439,7 @@ end
 
 local function executeKiller(partialName)
     if killerActive then notify("Eliminador", "Aguarde a tentativa atual terminar.") return end
+    if cameraModeStoppers.autoWin then cameraModeStoppers.autoWin(true) end
     local target = findPlayerByPartialName(partialName)
     if not target or target == LocalPlayer then
         notify("Eliminador", target == LocalPlayer and "Escolha outro jogador." or "Jogador não encontrado.")
@@ -3406,7 +3461,8 @@ local function executeKiller(partialName)
 
     local humanoid = getHumanoid()
     local seat = humanoid and humanoid.SeatPart
-    local alreadySeated = seat and seat:IsA("VehicleSeat") and seat.Occupant == humanoid
+    local alreadySeated = seat and seat:IsA("VehicleSeat")
+        and (seat.Occupant == humanoid or humanoid.SeatPart == seat)
     if not alreadySeated then
         seat = findNearestFreeVehicleSeat()
         if not seat then finishKiller("Não há carrinho livre por perto.", session) return end
@@ -3683,6 +3739,148 @@ end)
 -- =============================================================================
 -- ABA: Teleporte
 -- =============================================================================
+-- A rota elaborada do primeiro menu havia desaparecido nas revisões novas.
+-- Ela é mantida com os mesmos CFrames/tempos, mas agora roda em uma sessão
+-- cancelável e nunca deixa o HumanoidRootPart ancorado ao fechar ou renascer.
+do
+local autoWinSession = 0
+local autoWinActive = false
+local autoWinAnchoredRoot
+local autoWinPreviousAnchored
+
+local function autoWinAlive(session)
+    return autoWinActive
+        and session == autoWinSession
+        and not destroyed
+        and isCurrentSuiteGeneration()
+end
+
+local function waitAutoWin(seconds, session)
+    local deadline = os.clock() + seconds
+    repeat
+        task.wait(math.min(0.1, math.max(0, deadline - os.clock())))
+    until os.clock() >= deadline or not autoWinAlive(session)
+    return autoWinAlive(session)
+end
+
+local function restoreAutoWinAnchor()
+    if autoWinAnchoredRoot and autoWinAnchoredRoot.Parent then
+        autoWinAnchoredRoot.Anchored = autoWinPreviousAnchored == true
+    end
+    autoWinAnchoredRoot = nil
+    autoWinPreviousAnchored = nil
+end
+
+local function cancelAutoWin(silent)
+    local wasActive = autoWinActive
+    autoWinSession = autoWinSession + 1
+    autoWinActive = false
+    restoreAutoWinAnchor()
+    if wasActive and not silent then notify("Vitória Automática", "Rota cancelada.") end
+end
+cameraModeStoppers.autoWin = cancelAutoWin
+
+local function setAutoWinRoot(cframe, session)
+    if not autoWinAlive(session) then return false end
+    local root = getRoot(nil, 5)
+    if not root or not autoWinAlive(session) then return false end
+    local ok = pcall(function()
+        root.CFrame = cframe
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+    end)
+    return ok
+end
+
+local function setAutoWinSitting(value, session)
+    if not autoWinAlive(session) then return false end
+    local humanoid = getHumanoid(nil, 5)
+    if not humanoid or not autoWinAlive(session) then return false end
+    humanoid.Sit = value
+    return true
+end
+
+local function startAutoWin()
+    if autoWinActive then
+        notify("Vitória Automática", "A rota já está em andamento.")
+        return
+    end
+
+    -- Esta é a única chamada que preserva a própria rota; o helper cancela
+    -- Fly, Killer, boost e panic antes de a sessão AutoWin começar.
+    stopCartControllersForTeleport(true)
+    autoWinSession = autoWinSession + 1
+    local session = autoWinSession
+    autoWinActive = true
+    notify("Vitória Automática", "Rota antiga iniciada; não feche o menu.")
+
+    task.spawn(function()
+        local function abort(message)
+            if session ~= autoWinSession then return end
+            cancelAutoWin(true)
+            if message and not destroyed then notify("Vitória Automática", message) end
+        end
+
+        if not teleportCharacter(CFrame.new(
+            -430.898926, 165.25, 101.645676,
+            1, 1.51719295e-08, -1.24212969e-14,
+            -1.51719295e-08, 1, -1.14675147e-09,
+            1.24038988e-14, 1.14675147e-09, 1
+        )) then abort("Não foi possível iniciar a rota.") return end
+        if not waitAutoWin(4.1, session) then return end
+
+        if not setAutoWinRoot(CFrame.new(
+            -430.898529, 163.273926, 131.145554,
+            1, -2.85942061e-08, 2.0407586e-07,
+            2.85942079e-08, 1, -1.07927356e-08,
+            -2.0407586e-07, 1.07927409e-08, 1
+        ), session) then abort("Personagem perdido durante a rota.") return end
+        if not waitAutoWin(10, session) then return end
+        if not setAutoWinSitting(true, session) then abort("Humanoid não encontrado.") return end
+        if not waitAutoWin(33, session) then return end
+        if not setAutoWinSitting(false, session) then abort("Humanoid não encontrado.") return end
+        if not waitAutoWin(2, session) then return end
+
+        if not setAutoWinRoot(CFrame.new(
+            -500.748535, -21.78265, -302.303406,
+            0, 0, 1, 0, -1, 0, 1, 0, 0
+        ), session) then abort("Não foi possível entrar na segunda etapa.") return end
+        if not waitAutoWin(0.1, session) then return end
+
+        local root = getRoot(nil, 5)
+        if not root or not autoWinAlive(session) then abort("HumanoidRootPart não encontrado.") return end
+        autoWinAnchoredRoot = root
+        autoWinPreviousAnchored = root.Anchored
+        root.Anchored = true
+        if not waitAutoWin(1.3, session) then return end
+        restoreAutoWinAnchor()
+        if not waitAutoWin(0.6, session) then return end
+
+        if not setAutoWinRoot(CFrame.new(
+            -470.360138, -21.1945782, -302.303101,
+            0, 0, 1, 0, -1, 0, 1, 0, 0
+        ), session) then abort("Não foi possível continuar a segunda etapa.") return end
+        if not waitAutoWin(10, session) then return end
+        if not setAutoWinSitting(true, session) then abort("Humanoid não encontrado.") return end
+        if not waitAutoWin(35, session) then return end
+        if not setAutoWinSitting(false, session) then abort("Humanoid não encontrado.") return end
+        if not waitAutoWin(0.5, session) then return end
+
+        if not setAutoWinRoot(CFrame.new(
+            -421.770264, -44.2260475, -297.081909,
+            0.999515891, 6.59387993e-08, 0.0311128739,
+            -6.60972859e-08, 1, 4.06536627e-09,
+            -0.0311128739, -6.11987483e-09, 0.999515891
+        ), session) then abort("Não foi possível concluir a rota.") return end
+
+        if session == autoWinSession then
+            autoWinActive = false
+            restoreAutoWinAnchor()
+            notify("Vitória Automática", "Rota concluída.")
+        end
+    end)
+end
+
 local TeleportSection = Window:NewTab("Teleporte"):NewSection("Teleportes")
 
 TeleportSection:NewButton("Início", "Teleporta para o início da trilha.", function()
@@ -3723,6 +3921,12 @@ TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", funct
         notify("Teleporte", "Teleportado para a sala secreta.")
     end
 end)
+
+TeleportSection:NewButton("Vitória Automática", "Executa a rota completa do menu antigo.", startAutoWin)
+TeleportSection:NewButton("Cancelar Vitória Automática", "Interrompe a rota com segurança.", function()
+    cancelAutoWin(false)
+end)
+end
 
 local CHECKPOINTS = {
     [1] = CFrame.new(-430.898926, 164.75, 101.645676) * CFrame.Angles(0, math.rad(90),  0),
@@ -4823,6 +5027,7 @@ destroyNothrilo = function()
     running      = false
     killerActive = false
     killerSession = killerSession + 1
+    if cameraModeStoppers.autoWin then cameraModeStoppers.autoWin(true) end
     cameraModeStoppers.restoreSession = (cameraModeStoppers.restoreSession or 0) + 1
     infiniteJump = false
 
@@ -4979,3 +5184,4 @@ task.spawn(function()
 end)
 
 notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")
+

@@ -769,28 +769,82 @@ end
 -- =============================================================================
 -- Helpers de personagem
 -- =============================================================================
-local function getCharacter()
-    return LocalPlayer.Character
+local function getCharacter(waitSeconds)
+    local character = LocalPlayer.Character
+    if character or not waitSeconds or waitSeconds <= 0 then return character end
+
+    local deadline = os.clock() + waitSeconds
+    repeat
+        task.wait()
+        character = LocalPlayer.Character
+    until character or destroyed or not isCurrentSuiteGeneration() or os.clock() >= deadline
+    return character
 end
 
-local function getHumanoid(character)
-    character = character or LocalPlayer.Character
-    return character and character:FindFirstChildOfClass("Humanoid")
+local function getHumanoid(character, waitSeconds)
+    character = character or getCharacter(waitSeconds)
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    if humanoid or not character or not waitSeconds or waitSeconds <= 0 then return humanoid end
+
+    local deadline = os.clock() + waitSeconds
+    repeat
+        task.wait()
+        humanoid = character:FindFirstChildOfClass("Humanoid")
+    until humanoid or not character.Parent or destroyed
+        or not isCurrentSuiteGeneration() or os.clock() >= deadline
+    return humanoid
 end
 
-local function getRoot(character)
-    character = character or LocalPlayer.Character
-    return character and character:FindFirstChild("HumanoidRootPart")
+local function getRoot(character, waitSeconds)
+    character = character or getCharacter(waitSeconds)
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if root or not character or not waitSeconds or waitSeconds <= 0 then return root end
+
+    root = character:WaitForChild("HumanoidRootPart", waitSeconds)
+    return root and root:IsA("BasePart") and root or nil
 end
 
 local function teleportCharacter(cframe)
-    local root = getRoot()
-    if not root then
+    if destroyed or not isCurrentSuiteGeneration() then return false end
+    local character = getCharacter(2)
+    local humanoid = getHumanoid(character, 2)
+    local root = getRoot(character, 2)
+    if destroyed or not isCurrentSuiteGeneration()
+        or not character or character ~= LocalPlayer.Character or not character.Parent
+    then return false end
+    if not root or not root.Parent then
         notify("Teleporte", "HumanoidRootPart não encontrado.")
         return false
     end
-    root.CFrame = cframe
-    return true
+
+    -- RootPart soldado a um assento não se move de forma confiável. Soltar e
+    -- aguardar um frame replica o comportamento funcional da referência.
+    if humanoid and humanoid.SeatPart then
+        humanoid.Sit = false
+        pcall(function() humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+        local deadline = os.clock() + 0.6
+        repeat RunService.Heartbeat:Wait()
+        until not humanoid.Parent or humanoid.SeatPart == nil
+            or destroyed or not isCurrentSuiteGeneration() or os.clock() >= deadline
+        if destroyed or not isCurrentSuiteGeneration()
+            or character ~= LocalPlayer.Character or not character.Parent
+        then return false end
+        root = getRoot(character, 1)
+        if not root or not root.Parent or humanoid.SeatPart then
+            notify("Teleporte", "Não foi possível sair do assento.")
+            return false
+        end
+    end
+
+    local ok = pcall(function()
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+        root.CFrame = cframe
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+    end)
+    if not ok then notify("Teleporte", "Não foi possível concluir o teleporte.") end
+    return ok
 end
 
 -- =============================================================================
@@ -813,8 +867,17 @@ end
 local function removeESP(player)
     local objects = espObjects[player]
     if not objects then return end
-    for _, object in pairs(objects) do
-        if object and object.Parent then object:Destroy() end
+    if objects.Billboard and objects.Billboard.Parent then objects.Billboard:Destroy() end
+    if objects.Highlight and objects.Highlight.Parent then objects.Highlight:Destroy() end
+    local humanoid = objects.Humanoid
+    local state = objects.DisplayState
+    if humanoid and humanoid.Parent and state then
+        pcall(function()
+            humanoid.DisplayDistanceType = state.DisplayDistanceType
+            humanoid.NameOcclusion = state.NameOcclusion
+            humanoid.NameDisplayDistance = state.NameDisplayDistance
+            humanoid.HealthDisplayDistance = state.HealthDisplayDistance
+        end)
     end
     espObjects[player] = nil
 end
@@ -838,15 +901,23 @@ local function refreshESPSize(player)
     local localCharacter = LocalPlayer.Character
     local localRoot      = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
     local targetRoot     = objects.Billboard.Adornee
-    if not localRoot or not targetRoot or not targetRoot.Parent then return end
+    if not localRoot or not targetRoot or not targetRoot.Parent then
+        objects.Billboard.Enabled = false
+        return
+    end
 
     local distance = (localRoot.Position - targetRoot.Position).Magnitude
     local scaleStartDistance = 150
     objects.Billboard.Enabled = true
 
+    if objects.Label and objects.Label.Parent then
+        local displayName = player.DisplayName ~= "" and player.DisplayName or player.Name
+        objects.Label.Text = string.format("%s  •  %d studs", displayName, math.floor(distance + 0.5))
+    end
+
     local progress = math.clamp((distance - scaleStartDistance) / 450, 0, 1)
     objects.Billboard.Size = UDim2.fromOffset(
-        math.floor(82  + (170 - 82)  * progress),
+        math.floor(118 + (220 - 118) * progress),
         math.floor(18  + (36  - 18)  * progress)
     )
 end
@@ -856,12 +927,26 @@ local function addESP(player, character)
     character = character or player.Character
     if not character or not character.Parent then return end
     local root = character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not root or not humanoid then return end
     removeESP(player)
+
+    local displayState = {
+        DisplayDistanceType = humanoid.DisplayDistanceType,
+        NameOcclusion = humanoid.NameOcclusion,
+        NameDisplayDistance = humanoid.NameDisplayDistance,
+        HealthDisplayDistance = humanoid.HealthDisplayDistance,
+    }
+    pcall(function()
+        humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        humanoid.NameOcclusion = Enum.NameOcclusion.NoOcclusion
+        humanoid.NameDisplayDistance = 0
+        humanoid.HealthDisplayDistance = 0
+    end)
 
     local billboard = Instance.new("BillboardGui")
     billboard.Name          = ESP_TAG .. "Name"
-    billboard.Size          = UDim2.fromOffset(78, 16)
+    billboard.Size          = UDim2.fromOffset(118, 18)
     billboard.Enabled       = false
     billboard.Adornee       = root
     billboard.AlwaysOnTop   = true
@@ -889,7 +974,13 @@ local function addESP(player, character)
     highlight.Adornee          = character
     highlight.Parent           = character
 
-    espObjects[player] = { Billboard = billboard, Label = label, Highlight = highlight }
+    espObjects[player] = {
+        Billboard = billboard,
+        Label = label,
+        Highlight = highlight,
+        Humanoid = humanoid,
+        DisplayState = displayState,
+    }
     refreshESPColor(player)
     refreshESPSize(player)
 end
@@ -906,10 +997,15 @@ local function watchESPPlayer(player)
     if player == LocalPlayer then return end
     disconnectESPPlayer(player)
     local connections = {}
+    local watchSession = espSession
     espPlayerConnections[player] = connections
 
     table.insert(connections, player.CharacterAdded:Connect(function(character)
-        task.wait(0.2)
+        character:WaitForChild("HumanoidRootPart", 5)
+        local deadline = os.clock() + 5
+        while character.Parent and not character:FindFirstChildOfClass("Humanoid")
+            and os.clock() < deadline do task.wait() end
+        if destroyed or not espEnabled or watchSession ~= espSession then return end
         addESP(player, character)
     end))
     table.insert(connections, player.CharacterRemoving:Connect(function()
@@ -918,14 +1014,21 @@ local function watchESPPlayer(player)
     table.insert(connections, player:GetPropertyChangedSignal("Team"):Connect(function()
         refreshESPColor(player)
     end))
+    table.insert(connections, player:GetPropertyChangedSignal("DisplayName"):Connect(function()
+        refreshESPSize(player)
+    end))
     addESP(player, player.Character)
 end
 
 local function clearESP()
     for _, c in ipairs(espGlobalConnections) do c:Disconnect() end
     table.clear(espGlobalConnections)
-    for player in pairs(espPlayerConnections) do disconnectESPPlayer(player) end
-    for player in pairs(espObjects) do removeESP(player) end
+    local connectedPlayers = {}
+    for player in pairs(espPlayerConnections) do table.insert(connectedPlayers, player) end
+    for _, player in ipairs(connectedPlayers) do disconnectESPPlayer(player) end
+    local renderedPlayers = {}
+    for player in pairs(espObjects) do table.insert(renderedPlayers, player) end
+    for _, player in ipairs(renderedPlayers) do removeESP(player) end
 end
 
 local function setESP(enabled)
@@ -958,7 +1061,7 @@ local function setESP(enabled)
                     end
                 end
             end
-            task.wait(0.5)
+            task.wait(0.25)
         end
     end)
     notify("ESP", "Ligado: nomes e contornos ativos.")
@@ -976,21 +1079,63 @@ local desiredWalkSpeed
 local desiredJumpPower
 local desiredJumpHeight
 local createdTools = {}
+local killerActive = false
+local killerSession = 0
+local cartMotionPauseUntil = 0
+local cartFeatureTiming = { antiFlipReadyAt = 0, autobrakeHoldUntil = 0, autobrakeReadyAt = 0 }
 
 local activeCameraMode
 local cameraModeStoppers = {}
+local cameraBaseline
+
+local function captureCameraBaseline()
+    local camera = workspace.CurrentCamera
+    if not camera then return end
+    cameraBaseline = {
+        camera = camera,
+        cameraType = camera.CameraType,
+        cameraSubject = camera.CameraSubject,
+        cframe = camera.CFrame,
+        focus = camera.Focus,
+        fieldOfView = camera.FieldOfView,
+    }
+end
 
 local function restoreDefaultCamera()
     local camera = workspace.CurrentCamera
+    local baseline = cameraBaseline
+    cameraBaseline = nil
     if not camera then return end
-    camera.CameraType = Enum.CameraType.Custom
-    local humanoid = getHumanoid()
-    if humanoid then camera.CameraSubject = humanoid end
+
+    local restored = false
+    if baseline and baseline.camera == camera then
+        restored = pcall(function()
+            camera.CameraType = baseline.cameraType
+            camera.CFrame = baseline.cframe
+            camera.Focus = baseline.focus
+            camera.FieldOfView = baseline.fieldOfView
+            local subject = baseline.cameraSubject
+            if subject and subject.Parent then camera.CameraSubject = subject
+            else
+                local humanoid = getHumanoid()
+                if humanoid then camera.CameraSubject = humanoid end
+            end
+        end)
+    end
+
+    if not restored then
+        pcall(function()
+            camera.CameraType = Enum.CameraType.Custom
+            local humanoid = getHumanoid()
+            if humanoid then camera.CameraSubject = humanoid end
+        end)
+    end
 end
 
 local function claimCameraMode(mode)
     if activeCameraMode == mode then return end
     local previous = activeCameraMode
+    if not previous then captureCameraBaseline() end
     activeCameraMode = mode
     local stopper = previous and cameraModeStoppers[previous]
     if stopper then pcall(stopper) end
@@ -1020,6 +1165,13 @@ local flyKeyUp
 local flyHumanoid
 local flyAutoRotate
 local flyPlatformStand
+local flySavedState = {
+    freefall = nil, fallingDown = nil, inputEnabled = true,
+    humanoidModified = false, startedSeated = false,
+}
+local flyRoot
+local flyBodyGyro
+local flyBodyVelocity
 local flySession    = 0
 local mouse        = LocalPlayer:GetMouse()
 local flyTouchUp   = 0
@@ -1110,59 +1262,94 @@ local function stopFly()
     if flyKeyDown then flyKeyDown:Disconnect() flyKeyDown = nil end
     if flyKeyUp   then flyKeyUp:Disconnect()   flyKeyUp   = nil end
 
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if root then
-        local gyro = root:FindFirstChild("CafezitosVehicleFlyGyro")
-        local velocity = root:FindFirstChild("CafezitosVehicleFlyVelocity")
-        if gyro then gyro:Destroy() end
-        if velocity then velocity:Destroy() end
+    if flyBodyGyro and flyBodyGyro.Parent then flyBodyGyro:Destroy() end
+    if flyBodyVelocity and flyBodyVelocity.Parent then flyBodyVelocity:Destroy() end
+    local function removeNamedMovers(root)
+        if root and root.Parent then
+            local gyro = root:FindFirstChild("CafezitosVehicleFlyGyro")
+            local velocity = root:FindFirstChild("CafezitosVehicleFlyVelocity")
+            if gyro then gyro:Destroy() end
+            if velocity then velocity:Destroy() end
+        end
     end
+    removeNamedMovers(flyRoot)
+    local currentRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if currentRoot ~= flyRoot then removeNamedMovers(currentRoot) end
 
     local humanoid = flyHumanoid or getHumanoid()
-    if humanoid then
-        humanoid.PlatformStand = flyPlatformStand ~= nil and flyPlatformStand or false
-        humanoid.AutoRotate    = flyAutoRotate    ~= nil and flyAutoRotate    or true
+    if humanoid and humanoid.Parent and flySavedState.humanoidModified then
+        if flyPlatformStand ~= nil then humanoid.PlatformStand = flyPlatformStand end
+        if flyAutoRotate ~= nil then humanoid.AutoRotate = flyAutoRotate end
         pcall(function()
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    true)
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+            humanoid:SetStateEnabled(
+                Enum.HumanoidStateType.Freefall,
+                flySavedState.freefall == nil and true or flySavedState.freefall
+            )
+            humanoid:SetStateEnabled(
+                Enum.HumanoidStateType.FallingDown,
+                flySavedState.fallingDown == nil and true or flySavedState.fallingDown
+            )
         end)
     end
     flyHumanoid     = nil
     flyAutoRotate   = nil
     flyPlatformStand = nil
+    flyRoot = nil
+    flyBodyGyro = nil
+    flyBodyVelocity = nil
+    flySavedState.freefall = nil
+    flySavedState.fallingDown = nil
+    flySavedState.inputEnabled = true
+    flySavedState.humanoidModified = false
+    flySavedState.startedSeated = false
     releaseCameraMode("fly")
 end
 
-local function startVehicleFly()
+local function startVehicleFly(inputEnabled)
     stopFly()
-    local character = getCharacter()
-    local root      = getRoot(character)
-    local humanoid  = getHumanoid(character)
-    if not root or not humanoid then
+    local session   = flySession
+    local character = getCharacter(3)
+    local root      = getRoot(character, 3)
+    local humanoid  = getHumanoid(character, 3)
+    if destroyed or not isCurrentSuiteGeneration() or session ~= flySession
+        or not character or character ~= LocalPlayer.Character or not character.Parent
+    then return false end
+    if not root or not root.Parent or not humanoid or not humanoid.Parent then
         notify("Voo do Veículo", "Personagem não encontrado.")
         return false
     end
 
     claimCameraMode("fly")
+    pcall(function()
+        local camera = workspace.CurrentCamera
+        if camera then camera.CameraType = Enum.CameraType.Track end
+    end)
 
     flyHumanoid      = humanoid
     flyAutoRotate    = humanoid.AutoRotate
     flyPlatformStand = humanoid.PlatformStand
-    humanoid.AutoRotate = false
-    if not humanoid.SeatPart and not UserInputService.TouchEnabled then
-        humanoid.PlatformStand = true
-    end
+    flySavedState.inputEnabled = inputEnabled ~= false
+    flySavedState.startedSeated = humanoid.SeatPart ~= nil
     pcall(function()
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        flySavedState.freefall = humanoid:GetStateEnabled(Enum.HumanoidStateType.Freefall)
+        flySavedState.fallingDown = humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown)
     end)
 
+    -- R-77 deixa o Humanoid sentado intacto; alterar PlatformStand/AutoRotate
+    -- nesse estado pode quebrar a solda do VehicleSeat.
+    flySavedState.humanoidModified = humanoid.SeatPart == nil
+    if flySavedState.humanoidModified then
+        humanoid.AutoRotate = false
+        humanoid.PlatformStand = true
+        pcall(function()
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    false)
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        end)
+    end
+
     local control     = { F=0, B=0, L=0, R=0, Q=0, E=0 }
-    local lastControl = { F=0, B=0, L=0, R=0, Q=0, E=0 }
-    flySession = flySession + 1
-    local session = flySession
     FLYING = true
-    showMobileFlyControls(true)
+    showMobileFlyControls(flySavedState.inputEnabled)
 
     local bodyGyro = Instance.new("BodyGyro")
     bodyGyro.Name      = "CafezitosVehicleFlyGyro"
@@ -1170,71 +1357,93 @@ local function startVehicleFly()
     bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
     bodyGyro.CFrame    = root.CFrame
     bodyGyro.Parent    = root
+    flyRoot            = root
+    flyBodyGyro        = bodyGyro
 
     local bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.Name     = "CafezitosVehicleFlyVelocity"
     bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
     bodyVelocity.Velocity = Vector3.zero
     bodyVelocity.Parent   = root
+    flyBodyVelocity       = bodyVelocity
 
-    flyKeyDown = mouse.KeyDown:Connect(function(key)
-        key = key:lower()
-        if     key == "w" then control.F =  vehicleFlySpeed
-        elseif key == "s" then control.B = -vehicleFlySpeed
-        elseif key == "a" then control.L = -vehicleFlySpeed
-        elseif key == "d" then control.R =  vehicleFlySpeed
-        elseif key == "e" then control.Q =  vehicleFlySpeed * 2
-        elseif key == "q" then control.E = -vehicleFlySpeed * 2
+    flyKeyDown = UserInputService.InputBegan:Connect(function(input, processed)
+        if not flySavedState.inputEnabled or processed or UserInputService:GetFocusedTextBox() then return end
+        local key = input.KeyCode
+        if     key == Enum.KeyCode.W then control.F =  1
+        elseif key == Enum.KeyCode.S then control.B = -1
+        elseif key == Enum.KeyCode.A then control.L = -1
+        elseif key == Enum.KeyCode.D then control.R =  1
+        elseif key == Enum.KeyCode.E then control.Q =  1
+        elseif key == Enum.KeyCode.Q then control.E = -1
         end
     end)
 
-    flyKeyUp = mouse.KeyUp:Connect(function(key)
-        key = key:lower()
-        if     key == "w" then control.F = 0
-        elseif key == "s" then control.B = 0
-        elseif key == "a" then control.L = 0
-        elseif key == "d" then control.R = 0
-        elseif key == "e" then control.Q = 0
-        elseif key == "q" then control.E = 0
+    flyKeyUp = UserInputService.InputEnded:Connect(function(input)
+        local key = input.KeyCode
+        if     key == Enum.KeyCode.W then control.F = 0
+        elseif key == Enum.KeyCode.S then control.B = 0
+        elseif key == Enum.KeyCode.A then control.L = 0
+        elseif key == Enum.KeyCode.D then control.R = 0
+        elseif key == Enum.KeyCode.E then control.Q = 0
+        elseif key == Enum.KeyCode.Q then control.E = 0
         end
     end)
 
     task.spawn(function()
-        while FLYING and session == flySession and root.Parent and humanoid.Parent do
+        local boundCamera
+        while FLYING and session == flySession and root.Parent and humanoid.Parent
+            and bodyGyro.Parent and bodyVelocity.Parent
+        do
             task.wait()
+            if flySavedState.startedSeated and humanoid.SeatPart == nil then break end
 
             local camera = workspace.CurrentCamera
             if not camera then break end
+            if camera ~= boundCamera then
+                boundCamera = camera
+                pcall(function() camera.CameraType = Enum.CameraType.Track end)
+            end
 
-            local keyboardMoving = (control.L + control.R ~= 0)
+            if flySavedState.inputEnabled and UserInputService.KeyboardEnabled then
+                control.F = UserInputService:IsKeyDown(Enum.KeyCode.W) and  1 or 0
+                control.B = UserInputService:IsKeyDown(Enum.KeyCode.S) and -1 or 0
+                control.L = UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0
+                control.R = UserInputService:IsKeyDown(Enum.KeyCode.D) and  1 or 0
+                control.Q = UserInputService:IsKeyDown(Enum.KeyCode.E) and  1 or 0
+                control.E = UserInputService:IsKeyDown(Enum.KeyCode.Q) and -1 or 0
+            end
+
+            local keyboardMoving = flySavedState.inputEnabled and ((control.L + control.R ~= 0)
                 or (control.F + control.B ~= 0)
-                or (control.Q + control.E ~= 0)
-            local mobileDir     = humanoid.MoveDirection
-            local mobileMoving  = UserInputService.TouchEnabled and (
+                or (control.Q + control.E ~= 0))
+            local mobileDir = humanoid.MoveDirection
+            if UserInputService.TouchEnabled
+                and Vector3.new(mobileDir.X, 0, mobileDir.Z).Magnitude <= 0.05
+            then
+                local seat = humanoid.SeatPart
+                if seat and seat:IsA("VehicleSeat") then
+                    local flatLook = Vector3.new(camera.CFrame.LookVector.X, 0, camera.CFrame.LookVector.Z)
+                    local flatRight = Vector3.new(camera.CFrame.RightVector.X, 0, camera.CFrame.RightVector.Z)
+                    if flatLook.Magnitude > 0.01 then flatLook = flatLook.Unit end
+                    if flatRight.Magnitude > 0.01 then flatRight = flatRight.Unit end
+                    mobileDir = flatLook * seat.ThrottleFloat + flatRight * seat.SteerFloat
+                end
+            end
+            local mobileMoving  = flySavedState.inputEnabled and UserInputService.TouchEnabled and (
                 Vector3.new(mobileDir.X, 0, mobileDir.Z).Magnitude > 0.05
                 or flyTouchUp ~= 0 or flyTouchDown ~= 0
             )
-            local moving = keyboardMoving or mobileMoving
-            local spd    = moving and 50 or 0
 
             if keyboardMoving then
-                lastControl = { F=control.F, B=control.B, L=control.L, R=control.R, Q=control.Q, E=control.E }
-            end
-
-            local cur = keyboardMoving and control or lastControl
-            if keyboardMoving and spd > 0 then
-                bodyVelocity.Velocity = (
-                    (camera.CFrame.LookVector * (cur.F + cur.B))
-                    + ((camera.CFrame * CFrame.new(
-                        cur.L + cur.R,
-                        (cur.F + cur.B + cur.Q + cur.E) * 0.2,
-                        0
-                    )).Position - camera.CFrame.Position)
-                ) * spd
-            elseif mobileMoving and spd > 0 then
+                local direction = camera.CFrame.LookVector * (control.F + control.B)
+                    + camera.CFrame.RightVector * (control.L + control.R)
+                    + Vector3.new(0, control.Q + control.E, 0)
+                bodyVelocity.Velocity = direction * (vehicleFlySpeed * 50)
+            elseif mobileMoving then
                 bodyVelocity.Velocity =
-                    Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * spd)
-                    + Vector3.new(0, (flyTouchUp - flyTouchDown) * vehicleFlySpeed * spd, 0)
+                    Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * 50)
+                    + Vector3.new(0, (flyTouchUp - flyTouchDown) * vehicleFlySpeed * 50, 0)
             else
                 bodyVelocity.Velocity = Vector3.zero
             end
@@ -1242,6 +1451,9 @@ local function startVehicleFly()
         end
         if bodyGyro.Parent    then bodyGyro:Destroy()    end
         if bodyVelocity.Parent then bodyVelocity:Destroy() end
+        if flyBodyGyro == bodyGyro then flyBodyGyro = nil end
+        if flyBodyVelocity == bodyVelocity then flyBodyVelocity = nil end
+        if flyRoot == root then flyRoot = nil end
         if session == flySession and FLYING then
             if flyEnabled and flyToggleControl then
                 flyToggleControl:UpdateToggle(nil, false)
@@ -1381,12 +1593,24 @@ local function setPanicStop(enabled)
     if not enabled then
         restorePanicStop()
         notify("Carrinho", "Parada de emergência desligada.")
-        return
+        return true
     end
 
     local cart = getCurrentCart()
-    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return end
+    if not cart then
+        notify("Carrinho", "Sente em um carrinho primeiro.")
+        return false
+    end
 
+    if killerActive then
+        killerSession = killerSession + 1
+        killerActive = false
+    end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
     if stopBoost then stopBoost() end
     if boostToggleControl then
         task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
@@ -1405,17 +1629,64 @@ local function setPanicStop(enabled)
         end
     end
     notify("Carrinho", "Parada de emergência ligada.")
+    return true
+end
+
+local function pivotCartByReference(cart, desiredReferenceCFrame)
+    local reference = getCartPrimary(cart)
+    if not cart or not reference or not reference.Parent then return false end
+    return pcall(function()
+        local referenceOffset = cart:GetPivot():ToObjectSpace(reference.CFrame)
+        local function stopPart(part)
+            if not part.Anchored then
+                pcall(function()
+                    part.AssemblyLinearVelocity = Vector3.zero
+                    part.AssemblyAngularVelocity = Vector3.zero
+                end)
+            end
+        end
+        for _, part in ipairs(cart:GetDescendants()) do
+            if part:IsA("BasePart") then stopPart(part) end
+        end
+        cart:PivotTo(desiredReferenceCFrame * referenceOffset:Inverse())
+        for _, part in ipairs(cart:GetDescendants()) do
+            if part:IsA("BasePart") then stopPart(part) end
+        end
+    end)
+end
+
+local function stopCartControllersForTeleport()
+    cartMotionPauseUntil = os.clock() + 0.3
+    if killerActive then
+        killerSession = killerSession + 1
+        killerActive = false
+    end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    if stopBoost then stopBoost() end
+    restorePanicStop()
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
+    if panicToggleControl then
+        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+    end
 end
 
 local function teleportCart(cframe)
     local cart = getCurrentCart()
-    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return end
-    local ok = pcall(function() cart:PivotTo(cframe) end)
+    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return false end
+    stopCartControllersForTeleport()
+    local ok = pivotCartByReference(cart, cframe)
     if ok then
         notify("Carrinho", "Carrinho movido para o checkpoint.")
     else
         notify("Carrinho", "Não foi possível mover este carrinho.")
     end
+    return ok
 end
 
 local STABILIZER_CONFIG = { NORMAL_FORCE = 2500, DOWNHILL_FORCE = 800 }
@@ -1436,7 +1707,7 @@ end
 
 local function getWheels(cart)
     local wheels   = {}
-    local keywords = { "wheel", "tire", "tyre", "roda", "pneu", "axle" }
+    local keywords = { "wheel", "tire", "tyre", "roda", "pneu", "axle", "roue" }
     for _, part in ipairs(cart:GetDescendants()) do
         if part:IsA("BasePart") and not part.Anchored then
             local name = part.Name:lower()
@@ -1471,36 +1742,44 @@ local function applyStabilizer(cart)
 
     stabilizer.cart = cart
     for _, part in ipairs(wheels) do
+        for _, child in ipairs(part:GetChildren()) do
+            if child:IsA("VectorForce") and child.Name == "CafezitosStabilizerForce" then
+                child:Destroy()
+            end
+        end
         local att = part:FindFirstChild("_CafezitosStabilizer")
         if not att then
             att        = Instance.new("Attachment")
             att.Name   = "_CafezitosStabilizer"
             att.Parent = part
-            table.insert(stabilizer.attachments, att)
         end
+        table.insert(stabilizer.attachments, att)
         local force = Instance.new("VectorForce")
         force.Name       = "CafezitosStabilizerForce"
         force.Attachment0 = att
         force.RelativeTo = Enum.ActuatorRelativeTo.World
-        force.ApplyAtCenterOfMass = true
         force.Force      = Vector3.zero
         force.Parent     = part
         table.insert(stabilizer.forces, force)
     end
 
-    local reference = cart.PrimaryPart or wheels[1]
+    local reference = getCartPrimary(cart) or wheels[1]
     stabilizer.heartbeat = RunService.Heartbeat:Connect(function()
         if not reference or not reference.Parent then cleanupStabilizer() return end
         local mag = 0
-        if stabilizer.enabled and not FLYING and not panicActive then
+        if stabilizer.enabled and not FLYING and not panicActive
+            and os.clock() >= cartMotionPauseUntil
+            and os.clock() >= cartFeatureTiming.autobrakeHoldUntil
+        then
             mag = math.abs(reference.AssemblyLinearVelocity.Y) > 5
                 and STABILIZER_CONFIG.DOWNHILL_FORCE
                 or  STABILIZER_CONFIG.NORMAL_FORCE
         end
-        local perForce = mag * reference.AssemblyMass / math.max(1, #stabilizer.forces)
         for _, force in ipairs(stabilizer.forces) do
-            if force and force.Parent then
-                force.Force = Vector3.new(0, -perForce, 0)
+            if force and force.Parent and force.Attachment0 and force.Attachment0.Parent then
+                force.Force = Vector3.new(0, -mag * force.Parent.AssemblyMass, 0)
+            elseif force and force.Parent then
+                force:Destroy()
             end
         end
     end)
@@ -1524,16 +1803,36 @@ local function watchSeat(character)
     if not humanoid and character and character.Parent then
         humanoid = character:WaitForChild("Humanoid", 5)
     end
-    if not humanoid then return end
+    if destroyed or not isCurrentSuiteGeneration()
+        or not character or character ~= LocalPlayer.Character or not character.Parent
+        or not humanoid or not humanoid:IsA("Humanoid") or not humanoid.Parent
+    then return end
     if seatConnection then
         seatConnection:Disconnect()
         seatConnection = nil
     end
+    local initialSeat = humanoid.SeatPart
+    if initialSeat then
+        local initialCart = cacheCurrentCart(humanoid, initialSeat)
+        if stabilizer.enabled then applyStabilizer(initialCart) end
+    else
+        clearCurrentCartCache()
+    end
     seatConnection = trackConnection(humanoid.Seated:Connect(function(isSeated, seat)
+        if destroyed or not isCurrentSuiteGeneration()
+            or character ~= LocalPlayer.Character or humanoid.Parent ~= character
+        then return end
         if not isSeated then
             clearCurrentCartCache()
             cleanupStabilizer()
             restorePanicStop()
+            if FLYING and flySavedState.startedSeated then
+                if flyEnabled and flyToggleControl then
+                    task.defer(function() flyToggleControl:UpdateToggle(nil, false) end)
+                else
+                    stopFly()
+                end
+            end
             if stopBoost then stopBoost() end
             if boostToggleControl then
                 task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
@@ -1550,7 +1849,10 @@ end
 
 local function teleportPlayerOrCart(cframe)
     local cart = getCurrentCart()
-    if cart then return pcall(function() cart:PivotTo(cframe) end) end
+    if cart then
+        stopCartControllersForTeleport()
+        return pivotCartByReference(cart, cframe)
+    end
     return teleportCharacter(cframe)
 end
 do
@@ -1568,10 +1870,16 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
     clearCurrentCartCache()
     cleanupStabilizer()
     restorePanicStop()
+    if panicToggleControl then
+        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+    end
     fakeLagSession = fakeLagSession + 1
     fakeLagActive = false
     fakeLagHumanoid = nil
     if stopBoost then stopBoost() end
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
     if flyEnabled and flyToggleControl then
         flyToggleControl:UpdateToggle(nil, false)
     else
@@ -1580,9 +1888,13 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
     task.defer(resetCameraModes)
     task.defer(watchSeat, character)
     task.delay(0.25, function()
-        if destroyed or fakeLagActive then return end
+        if destroyed or not isCurrentSuiteGeneration()
+            or character ~= LocalPlayer.Character or not character.Parent
+        then return end
         local humanoid = getHumanoid(character)
         if not humanoid then return end
+        if not activeCameraMode then restoreDefaultCamera() end
+        if fakeLagActive then return end
         if desiredWalkSpeed then humanoid.WalkSpeed = desiredWalkSpeed end
         if humanoid.UseJumpPower and desiredJumpPower then
             humanoid.JumpPower = desiredJumpPower
@@ -1592,11 +1904,32 @@ trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
     end)
 end))
 
+trackConnection(LocalPlayer.CharacterRemoving:Connect(function()
+    killerSession = killerSession + 1
+    killerActive = false
+    clearCurrentCartCache()
+    cleanupStabilizer()
+    restorePanicStop()
+    if stopBoost then stopBoost() end
+    if flyEnabled and flyToggleControl then
+        flyToggleControl:UpdateToggle(nil, false)
+    else
+        stopFly()
+    end
+    if boostToggleControl then
+        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+    end
+    if panicToggleControl then
+        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+    end
+    resetCameraModes()
+end))
+
 -- =============================================================================
 -- Eliminador (Killer)
 -- =============================================================================
 local function findNearestFreeVehicleSeat()
-    local root = getRoot()
+    local root = getRoot(nil, 5)
     if not root then return nil end
     local bestVS, bestVD = nil, math.huge
     for _, inst in ipairs(workspace:GetDescendants()) do
@@ -1624,36 +1957,59 @@ local function findPlayerByPartialName(value)
     return nil
 end
 
-local function sitOnVehicleSeat(seat)
-    local root     = getRoot()
-    local humanoid = getHumanoid()
-    if not seat or not root or not humanoid or seat.Occupant then return false end
+local function sitOnVehicleSeat(seat, session)
+    local root     = getRoot(nil, 5)
+    local humanoid = getHumanoid(nil, 5)
+    if destroyed or not isCurrentSuiteGeneration()
+        or (session and (session ~= killerSession or not killerActive))
+        or not seat or not root or not humanoid or seat.Occupant
+    then return false end
+
+    if humanoid.SeatPart and humanoid.SeatPart ~= seat then
+        humanoid.Sit = false
+        pcall(function() humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+        local deadline = os.clock() + 0.5
+        repeat RunService.Heartbeat:Wait()
+        until not humanoid.Parent or not humanoid.SeatPart or destroyed
+            or (session and session ~= killerSession) or os.clock() >= deadline
+        if destroyed or not isCurrentSuiteGeneration() or not humanoid.Parent
+            or (session and (session ~= killerSession or not killerActive))
+        then return false end
+    end
     for _ = 1, 3 do
-        if not seat.Parent or seat.Occupant then break end
+        if destroyed or not isCurrentSuiteGeneration()
+            or (session and (session ~= killerSession or not killerActive))
+            or not seat.Parent or seat.Occupant
+        then break end
         root.CFrame = seat.CFrame * CFrame.new(0, 2, 0)
         task.wait(0.12)
+        if destroyed or (session and session ~= killerSession) then return false end
         pcall(function() seat:Sit(humanoid) end)
         task.wait(0.2)
+        if destroyed or (session and session ~= killerSession) then return false end
         if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
         humanoid.Sit = true
         task.wait(0.12)
+        if destroyed or (session and session ~= killerSession) then return false end
         if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
     end
     return false
 end
 
-local killerActive = false
-local killerSession = 0
-
-local function moveToTarget(targetRoot, duration, session)
+local function moveToTarget(targetRoot, duration, session, seat, cart)
     local root    = getRoot()
+    local humanoid = getHumanoid()
     local started = os.clock()
     while os.clock() - started < duration do
         if destroyed or not killerActive or session ~= killerSession then return false end
-        if not root or not root.Parent or not targetRoot or not targetRoot.Parent then return false end
+        if not root or not root.Parent or not humanoid or not humanoid.Parent
+            or not targetRoot or not targetRoot.Parent
+            or not seat or not seat.Parent or seat.Occupant ~= humanoid
+            or humanoid.SeatPart ~= seat or getCurrentCart() ~= cart
+        then return false end
         local pos = targetRoot.Position - targetRoot.CFrame.LookVector * 1.2 + Vector3.new(0, 1.5, 0)
         root.CFrame = CFrame.lookAt(pos, targetRoot.Position)
-        task.wait()
+        RunService.Heartbeat:Wait()
     end
     return true
 end
@@ -1661,8 +2017,17 @@ end
 local function finishKiller(message, session)
     if session and session ~= killerSession then return end
     killerSession = killerSession + 1
+    local cleanupSession = killerSession
     local humanoid = getHumanoid()
-    if humanoid then humanoid.Sit = false end
+    local wasSeated = humanoid and humanoid.SeatPart ~= nil
+    if humanoid then
+        humanoid.Sit = false
+        pcall(function() humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+    end
+    if wasSeated then
+        task.wait(0.05)
+        if killerSession ~= cleanupSession then return end
+    end
     if flyEnabled and flyToggleControl then
         flyToggleControl:UpdateToggle(nil, false)
     else
@@ -1693,12 +2058,22 @@ local function executeKiller(partialName)
         task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
     end
 
-    local seat = findNearestFreeVehicleSeat()
-    if not seat then finishKiller("Não há carrinho livre por perto.", session) return end
-    if not sitOnVehicleSeat(seat) then finishKiller("Não foi possível sentar no carrinho.", session) return end
+    local humanoid = getHumanoid(nil, 5)
+    local seat = humanoid and humanoid.SeatPart
+    local alreadySeated = seat and seat:IsA("VehicleSeat") and seat.Occupant == humanoid
+    if not alreadySeated then
+        seat = findNearestFreeVehicleSeat()
+        if not seat then finishKiller("Não há carrinho livre por perto.", session) return end
+        if not sitOnVehicleSeat(seat, session) then finishKiller("Não foi possível sentar no carrinho.", session) return end
+    end
     if destroyed or session ~= killerSession then return end
 
-    if not startVehicleFly() then finishKiller("Não foi possível iniciar o voo.", session) return end
+    local cart = cacheCurrentCart(humanoid, seat)
+    if not cart then finishKiller("Estrutura do carrinho não reconhecida.", session) return end
+
+    -- O Eliminador escreve o CFrame diretamente; entradas WASD/touch ficariam
+    -- concorrendo com esse movimento e desviando o carrinho do alvo.
+    if not startVehicleFly(false) then finishKiller("Não foi possível iniciar o voo.", session) return end
     task.wait(0.15)
     if destroyed or session ~= killerSession then return end
 
@@ -1712,7 +2087,7 @@ local function executeKiller(partialName)
     until os.clock() >= deadline or destroyed or session ~= killerSession
 
     if not targetRoot then finishKiller("Personagem do alvo não carregou.", session) return end
-    local reached = moveToTarget(targetRoot, 3, session)
+    local reached = moveToTarget(targetRoot, 3, session, seat, cart)
     if session == killerSession then
         finishKiller(reached and "Carrinho levado ao alvo." or "Tentativa cancelada.", session)
     end
@@ -1933,6 +2308,7 @@ end)
 -- =============================================================================
 -- ABA: Teleporte
 -- =============================================================================
+do
 local TeleportSection = Window:NewTab("Teleporte"):NewSection("Teleportes")
 
 TeleportSection:NewButton("Início", "Teleporta para o início da trilha.", function()
@@ -1948,20 +2324,32 @@ TeleportSection:NewButton("Botão de Carrinho", "Teleporta para o botão do carr
 end)
 
 TeleportSection:NewButton("Equipe Suffering", "Teleporta para a área Suffering.", function()
-    if teleportCharacter(CFrame.new(-416.844727, 163.402969, 171.087555)) then
+    if teleportCharacter(CFrame.new(
+        -416.844727, 163.402969, 171.087555,
+        0.0174489655, 5.45878223e-08, 0.99984777,
+        -4.55684486e-08, 1, -5.38008926e-08,
+        -0.99984777, -4.46227411e-08, 0.0174489655
+    )) then
         notify("Teleporte", "Teleportado para Suffering.")
+    end
+end)
+
+TeleportSection:NewButton("Insígnia Secreta", "Teleporta para a Secret Badge.", function()
+    if teleportCharacter(CFrame.new(234.500259, 2.28650475, 296.495483)) then
+        notify("Teleporte", "Teleportado para a insígnia secreta.")
     end
 end)
 
 TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", function()
     local misc  = workspace:FindFirstChild("Misc")
     local giver = misc and misc:FindFirstChild("Giver")
-    local part  = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart"))
+    local part  = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart", true))
     if not part then notify("Teleporte", "Misc.Giver não encontrado.") return end
     if teleportPlayerOrCart(part.CFrame * CFrame.new(0, 3, 0)) then
         notify("Teleporte", "Teleportado para a sala secreta.")
     end
 end)
+end
 
 local CHECKPOINTS = {
     [1] = CFrame.new(-430.898926, 164.75, 101.645676) * CFrame.Angles(0, math.rad(90),  0),
@@ -1977,13 +2365,19 @@ end
 -- =============================================================================
 -- ABA: Carrinho
 -- =============================================================================
+do
 local CartTab     = Window:NewTab("Carrinho")
 local CartSection = CartTab:NewSection("Controle do Carrinho")
 
 panicToggleControl = CartSection:NewToggle(
     "Parada de Emergência",
     "Para e trava o carrinho.",
-    setPanicStop
+    function(state)
+        local applied = setPanicStop(state)
+        if state and not applied then
+            task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
+        end
+    end
 )
 
 CartSection:NewButton("Ir ao Checkpoint 1", "NumPad 1.", function() teleportToCheckpoint(1) end)
@@ -2050,6 +2444,7 @@ StabilizerSection:NewButton("Redefinir Forças", "Volta para 2500 e 800.", funct
     refreshStabilizer()
     notify("Estabilizador", "Forças redefinidas.")
 end)
+end
 
 -- =============================================================================
 -- ABA: Cart+ (boost, anti-flip, freio automático)
@@ -2100,10 +2495,12 @@ local function startBoost()
     end
     boostAttachment = attachment
 
+    local previousForce = primary:FindFirstChild("CafezitosBoost")
+    if previousForce and previousForce:IsA("VectorForce") then previousForce:Destroy() end
     local bf = Instance.new("VectorForce")
     bf.Name = "CafezitosBoost"
     bf.Attachment0 = attachment
-    bf.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+    bf.RelativeTo = Enum.ActuatorRelativeTo.World
     bf.ApplyAtCenterOfMass = true
     bf.Force = Vector3.zero
     bf.Parent = primary
@@ -2124,7 +2521,7 @@ local function startBoost()
             end
             return
         end
-        bf.Force = Vector3.new(0, 0, -boostForce * primary.AssemblyMass * 60)
+        bf.Force = primary.CFrame.LookVector * boostForce * primary.AssemblyMass * 60
     end)
     notify("Boost", "Ligado — força " .. boostForce .. ".")
     return true
@@ -2152,19 +2549,22 @@ end)
 
 -- Anti-Flip com cooldown correto
 local antiFlipEnabled  = false
-local antiFlipCooldown = false
 local antiFlipConn
 
 BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticamente.", function(state)
     antiFlipEnabled = state
+    if antiFlipConn then antiFlipConn:Disconnect() antiFlipConn = nil end
+    cartFeatureTiming.antiFlipReadyAt = 0
     if not state then
-        if antiFlipConn then antiFlipConn:Disconnect() antiFlipConn = nil end
         notify("Anti-Flip", "Desligado.")
         return
     end
 
     antiFlipConn = RunService.Heartbeat:Connect(function()
-        if not antiFlipEnabled or antiFlipCooldown or panicActive or FLYING or killerActive then return end
+        if not antiFlipEnabled or panicActive or FLYING or killerActive
+            or os.clock() < cartMotionPauseUntil
+            or os.clock() < cartFeatureTiming.antiFlipReadyAt
+        then return end
         local cart = getCurrentCart()
         if not cart then return end
         local primary = getCartPrimary(cart)
@@ -2172,14 +2572,19 @@ BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticame
 
         local dot = primary.CFrame.UpVector:Dot(Vector3.new(0, 1, 0))
         if dot < 0.5 then
-            antiFlipCooldown = true
+            cartFeatureTiming.antiFlipReadyAt = os.clock() + 1.5
+            if boostActive then
+                stopBoost()
+                if boostToggleControl then
+                    task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
+                end
+            end
             local pos  = primary.CFrame.Position
             local look = Vector3.new(primary.CFrame.LookVector.X, 0, primary.CFrame.LookVector.Z)
             look = look.Magnitude > 0.01 and look.Unit or Vector3.new(1, 0, 0)
-            cart:PivotTo(CFrame.new(pos + Vector3.new(0, 2, 0), pos + Vector3.new(0, 2, 0) + look))
-            notify("Anti-Flip", "Carrinho endireitado.")
-            task.wait(1.5)
-            antiFlipCooldown = false
+            local targetPosition = pos + Vector3.new(0, 2, 0)
+            local ok = pivotCartByReference(cart, CFrame.new(targetPosition, targetPosition + look))
+            if ok then notify("Anti-Flip", "Carrinho endireitado.") end
         end
     end)
     notify("Anti-Flip", "Ligado.")
@@ -2187,26 +2592,43 @@ end)
 
 -- Freio automático ao detectar queda livre
 local autobrakeEnabled  = false
-local autobrakeCooldown = false
 local autobrakeConn
 
 BoostSection:NewToggle("Freio Automático", "Trava ao detectar queda livre.", function(state)
     autobrakeEnabled = state
+    if autobrakeConn then autobrakeConn:Disconnect() autobrakeConn = nil end
+    cartFeatureTiming.autobrakeHoldUntil = 0
+    cartFeatureTiming.autobrakeReadyAt = 0
     if not state then
-        if autobrakeConn then autobrakeConn:Disconnect() autobrakeConn = nil end
         notify("Freio Automático", "Desligado.")
         return
     end
 
     autobrakeConn = RunService.Heartbeat:Connect(function()
-        if not autobrakeEnabled or autobrakeCooldown or panicActive or FLYING or killerActive then return end
+        if not autobrakeEnabled or panicActive or FLYING or killerActive
+            or os.clock() < cartMotionPauseUntil
+        then return end
         local cart = getCurrentCart()
         if not cart then return end
         local primary = getCartPrimary(cart)
         if not primary then return end
 
-        if primary.AssemblyLinearVelocity.Y < -35 then
-            autobrakeCooldown = true
+        local now = os.clock()
+        if now < cartFeatureTiming.autobrakeHoldUntil then
+            for _, part in ipairs(cart:GetDescendants()) do
+                if part:IsA("BasePart") and not part.Anchored then
+                    pcall(function()
+                        part.AssemblyLinearVelocity = Vector3.zero
+                        part.AssemblyAngularVelocity = Vector3.zero
+                    end)
+                end
+            end
+            return
+        end
+
+        if now >= cartFeatureTiming.autobrakeReadyAt and primary.AssemblyLinearVelocity.Y < -35 then
+            cartFeatureTiming.autobrakeHoldUntil = now + 0.45
+            cartFeatureTiming.autobrakeReadyAt = now + 1.25
             if boostActive then
                 stopBoost()
                 if boostToggleControl then
@@ -2214,14 +2636,14 @@ BoostSection:NewToggle("Freio Automático", "Trava ao detectar queda livre.", fu
                 end
             end
             for _, part in ipairs(cart:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.AssemblyLinearVelocity  = Vector3.zero
-                    part.AssemblyAngularVelocity = Vector3.zero
+                if part:IsA("BasePart") and not part.Anchored then
+                    pcall(function()
+                        part.AssemblyLinearVelocity  = Vector3.zero
+                        part.AssemblyAngularVelocity = Vector3.zero
+                    end)
                 end
             end
             notify("Freio Automático", "Queda detectada — travado.")
-            task.wait(1)
-            autobrakeCooldown = false
         end
     end)
     notify("Freio Automático", "Ligado.")
@@ -2334,17 +2756,17 @@ end)
 -- Salvar / restaurar posição (funciona pra jogador e carrinho)
 local savedPosition = nil
 ExtrasSection:NewButton("Salvar Posição Atual", "Salva onde você está.", function()
-    local root = getRoot()
-    if not root then notify("Posição", "Personagem não encontrado.") return end
-    savedPosition = root.CFrame
-    local p = root.Position
+    local cart = getCurrentCart()
+    local reference = cart and getCartPrimary(cart) or getRoot()
+    if not reference then notify("Posição", "Personagem não encontrado.") return end
+    savedPosition = reference.CFrame
+    local p = reference.Position
     notify("Posição", string.format("Salva em %.0f, %.0f, %.0f", p.X, p.Y, p.Z))
 end)
 
 ExtrasSection:NewButton("Voltar à Posição Salva", "Teleporta de volta.", function()
     if not savedPosition then notify("Posição", "Nenhuma posição salva ainda.") return end
-    teleportCharacter(savedPosition)
-    notify("Posição", "Teleportado.")
+    if teleportPlayerOrCart(savedPosition) then notify("Posição", "Teleportado.") end
 end)
 
 -- =============================================================================
@@ -2458,8 +2880,14 @@ freecamToggleControl = MapSection:NewToggle("Câmera Livre", "WASD move, Q/E sob
     camera.CameraType = Enum.CameraType.Scriptable
     local cf = camera.CFrame
 
-    freecamConn = RunService.RenderStepped:Connect(function()
+    freecamConn = RunService.RenderStepped:Connect(function(deltaTime)
         if not freecamActive then return end
+        local currentCamera = workspace.CurrentCamera
+        if not currentCamera then return end
+        if currentCamera ~= camera then
+            camera = currentCamera
+            camera.CameraType = Enum.CameraType.Scriptable
+        end
         local move = Vector3.zero
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + cf.LookVector  end
         if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - cf.LookVector  end
@@ -2468,7 +2896,8 @@ freecamToggleControl = MapSection:NewToggle("Câmera Livre", "WASD move, Q/E sob
         if UserInputService:IsKeyDown(Enum.KeyCode.E) then move = move + Vector3.new(0, 1, 0) end
         if UserInputService:IsKeyDown(Enum.KeyCode.Q) then move = move - Vector3.new(0, 1, 0) end
         if move.Magnitude > 0 then
-            cf = CFrame.new(cf.Position + move * freecamSpeed) * (cf - cf.Position)
+            cf = CFrame.new(cf.Position + move * freecamSpeed * math.clamp(deltaTime * 60, 0, 3))
+                * (cf - cf.Position)
         end
         camera.CFrame = cf
         camera.Focus = cf * CFrame.new(0, 0, -12)
@@ -2484,6 +2913,7 @@ end)
 -- =============================================================================
 -- ABA: Eliminador
 -- =============================================================================
+do
 local KillerSection = Window:NewTab("Eliminador"):NewSection("Controle de Alvo")
 local targetName    = ""
 
@@ -2507,17 +2937,22 @@ KillerSection:NewButton("Alcançar Alvo", "Usa o carrinho livre mais próximo.",
         end
     end)
 end)
+end
 
 -- =============================================================================
 -- ABA: Troll
 -- =============================================================================
+local stopSpin
+local restoreFakeLag
+local stopSpectate
+do
 local TrollSection = Window:NewTab("Troll"):NewSection("Diversão")
 
 -- Câmera giratória com duração ajustável
 local spinDuration = 5
 local spinConn
 
-local function stopSpin(silent)
+stopSpin = function(silent)
     if spinConn then spinConn:Disconnect() spinConn = nil end
     releaseCameraMode("spin")
     if not silent then notify("Troll", "Câmera voltou ao normal.") end
@@ -2535,6 +2970,13 @@ TrollSection:NewButton("Câmera Giratória", "Gira a câmera por alguns segundos
     local origin     = camera.CFrame
 
     spinConn = RunService.RenderStepped:Connect(function()
+        local currentCamera = workspace.CurrentCamera
+        if not currentCamera then return end
+        if currentCamera ~= camera then
+            camera = currentCamera
+            camera.CameraType = Enum.CameraType.Scriptable
+            origin = camera.CFrame
+        end
         local elapsed = os.clock() - startTime
         if elapsed >= spinDuration then
             stopSpin(false)
@@ -2556,7 +2998,7 @@ end)
 -- Fake Lag ajustável
 local fakeLagDuration = 2
 
-local function restoreFakeLag()
+restoreFakeLag = function()
     local h = fakeLagHumanoid
     fakeLagActive = false
     if h and h.Parent then
@@ -2600,7 +3042,7 @@ end)
 local spectating  = false
 local spectateConn
 
-local function stopSpectate(silent)
+stopSpectate = function(silent)
     spectating = false
     if spectateConn then spectateConn:Disconnect() spectateConn = nil end
     releaseCameraMode("spectate")
@@ -2621,6 +3063,12 @@ TrollSection:NewTextBox("Spectate Jogador", "Nome do jogador. Enter para seguir.
 
     spectateConn = RunService.RenderStepped:Connect(function()
         if not spectating then return end
+        local currentCamera = workspace.CurrentCamera
+        if not currentCamera then return end
+        if currentCamera ~= camera then
+            camera = currentCamera
+            camera.CameraType = Enum.CameraType.Scriptable
+        end
         local char = player.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
         if not root then stopSpectate(false) return end
@@ -2651,6 +3099,7 @@ TrollSection:NewButton("Teleporte Aleatório", "Te joga em uma parte aleatória.
     teleportCharacter(target.CFrame * CFrame.new(0, 5, 0))
     notify("Troll", "Caiu em: " .. target.Name)
 end)
+end
 
 -- =============================================================================
 -- Minimizar / reabrir + drag
@@ -2979,6 +3428,7 @@ end))
 -- =============================================================================
 destroyCafezitos = function()
     if destroyed then return end
+    local hadManagedCamera = activeCameraMode ~= nil or cameraBaseline ~= nil
     destroyed    = true
     killerActive = false
     killerSession = killerSession + 1
@@ -3016,7 +3466,7 @@ destroyCafezitos = function()
     if antiFlipConn    then antiFlipConn:Disconnect()    antiFlipConn    = nil end
     if autobrakeConn   then autobrakeConn:Disconnect()   autobrakeConn   = nil end
     activeCameraMode = nil
-    restoreDefaultCamera()
+    if cameraBaseline or not hadManagedCamera then restoreDefaultCamera() end
 
     for index = #createdTools, 1, -1 do
         local tool = createdTools[index]

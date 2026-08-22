@@ -2,3765 +2,584 @@
 -- Nothrilo 🇧🇷 — Menu completo por Cafezl
 -- Versão auditada: bugs corrigidos + novas funções
 -- =============================================================================
+-- Nothrilo / Cafezl | build protegido O2 | Darklua AST v0.19.0 (rename_variables + dense) | fonte sha256 8ba066d10db28185a32363842a70795efe0cbbbbcb6fb0f70a33d36ee10fe03d
+local a=game:GetService('Players')local b=game:GetService('RunService')local c=game:GetService('UserInputService')local d=game:GetService('TweenService')local e=game:GetService('StarterGui')local f=a.
+LocalPlayer if not f then return end local g='Nothrilo \u{1f1e7}\u{1f1f7}'local h=g..' | Feito por Cafezl'local i=_G if type(getgenv)=='function'then local j,k=pcall(getgenv)if j and type(k)=='table'
+then i=k end end local j=(tonumber(i.__CafezlSuiteGeneration)or 0)+1 do local k=pcall(function()i.__CafezlSuiteGeneration=j end)if not k then i=_G j=(tonumber(i.__CafezlSuiteGeneration)or 0)+1 i.
+__CafezlSuiteGeneration=j end end local function isCurrentSuiteGeneration()return i.__CafezlSuiteGeneration==j end local k=(function()if type(gethui)=='function'then local k,l=pcall(gethui)if k and l
+then return l end end local k,l=pcall(function()return game:GetService('CoreGui')end)if k and l then local m=Instance.new('ScreenGui')local n=pcall(function()m.Parent=l end)if m.Parent then m:Destroy(
+)end if n then return l end end return f:FindFirstChildOfClass('PlayerGui')or f:FindFirstChild('PlayerGui')end)()if not isCurrentSuiteGeneration()then return end if not k then warn(g..
+': PlayerGui/CoreGui ainda n\u{e3}o est\u{e1} dispon\u{ed}vel.')return end local l={}do local m={}local function addGuiRoot(n)if n and not m[n]then m[n]=true table.insert(l,n)end end addGuiRoot(k)
+pcall(function()addGuiRoot(game:GetService('CoreGui'))end)addGuiRoot(f:FindFirstChild('PlayerGui'))end local m local n=false local o={}local function trackConnection(p)table.insert(o,p)return p end
+for p,q in ipairs(l)do for r,s in ipairs({'NothriloRuntime','CafezitosRuntime'})do local t=q:FindFirstChild(s)if t then local u=t:FindFirstChild('Cleanup')if u and u:IsA('BindableEvent')then u:Fire()
+end t:Destroy()end end end local p=workspace.Gravity local q=Instance.new('Folder')q.Name='NothriloRuntime'q.Parent=k do local r=Instance.new('BindableEvent')r.Name='Cleanup'r.Parent=q
+trackConnection(r.Event:Connect(function()if m then m()return end n=true for s,t in ipairs(l)do local u=t:FindFirstChild('NothriloKeyGate')if u then pcall(function()u:Destroy()end)end end for s=#o,1,-
+1 do local t=o[s]pcall(function()t:Disconnect()end)o[s]=nil end if q and q.Parent then q:Destroy()end end))end for r,s in ipairs(l)do for t,u in ipairs(s:GetChildren())do if u:IsA('ScreenGui')then if
+u.Name=='NothriloLauncher'or u.Name=='NothriloNotifications'or u.Name=='NothriloLoading'or u.Name=='NothriloMobileFly'or u.Name=='NothriloKeyGate'then u:Destroy()else local v=u:FindFirstChild('Main')
+local w=v and v:FindFirstChild('MainHeader')local x=w and w:FindFirstChild('title')if x and x:IsA('TextLabel')and x.Text:find('Nothrilo',1,true)then u:Destroy()end end end end end local r={SchemeColor
+=Color3.fromRGB(255,0,170),Background=Color3.fromRGB(8,8,10),Header=Color3.fromRGB(15,15,18),TextColor=Color3.fromRGB(245,245,245),ElementColor=Color3.fromRGB(22,22,27)}do local s=game:GetService(
+'HttpService')local t local function runFreeKeyGate()local u='https://nothrilo-key.urielcafe01.workers.dev'local v=u:match('^https://')~=nil and not u:find('__NOTHRILO_',1,true)local w=
+'Nothrilo/key-cache-v1.json'local x='Nothrilo'local y='__NothriloFreeKeyCacheV1'local z=24*60*60 local function environmentFunction(A)local B pcall(function()B=rawget(i,A)end)if type(B)=='function'
+then return B end pcall(function()B=rawget(_G,A)end)if type(B)=='function'then return B end return nil end local function nestedEnvironmentFunction(A,B)local C pcall(function()C=rawget(i,A)end)if
+type(C)~='table'then pcall(function()C=rawget(_G,A)end)end local D=type(C)=='table'and rawget(C,B)or nil return type(D)=='function'and D or nil end local function getRequestFunction()return
+environmentFunction('request')or environmentFunction('http_request')or nestedEnvironmentFunction('syn','request')or nestedEnvironmentFunction('fluxus','request')or nestedEnvironmentFunction('http',
+'request')end local function postKeyServer(A)if not v then return false,0,nil,'server_not_configured'end local B,C=pcall(function()return s:JSONEncode(A)end)if not B then return false,0,nil,
+'invalid_request'end local D={Url=u..'/v1/nothrilo/key/verify',Method='POST',Headers={['Content-Type']='application/json',['Accept']='application/json'},Body=C}local E=getRequestFunction()local F,G if
+E then F,G=pcall(E,D)else F,G=pcall(function()return s:RequestAsync(D)end)end if not F then return false,0,nil,'network_error'end local H=0 local I if type(G)=='table'then H=tonumber(G.StatusCode or G
+.Status or G.status_code)or 0 I=G.Body or G.body if H==0 and G.Success==true then H=200 end elseif type(G)=='string'then H=200 I=G end if type(I)~='string'or I==''then return false,H,nil,
+'invalid_response'end local J,K=pcall(function()return s:JSONDecode(I)end)if not J or type(K)~='table'then return false,H,nil,'invalid_response'end return H>=200 and H<300,H,K,K.error end local 
+function validLease(A)return type(A)=='string'and#A==71 and A:match('^NLEASE%-%x+$')~=nil end local function clearKeyCache()pcall(function()i[y]=nil end)local A=environmentFunction('delfile')if A then
+pcall(A,w)end end local function decodeCache(A)if type(A)=='table'then return A end if type(A)~='string'or A==''then return nil end local B,C=pcall(function()return s:JSONDecode(A)end)return B and
+type(C)=='table'and C or nil end local function validateCachedRecord(A)if type(A)~='table'then return nil end local B=os.time()local C=tonumber(A.savedAt)local D=tonumber(A.expiresAt)if A.version~=1
+or A.product~='nothrilo'or tostring(A.userId or'')~=tostring(f.UserId)or not validLease(A.lease)or not C or not D or C>B+300 or D<=B+5 or D-C>z+60 then return nil end return A end local function 
+readKeyCache()local A=environmentFunction('isfile')local B=environmentFunction('readfile')if B then local C=true if A then local D,E=pcall(A,w)C=D and E==true end if C then local D,E=pcall(B,w)if D
+then local F=validateCachedRecord(decodeCache(E))if F then return F end end end end local C pcall(function()C=i[y]end)return validateCachedRecord(decodeCache(C))end local function saveKeyCache(A,B)if
+not validLease(A)then return end local C=math.floor(math.clamp(tonumber(B)or 0,1,z))if C<=5 then return end local D=os.time()local E={version=1,product='nothrilo',userId=tostring(f.UserId),lease=A,
+savedAt=D,expiresAt=D+C}pcall(function()i[y]=E end)local F=environmentFunction('writefile')if not F then return end local G,H=pcall(function()return s:JSONEncode(E)end)if not G then return end local I
+=environmentFunction('makefolder')if I then pcall(I,x)end pcall(F,w,H)end local A=false local B=false local C={}local D=0 local E={}local function gateAlive()return not n and isCurrentSuiteGeneration(
+)and t and t.Parent~=nil and E~=nil end local function connect(F,G)local H=F:Connect(G)table.insert(C,H)return H end local F=Instance.new('ScreenGui')F.Name='NothriloKeyGate'F.ResetOnSpawn=false F.
+IgnoreGuiInset=true F.DisplayOrder=10100 F.ZIndexBehavior=Enum.ZIndexBehavior.Sibling F.Parent=k t=F local G=Instance.new('Frame')G.Name='Shade'G.Size=UDim2.fromScale(1,1)G.BackgroundColor3=Color3.
+fromRGB(3,3,5)G.BackgroundTransparency=0.06 G.BorderSizePixel=0 G.Parent=F local H=Instance.new('Frame')H.Name='Card'H.AnchorPoint=Vector2.new(0.5,0.5)H.Position=UDim2.fromScale(0.5,0.5)H.
+BackgroundColor3=r.Background H.BorderSizePixel=0 H.ClipsDescendants=true H.Parent=G local I=Instance.new('UICorner')I.CornerRadius=UDim.new(0,22)I.Parent=H local J=Instance.new('UIStroke')J.Thickness
+=2 J.Color=r.SchemeColor J.Parent=H local K=Instance.new('Frame')K.Name='Header'K.Size=UDim2.new(1,0,0,68)K.BackgroundColor3=r.Header K.BorderSizePixel=0 K.Parent=H local L=Instance.new('Frame')L.
+AnchorPoint=Vector2.new(0,0.5)L.Position=UDim2.new(0,18,0.5,0)L.Size=UDim2.fromOffset(13,13)L.BackgroundColor3=r.SchemeColor L.BorderSizePixel=0 L.Parent=K Instance.new('UICorner',L).CornerRadius=UDim
+.new(1,0)local M=Instance.new('TextLabel')M.Position=UDim2.new(0,42,0,8)M.Size=UDim2.new(1,-96,0,27)M.BackgroundTransparency=1 M.Font=Enum.Font.GothamBold M.Text='Nothrilo \u{2022} Key gr\u{e1}tis'M.
+TextColor3=r.TextColor M.TextSize=19 M.TextXAlignment=Enum.TextXAlignment.Left M.Parent=K local N=Instance.new('TextLabel')N.Position=UDim2.new(0,42,0,36)N.Size=UDim2.new(1,-96,0,20)N.
+BackgroundTransparency=1 N.Font=Enum.Font.Gotham N.Text='1 an\u{fa}ncio \u{2022} menu completo por 24 horas'N.TextColor3=Color3.fromRGB(214,214,224)N.TextSize=13 N.TextXAlignment=Enum.TextXAlignment.
+Left N.Parent=K local O=Instance.new('TextButton')O.Name='Close'O.AnchorPoint=Vector2.new(1,0.5)O.Position=UDim2.new(1,-10,0.5,0)O.Size=UDim2.fromOffset(46,46)O.BackgroundColor3=Color3.fromRGB(24,24,
+30)O.BorderSizePixel=0 O.AutoButtonColor=true O.Font=Enum.Font.GothamBold O.Text='\u{d7}'O.TextColor3=r.TextColor O.TextSize=23 O.Parent=K Instance.new('UICorner',O).CornerRadius=UDim.new(0,13)local P
+=Instance.new('ScrollingFrame')P.Name='Content'P.Position=UDim2.fromOffset(0,68)P.Size=UDim2.new(1,0,1,-68)P.BackgroundTransparency=1 P.BorderSizePixel=0 P.ScrollBarThickness=5 P.ScrollBarImageColor3=
+r.SchemeColor P.ScrollingDirection=Enum.ScrollingDirection.Y P.AutomaticCanvasSize=Enum.AutomaticSize.Y P.CanvasSize=UDim2.new()P.Parent=H local Q=Instance.new('UIPadding')Q.PaddingLeft=UDim.new(0,18)
+Q.PaddingRight=UDim.new(0,18)Q.PaddingTop=UDim.new(0,14)Q.PaddingBottom=UDim.new(0,16)Q.Parent=P local R=Instance.new('UIListLayout')R.FillDirection=Enum.FillDirection.Vertical R.HorizontalAlignment=
+Enum.HorizontalAlignment.Center R.SortOrder=Enum.SortOrder.LayoutOrder R.Padding=UDim.new(0,10)R.Parent=P local function label(S,T,U,V,W)local X=Instance.new('TextLabel')X.Size=UDim2.new(1,0,0,T)X.
+BackgroundTransparency=1 X.Font=U or Enum.Font.Gotham X.Text=S X.TextColor3=W or r.TextColor X.TextSize=V or 13 X.TextWrapped=true X.TextXAlignment=Enum.TextXAlignment.Left X.TextYAlignment=Enum.
+TextYAlignment.Center X.Parent=P return X end local S=label(
+'Escolha uma op\u{e7}\u{e3}o, conclua as etapas no navegador e cole a key aqui. Work.ink, LootLabs e Linkvertise liberam exatamente as mesmas fun\u{e7}\u{f5}es.',58,Enum.Font.GothamMedium,15,Color3.
+fromRGB(238,238,244))S.LayoutOrder=1 local T=label('ESCOLHA ONDE PEGAR A KEY',22,Enum.Font.GothamBold,13,Color3.fromRGB(218,218,228))T.LayoutOrder=2 local U=Instance.new('Frame')U.Size=UDim2.new(1,0,0
+,54)U.BackgroundTransparency=1 U.LayoutOrder=3 U.Parent=P local V=Instance.new('UIListLayout')V.FillDirection=Enum.FillDirection.Horizontal V.HorizontalAlignment=Enum.HorizontalAlignment.Center V.
+VerticalAlignment=Enum.VerticalAlignment.Center V.Padding=UDim.new(0,8)V.Parent=U local W=Instance.new('TextBox')W.Name='KeyLink'W.Size=UDim2.new(1,0,0,46)W.BackgroundColor3=r.ElementColor W.
+BorderSizePixel=0 W.ClearTextOnFocus=false W.Font=Enum.Font.Code W.PlaceholderText='O link escolhido aparece aqui'W.PlaceholderColor3=Color3.fromRGB(188,188,201)W.Text=''W.TextColor3=Color3.fromRGB(
+240,240,246)W.TextSize=13 W.TextTruncate=Enum.TextTruncate.AtEnd W.TextXAlignment=Enum.TextXAlignment.Left W.LayoutOrder=4 W.Parent=P Instance.new('UICorner',W).CornerRadius=UDim.new(0,11)local X=
+Instance.new('UIPadding')X.PaddingLeft=UDim.new(0,12)X.PaddingRight=UDim.new(0,12)X.Parent=W local Y=Instance.new('UIStroke')Y.Color=Color3.fromRGB(62,62,76)Y.Thickness=1 Y.Parent=W local Z=Instance.
+new('TextBox')Z.Name='KeyInput'Z.Size=UDim2.new(1,0,0,52)Z.BackgroundColor3=r.ElementColor Z.BorderSizePixel=0 Z.ClearTextOnFocus=false Z.Font=Enum.Font.RobotoMono Z.PlaceholderText=
+'Cole sua key: NOTH-XXXX-XXXX-XXXX-XXXX-XXXX'Z.PlaceholderColor3=Color3.fromRGB(195,195,208)Z.Text=''Z.TextColor3=r.TextColor Z.TextSize=15 Z.TextXAlignment=Enum.TextXAlignment.Left Z.LayoutOrder=5 Z.
+Parent=P Instance.new('UICorner',Z).CornerRadius=UDim.new(0,12)local _=Instance.new('UIPadding')_.PaddingLeft=UDim.new(0,14)_.PaddingRight=UDim.new(0,14)_.Parent=Z local aa=Instance.new('UIStroke')aa.
+Color=Color3.fromRGB(72,72,88)aa.Thickness=1 aa.Parent=Z local ab=Instance.new('TextButton')ab.Name='Verify'ab.Size=UDim2.new(1,0,0,52)ab.BackgroundColor3=r.SchemeColor ab.BorderSizePixel=0 ab.
+AutoButtonColor=true ab.Font=Enum.Font.GothamBold ab.Text='VALIDAR E ABRIR O NOTHRILO'ab.TextColor3=Color3.fromRGB(8,8,10)ab.TextSize=14 ab.LayoutOrder=6 ab.Parent=P Instance.new('UICorner',ab).
+CornerRadius=UDim.new(0,13)local ac=Instance.new('Frame')ac.Size=UDim2.new(1,0,0,62)ac.BackgroundColor3=Color3.fromRGB(15,15,20)ac.BorderSizePixel=0 ac.LayoutOrder=7 ac.Parent=P Instance.new(
+'UICorner',ac).CornerRadius=UDim.new(0,12)local ad=Instance.new('Frame')ad.AnchorPoint=Vector2.new(0,0.5)ad.Position=UDim2.new(0,13,0.5,0)ad.Size=UDim2.fromOffset(10,10)ad.BackgroundColor3=r.
+SchemeColor ad.BorderSizePixel=0 ad.Parent=ac Instance.new('UICorner',ad).CornerRadius=UDim.new(1,0)local ae=Instance.new('TextLabel')ae.Position=UDim2.new(0,35,0,6)ae.Size=UDim2.new(1,-48,1,-12)ae.
+BackgroundTransparency=1 ae.Font=Enum.Font.Gotham ae.Text=v and'Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis.'or'O servidor de keys ainda n\u{e3}o foi conectado nesta build.'ae.
+TextColor3=Color3.fromRGB(232,232,240)ae.TextSize=14 ae.TextWrapped=true ae.TextXAlignment=Enum.TextXAlignment.Left ae.TextYAlignment=Enum.TextYAlignment.Center ae.Parent=ac local af=label(
+'\u{1f510} Todas as fun\u{e7}\u{f5}es s\u{e3}o gr\u{e1}tis ap\u{f3}s a key. Nenhuma senha \u{e9} pedida.',42,Enum.Font.GothamMedium,13,Color3.fromRGB(205,205,216))af.LayoutOrder=8 local ag={}local ah=
+{{id='workink',text='Work.ink'},{id='lootlabs',text='LootLabs'},{id='linkvertise',text='Linkvertise'}}local function setStatus(ai,aj)ae.Text=ai if aj=='good'then ae.TextColor3=Color3.fromRGB(116,255,
+158)elseif aj=='bad'then ae.TextColor3=Color3.fromRGB(255,116,148)else ae.TextColor3=Color3.fromRGB(232,232,240)end end local function copyText(ai)for aj,ak in ipairs({'setclipboard','toclipboard'})do
+local al=environmentFunction(ak)if al then local am=pcall(al,ai)if am then return true end end end return false end for ai,aj in ipairs(ah)do local ak=Instance.new('TextButton')ak.Name=aj.id ak.Size=
+UDim2.new(1/3,-6,1,0)ak.BackgroundColor3=Color3.fromRGB(24,24,31)ak.BorderSizePixel=0 ak.AutoButtonColor=true ak.Font=Enum.Font.GothamBold ak.Text=aj.text ak.TextColor3=r.TextColor ak.TextSize=14 ak.
+Parent=U Instance.new('UICorner',ak).CornerRadius=UDim.new(0,12)local al=Instance.new('UIStroke')al.Color=r.SchemeColor al.Transparency=0.18 al.Thickness=1 al.Parent=ak table.insert(ag,al)connect(ak.
+Activated,function()if not gateAlive()then return end if not v then setStatus('O servidor ainda n\u{e3}o foi publicado. Esta build \u{e9} apenas de prepara\u{e7}\u{e3}o.','bad')return end local am=u..
+'/v1/nothrilo/key/start?provider='..s:UrlEncode(aj.id)..'&userId='..s:UrlEncode(tostring(f.UserId))W.Text=am if copyText(am)then setStatus('Link do '..aj.text..
+' copiado. Cole no navegador, conclua e volte com a key.','good')else setStatus([[Copie o link do campo acima, abra no navegador, conclua e volte com a key.]],nil)pcall(function()W:CaptureFocus()W.
+CursorPosition=#W.Text+1 W.SelectionStart=1 end)end end)end local function setBusy(ai)ab.Active=not ai ab.AutoButtonColor=not ai ab.Text=ai and'VERIFICANDO...'or'VALIDAR E ABRIR O NOTHRILO'ab.
+BackgroundTransparency=ai and 0.35 or 0 pcall(function()Z.TextEditable=not ai end)end local function friendlyError(ai,aj)if ai=='server_not_configured'then return
+'O servidor de keys ainda n\u{e3}o foi conectado nesta build.'end if ai=='network_error'then return'N\u{e3}o consegui falar com o servidor. Confira a internet e tente novamente.'end if ai==
+'invalid_key'or ai=='invalid_lease'or aj==401 or aj==403 then return'Key inv\u{e1}lida, expirada ou criada para outro usu\u{e1}rio.'end if aj==429 then return
+'Muitas tentativas. Aguarde um pouco e tente novamente.'end return[[O servidor respondeu de um jeito inesperado. Tente novamente em instantes.]]end local function beginVerification(ai,aj,ak)if not
+gateAlive()then return end aj=tostring(aj or''):match('^%s*(.-)%s*$')if ai=='key'then aj=aj:upper()end if(ai=='key'and not aj:match('^NOTH%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w$'))or(ai==
+'lease'and not validLease(aj))then if ak then clearKeyCache()else setStatus('Cole uma key Nothrilo completa antes de validar.','bad')end return end D+=1 local al=D setBusy(true)setStatus(ak and
+'Verificando seu acesso salvo...'or'Validando sua key com seguran\u{e7}a...',nil)task.delay(20,function()if gateAlive()and D==al and not A then D+=1 setBusy(false)setStatus(
+'A verifica\u{e7}\u{e3}o demorou demais. Tente novamente.','bad')end end)task.spawn(function()local am=tostring(os.clock())pcall(function()am=s:GenerateGUID(false)end)local an={product='nothrilo',
+clientVersion='free-key-v1',userId=tostring(f.UserId),placeId=tostring(game.PlaceId),nonce=am}an[ai]=aj local ao,ap,aq,ar=postKeyServer(an)if not gateAlive()or D~=al or A then return end if ao and
+type(aq)=='table'and aq.ok==true and validLease(aq.lease)and tonumber(aq.ttlSeconds)and tonumber(aq.ttlSeconds)>5 then local as=math.floor(math.clamp(tonumber(aq.ttlSeconds),1,z))saveKeyCache(aq.lease
+,as)local at=os.clock()+as task.spawn(function()while not n and isCurrentSuiteGeneration()do local au=at-os.clock()if au<=0 then break end task.wait(math.max(0.25,math.min(30,au)))end if n or not
+isCurrentSuiteGeneration()or os.clock()<at then return end clearKeyCache()if m then m()else n=true if q and q.Parent then q:Destroy()end end end)setStatus(
+'Acesso liberado! Abrindo o Nothrilo completo...','good')task.wait(0.45)if gateAlive()and D==al then B=true A=true end return end if ak then clearKeyCache()end setBusy(false)setStatus(friendlyError(ar
+or(aq and aq.error),ap),'bad')end)end connect(ab.Activated,function()beginVerification('key',Z.Text,false)end)connect(Z.FocusLost,function(ai)if ai then beginVerification('key',Z.Text,false)end end)
+connect(O.Activated,function()D+=1 A=true B=false end)local ai=Vector2.new()local function resizeGate()local aj=workspace.CurrentCamera local ak=aj and aj.ViewportSize or Vector2.new(800,600)if ak==ai
+then return end ai=ak local al=math.max(284,math.min(600,ak.X-16))local am=math.max(350,math.min(550,ak.Y-16))H.Size=UDim2.fromOffset(al,am)local an=al<390 M.TextSize=an and 17 or 19 N.TextSize=an and
+12 or 13 S.TextSize=an and 14 or 15 T.TextSize=an and 12 or 13 W.TextSize=an and 12 or 13 Z.TextSize=an and 13 or 15 ab.TextSize=an and 13 or 14 ae.TextSize=an and 13 or 14 af.TextSize=an and 12 or 13
+for ao,ap in ipairs(ag)do ap.Parent.TextSize=an and 12 or 14 end end resizeGate()task.spawn(function()while gateAlive()and not A do resizeGate()local aj=Color3.fromHSV((os.clock()*0.075)%1,0.86,1)J.
+Color=aj L.BackgroundColor3=aj ab.BackgroundColor3=aj P.ScrollBarImageColor3=aj ad.BackgroundColor3=aj for ak,al in ipairs(ag)do al.Color=aj end task.wait(0.08)end end)local aj=readKeyCache()if aj
+then beginVerification('lease',aj.lease,true)elseif v then setStatus('Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis.',nil)end repeat task.wait(0.05)until A or not gateAlive()D+=1 E=nil
+for ak=#C,1,-1 do pcall(function()C[ak]:Disconnect()end)C[ak]=nil end if t and t.Parent then pcall(function()t:Destroy()end)end t=nil return B and not n and isCurrentSuiteGeneration()end if not
+runFreeKeyGate()then n=true for aa=#o,1,-1 do pcall(function()o[aa]:Disconnect()end)o[aa]=nil end if q and q.Parent then q:Destroy()end return end end local aa={seconds=5,beganAt=os.clock()}aa.gui,aa.
+status,aa.progress=(function()local ab=Instance.new('ScreenGui')ab.Name='NothriloLoading'ab.ResetOnSpawn=false ab.IgnoreGuiInset=true ab.DisplayOrder=10050 ab.ZIndexBehavior=Enum.ZIndexBehavior.
+Sibling ab.Parent=k local ac=Instance.new('Frame')ac.Name='Shade'ac.Size=UDim2.fromScale(1,1)ac.BackgroundColor3=Color3.fromRGB(3,3,5)ac.BackgroundTransparency=0.08 ac.BorderSizePixel=0 ac.Parent=ab
+local ad=Instance.new('Frame')ad.Name='Shadow'ad.AnchorPoint=Vector2.new(0.5,0.5)ad.Position=UDim2.new(0.5,0,0.5,6)ad.Size=UDim2.fromOffset(344,500)ad.BackgroundColor3=Color3.fromRGB(0,0,0)ad.
+BackgroundTransparency=0.38 ad.BorderSizePixel=0 ad.Parent=ac Instance.new('UICorner',ad).CornerRadius=UDim.new(0,24)local ae=Instance.new('Frame')ae.Name='Card'ae.AnchorPoint=Vector2.new(0.5,0.5)ae.
+Position=UDim2.fromScale(0.5,0.5)ae.Size=UDim2.fromOffset(344,500)ae.BackgroundColor3=Color3.fromRGB(10,10,14)ae.BorderSizePixel=0 ae.ClipsDescendants=true ae.Parent=ac local af=Instance.new(
+'UICorner')af.CornerRadius=UDim.new(0,24)af.Parent=ae local ag=Instance.new('UIStroke')ag.Thickness=2 ag.Color=r.SchemeColor ag.Parent=ae ag.Transparency=0.06 local ah=Instance.new('Frame')ah.Name=
+'MediaPanel'ah.Position=UDim2.fromOffset(14,14)ah.Size=UDim2.new(1,-28,1,-142)ah.BackgroundColor3=Color3.fromRGB(17,17,23)ah.BorderSizePixel=0 ah.ClipsDescendants=true ah.Parent=ae Instance.new(
+'UICorner',ah).CornerRadius=UDim.new(0,18)local ai=Instance.new('UIStroke')ai.Thickness=1 ai.Transparency=0.55 ai.Color=r.SchemeColor ai.Parent=ah local aj=Instance.new('VideoFrame')aj.Name='CatVideo'
+aj.Size=UDim2.fromScale(1,1)aj.BackgroundColor3=Color3.fromRGB(12,12,17)aj.BorderSizePixel=0 aj.Looped=true aj.Volume=0 aj.Visible=false aj.ZIndex=1 aj.Parent=ah local ak=Instance.new('Frame')ak.Name=
+'EmojiFallback'ak.Size=UDim2.fromScale(1,1)ak.BackgroundColor3=Color3.fromRGB(17,17,23)ak.BorderSizePixel=0 ak.ZIndex=2 ak.Parent=ah local al=Instance.new('TextLabel')al.AnchorPoint=Vector2.new(0.5,
+0.5)al.Position=UDim2.fromScale(0.5,0.42)al.Size=UDim2.new(1,-30,0,44)al.BackgroundTransparency=1 al.Font=Enum.Font.GothamBold al.Text='preparando a bagun\u{e7}a...'al.TextColor3=Color3.fromRGB(244,
+244,248)al.TextSize=17 al.TextWrapped=true al.ZIndex=3 al.Parent=ak local am=Instance.new('Frame')am.Name='BrandDot'am.Position=UDim2.new(0,18,1,-110)am.Size=UDim2.fromOffset(18,18)am.BackgroundColor3
+=r.SchemeColor am.BorderSizePixel=0 am.Parent=ae Instance.new('UICorner',am).CornerRadius=UDim.new(1,0)local an=Instance.new('TextLabel')an.BackgroundTransparency=1 an.Position=UDim2.new(0,46,1,-122)
+an.Size=UDim2.new(1,-64,0,26)an.Font=Enum.Font.GothamBold an.Text=g an.TextColor3=Color3.fromRGB(248,248,250)an.TextSize=18 an.TextXAlignment=Enum.TextXAlignment.Left an.Parent=ae local ao=Instance.
+new('TextLabel')ao.BackgroundTransparency=1 ao.Position=UDim2.new(0,18,1,-90)ao.Size=UDim2.new(1,-36,0,17)ao.Font=Enum.Font.Gotham ao.Text='Feito por Cafezl  \u{2022}  preparando tudo'ao.TextColor3=
+Color3.fromRGB(205,205,214)ao.TextSize=12 ao.TextXAlignment=Enum.TextXAlignment.Left ao.Parent=ae local ap={}local aq={'\u{1f431}','\u{1f638}','\u{2728}','\u{2615}','\u{26a1}','\u{1f3ae}'}for ar,as in
+ipairs(aq)do local at=Instance.new('TextLabel')at.Name='Emoji'..ar at.AnchorPoint=Vector2.new(0.5,0.5)local au=(ar-1)%3 local s=math.floor((ar-1)/3)at.Position=UDim2.new(0.23+au*0.27,0,0.58+s*0.15,0)
+at.Size=UDim2.fromOffset(52,52)at.BackgroundTransparency=1 at.Font=Enum.Font.GothamBold at.Text=as at.TextColor3=Color3.fromRGB(255,255,255)at.TextSize=30 at.ZIndex=3 at.Parent=ak table.insert(ap,at)
+end local ar=Instance.new('Frame')ar.Name='StatusDot'ar.AnchorPoint=Vector2.new(0.5,0.5)ar.Position=UDim2.new(0,22,1,-52)ar.Size=UDim2.fromOffset(8,8)ar.BackgroundColor3=r.SchemeColor ar.
+BorderSizePixel=0 ar.Parent=ae Instance.new('UICorner',ar).CornerRadius=UDim.new(1,0)local as=Instance.new('TextLabel')as.BackgroundTransparency=1 as.Position=UDim2.new(0,34,1,-63)as.Size=UDim2.new(1,
+-100,0,22)as.Font=Enum.Font.Gotham as.Text='Preparando interface...'as.TextColor3=r.SchemeColor as.TextSize=12 as.TextXAlignment=Enum.TextXAlignment.Left as.Parent=ae local at=Instance.new('TextLabel'
+)at.Name='Percent'at.BackgroundTransparency=1 at.Position=UDim2.new(1,-68,1,-63)at.Size=UDim2.fromOffset(50,22)at.Font=Enum.Font.GothamSemibold at.Text='0%'at.TextColor3=r.SchemeColor at.TextSize=12
+at.TextXAlignment=Enum.TextXAlignment.Right at.Parent=ae local au=Instance.new('Frame')au.Name='ProgressTrack'au.Position=UDim2.new(0,18,1,-24)au.Size=UDim2.new(1,-36,0,8)au.BackgroundColor3=Color3.
+fromRGB(34,34,42)au.BorderSizePixel=0 au.Parent=ae Instance.new('UICorner',au).CornerRadius=UDim.new(1,0)local s=Instance.new('Frame')s.Name='Progress's.Size=UDim2.fromScale(0,1)s.BackgroundColor3=r.
+SchemeColor s.BorderSizePixel=0 s.Parent=au Instance.new('UICorner',s).CornerRadius=UDim.new(1,0)local t='Nothrilo/loader-cat-v1.mp4'local u=tostring(i.NothriloLoaderVideoUrl or
+[[https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/assets/nothrilo-loader.mp4]])local function loaderFunction(v)local w pcall(function()w=rawget(i,v)end)if type(w)=='function'
+then return w end pcall(function()w=rawget(_G,v)end)return type(w)=='function'and w or nil end local function nestedLoaderFunction(v,w)local x pcall(function()x=rawget(i,v)end)if type(x)~='table'then
+pcall(function()x=rawget(_G,v)end)end local y=type(x)=='table'and rawget(x,w)or nil return type(y)=='function'and y or nil end local function loaderAlive()return ab.Parent~=nil and not n and
+isCurrentSuiteGeneration()and os.clock()<aa.beganAt+aa.seconds end local function showLoadedVideo()if not loaderAlive()then return end local v,w=pcall(function()return aj.IsLoaded end)if v and w then
+pcall(function()aj.Visible=true aj.TimePosition=0 aj:Play()ak.Visible=false end)end end aj.Loaded:Connect(showLoadedVideo)local v=loaderFunction('getcustomasset')or loaderFunction('getsynasset')local
+w=loaderFunction('writefile')local x=loaderFunction('readfile')local y=loaderFunction('isfile')local z=loaderFunction('makefolder')local A=loaderFunction('delfile')local B=loaderFunction('request')or
+loaderFunction('http_request')or nestedLoaderFunction('syn','request')or nestedLoaderFunction('fluxus','request')or nestedLoaderFunction('http','request')local function validMp4(C)return type(C)==
+'string'and#C>=4096 and#C<=12*1024*1024 and C:sub(5,8)=='ftyp'end local function attachVideoFile()if not v or not loaderAlive()then return false end local C,D=pcall(v,t)if not C or type(D)~='string'or
+D==''then return false end local E=pcall(function()aj.Video=D end)if E then task.defer(showLoadedVideo)end return E end local function downloadVideo()if B then local C,D=pcall(B,{Url=u,Method='GET'})
+if C and type(D)=='table'then local E=tonumber(D.StatusCode or D.Status or D.status_code)or 0 local F=D.Body or D.body if E>=200 and E<300 then return F end elseif C and type(D)=='string'then return D
+end end local C,D=pcall(function()return game:HttpGet(u,true)end)return C and D or nil end task.spawn(function()if not v then return end local C=false if y then local D,E=pcall(y,t)C=D and E==true end
+if C and x then local D,E=pcall(x,t)if not D or not validMp4(E)then C=false if A then pcall(A,t)end end end if C and attachVideoFile()then return end if not w or not u:match('^https://')then return
+end local D=downloadVideo()if not validMp4(D)then return end if z then pcall(z,'Nothrilo')end local E=pcall(w,t,D)if E and loaderAlive()then attachVideoFile()end end)local C=Vector2.new()local 
+function resizeLoader()local D=workspace.CurrentCamera local E=D and D.ViewportSize or Vector2.new(800,600)if E==C then return end C=E local F=math.max(276,math.min(356,E.X-24))local G=math.max(330,
+math.min(552,E.Y-24))ae.Size=UDim2.fromOffset(F,G)ad.Size=UDim2.fromOffset(F,G)end resizeLoader()task.spawn(function()local D=as.Text while ab.Parent do resizeLoader()local E=os.clock()-aa.beganAt
+local F=math.clamp(E/aa.seconds,0,1)s.Size=UDim2.fromScale(F,1)local G=Color3.fromHSV((E*0.2)%1,0.84,1)s.BackgroundColor3=G ag.Color=G ai.Color=G am.BackgroundColor3=G ar.BackgroundColor3=G as.
+TextColor3=G at.TextColor3=G at.Text=('%d%%'):format(math.floor(F*100))local H if F<0.24 then H='Preparando interface...'elseif F<0.5 then H='Carregando fun\u{e7}\u{f5}es...'elseif F<0.76 then H=
+'Organizando atalhos...'elseif F<0.98 then H='Aplicando acabamento...'else H='Tudo pronto!'end if as.Text==D then D=H as.Text=D end for I,J in ipairs(ap)do local K=E*5.2+I*0.78 local L=(I-1)%3 local M
+=math.floor((I-1)/3)J.Position=UDim2.new(0.23+L*0.27,0,0.58+M*0.15,math.floor(math.sin(K)*5))J.Rotation=math.sin(K*0.82)*7 J.TextSize=30+math.floor((math.sin(K)+1)*1.5)end b.RenderStepped:Wait()end
+end)return ab,as,s end)()local ab=(function()local ab={gui=nil,theme=r,themeBindings={}}local function classicCreate(ac,ad,ae)local af=Instance.new(ac)for ag,ah in pairs(ad or{})do af[ag]=ah end af.
+Parent=ae return af end local function classicCorner(ac,ad)return classicCreate('UICorner',{CornerRadius=UDim.new(0,ad or 4)},ac)end local function classicBindTheme(ac,ad,ae)table.insert(ab.
+themeBindings,{object=ac,property=ad,themeKey=ae})ac[ad]=ab.theme[ae]return ac end local function classicInvoke(ac,ad,...)if not ad then return end local ae=table.pack(...)local af,ag=xpcall(function(
+)ad(table.unpack(ae,1,ae.n))end,function(af)if debug and type(debug.traceback)=='function'then return debug.traceback(tostring(af),2)end return tostring(af)end)if not af then warn(('[%s/%s] %s'):
+format(g,ac,tostring(ag)))end end function ab:ChangeColor(ac,ad)if not self.theme[ac]then return end self.theme[ac]=ad for ae=#self.themeBindings,1,-1 do local af=self.themeBindings[ae]if not af.
+object or not af.object.Parent then table.remove(self.themeBindings,ae)elseif af.themeKey==ac then af.object[af.property]=ad end end end function ab:ToggleUI()if self.gui and self.gui.Parent then self
+.gui.Enabled=not self.gui.Enabled end end function ab.CreateLib(ac,ad)ab.theme=ad or r table.clear(ab.themeBindings)local ae=classicCreate('ScreenGui',{Name='NothriloClassicUI',Enabled=false,
+ResetOnSpawn=false,IgnoreGuiInset=true,DisplayOrder=10000,ZIndexBehavior=Enum.ZIndexBehavior.Sibling},k)ab.gui=ae local af=classicCreate('Frame',{Name='Main',AnchorPoint=Vector2.new(0.5,0.5),Position=
+UDim2.fromScale(0.5,0.5),Size=UDim2.fromOffset(525,318),BackgroundColor3=ab.theme.Background,BorderSizePixel=0,ClipsDescendants=true},ae)classicCorner(af,18)local ag=classicCreate('Frame',{Name=
+'MainHeader',Size=UDim2.new(1,0,0,34),BackgroundColor3=ab.theme.Header,BorderSizePixel=0},af)classicCorner(ag,18)local ah=classicCreate('Frame',{Name='SquareBottom',Position=UDim2.new(0,0,1,-18),Size=
+UDim2.new(1,0,0,18),BackgroundColor3=ab.theme.Header,BorderSizePixel=0},ag)classicBindTheme(ah,'BackgroundColor3','Header')local ai=classicCreate('TextLabel',{Name='title',Position=UDim2.fromOffset(12
+,0),Size=UDim2.new(1,-46,1,0),BackgroundTransparency=1,Font=Enum.Font.GothamSemibold,Text=ac,TextColor3=ab.theme.TextColor,TextSize=16,TextTruncate=Enum.TextTruncate.AtEnd,TextXAlignment=Enum.
+TextXAlignment.Left,RichText=true},ag)classicBindTheme(ai,'TextColor3','TextColor')local aj=classicCreate('TextButton',{Name='close',Position=UDim2.new(1,-34,0,0),Size=UDim2.fromOffset(34,34),
+BackgroundTransparency=1,Text='\u{d7}',Font=Enum.Font.GothamBold,TextColor3=ab.theme.TextColor,TextSize=20},ag)aj.Activated:Connect(function()if m then m()elseif ae.Parent then ae:Destroy()end end)
+local ak=classicCreate('Frame',{Name='MainSide',Position=UDim2.fromOffset(0,34),Size=UDim2.new(0,145,1,-34),BackgroundColor3=ab.theme.Header,BorderSizePixel=0},af)classicCorner(ak,18)local al=
+classicCreate('Frame',{Name='SquareTop',Size=UDim2.new(1,0,0,18),BackgroundColor3=ab.theme.Header,BorderSizePixel=0},ak)classicBindTheme(al,'BackgroundColor3','Header')local am=classicCreate('Frame',{
+Name='SquareRight',Position=UDim2.new(1,-18,0,0),Size=UDim2.new(0,18,1,0),BackgroundColor3=ab.theme.Header,BorderSizePixel=0},ak)classicBindTheme(am,'BackgroundColor3','Header')local an=classicCreate(
+'ScrollingFrame',{Name='tabFrames',Position=UDim2.fromOffset(6,3),Size=UDim2.new(0,133,1,-6),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=0,AutomaticCanvasSize=Enum.AutomaticSize.Y,
+CanvasSize=UDim2.new(),ScrollingDirection=Enum.ScrollingDirection.Y},ak)classicBindTheme(an,'ScrollBarImageColor3','SchemeColor')classicCreate('UIListLayout',{Name='tabListing',Padding=UDim.new(0,2),
+SortOrder=Enum.SortOrder.LayoutOrder},an)local ao=classicCreate('Frame',{Name='pages',Position=UDim2.fromOffset(153,42),Size=UDim2.fromOffset(364,268),BackgroundColor3=ab.theme.Background,
+BorderSizePixel=0},af)local ap=classicCreate('Folder',{Name='Pages'},ao)local aq=classicCreate('TextLabel',{Name='infoContainer',Position=UDim2.fromOffset(153,268),Size=UDim2.fromOffset(364,42),
+BackgroundColor3=ab.theme.ElementColor,BorderSizePixel=0,Font=Enum.Font.GothamSemibold,Text='',TextColor3=ab.theme.TextColor,TextSize=12,TextWrapped=true,TextTruncate=Enum.TextTruncate.AtEnd,
+TextXAlignment=Enum.TextXAlignment.Left,Visible=false,ZIndex=60},af)classicCorner(aq,12)classicCreate('UIPadding',{PaddingLeft=UDim.new(0,10),PaddingRight=UDim.new(0,10)},aq)classicBindTheme(aq,
+'BackgroundColor3','ElementColor')classicBindTheme(aq,'TextColor3','TextColor')local ar=classicCreate('UIStroke',{Thickness=1,Transparency=0.1},aq)classicBindTheme(ar,'Color','SchemeColor')local as=0
+local function showHint(at,au)if not au or au==''then return end as=as+1 local s=as aq.Text=tostring(at)..'  \u{2022}  '..tostring(au)aq.Visible=true task.delay(4,function()if s==as and aq.Parent then
+aq.Visible=false end end)end local at local au={}local function updateResponsiveLayout()local s=workspace.CurrentCamera local t=s and s.ViewportSize or Vector2.new(1280,720)local u=math.clamp(t.X-16,
+300,525)local v=math.clamp(t.Y-16,260,318)local w=u<420 and 96 or 145 local x=w+8 local y=42 af.Size=UDim2.fromOffset(u,v)ak.Position=UDim2.fromOffset(0,34)ak.Size=UDim2.new(0,w,1,-34)an.Size=UDim2.
+new(1,-12,1,-6)ao.Position=UDim2.fromOffset(x,y)ao.Size=UDim2.new(1,-(x+8),1,-(y+8))aq.Position=UDim2.fromOffset(x,v-50)aq.Size=UDim2.new(1,-(x+8),0,42)local z=u<420 for A,B in ipairs(au)do B(z)end
+end local function bindViewportCamera()if at then at:Disconnect()at=nil end local s=workspace.CurrentCamera if s then at=trackConnection(s:GetPropertyChangedSignal('ViewportSize'):Connect(
+updateResponsiveLayout))end updateResponsiveLayout()end bindViewportCamera()trackConnection(workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(bindViewportCamera))local s={tabs={},gui=ae}
+local function showTab(t)for u,v in ipairs(s.tabs)do local w=v==t v.page.Visible=w v.button.BackgroundTransparency=w and 0 or 1 v.button.Font=w and Enum.Font.GothamSemibold or Enum.Font.GothamMedium v
+.button.TextColor3=w and Color3.fromRGB(7,7,9)or ab.theme.TextColor if w then v.page.CanvasPosition=Vector2.zero end end end function s:NewTab(t)local u=classicCreate('TextButton',{Name=t..'TabButton'
+,Size=UDim2.new(1,0,0,26),BackgroundTransparency=1,BorderSizePixel=0,AutoButtonColor=false,Font=Enum.Font.GothamMedium,Text=t,TextColor3=ab.theme.TextColor,TextSize=13},an)classicCorner(u,10)
+classicBindTheme(u,'BackgroundColor3','SchemeColor')classicBindTheme(u,'TextColor3','TextColor')local v=classicCreate('ScrollingFrame',{Name='Page',Size=UDim2.fromScale(1,1),BackgroundColor3=ab.theme.
+Background,BorderSizePixel=0,ScrollBarThickness=5,AutomaticCanvasSize=Enum.AutomaticSize.Y,CanvasSize=UDim2.new(),ScrollingDirection=Enum.ScrollingDirection.Y,Visible=false},ap)classicBindTheme(v,
+'ScrollBarImageColor3','SchemeColor')classicCreate('UIPadding',{PaddingLeft=UDim.new(0,4),PaddingRight=UDim.new(0,4),PaddingTop=UDim.new(0,4),PaddingBottom=UDim.new(0,50)},v)classicCreate(
+'UIListLayout',{Name='pageListing',Padding=UDim.new(0,5),SortOrder=Enum.SortOrder.LayoutOrder},v)local w={button=u,page=v}table.insert(self.tabs,w)u.Activated:Connect(function()showTab(w)end)if#self.
+tabs==1 then showTab(w)end function w:NewSection(x,y)local z=classicCreate('Frame',{Name='sectionFrame',Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,
+BorderSizePixel=0},v)classicCreate('UIListLayout',{Name='sectionlistoknvm',Padding=UDim.new(0,5),SortOrder=Enum.SortOrder.LayoutOrder},z)local A=classicCreate('Frame',{Name='sectionHead',Size=UDim2.
+new(1,0,0,y and 0 or 33),Visible=not y,BackgroundColor3=ab.theme.SchemeColor,BorderSizePixel=0},z)classicCorner(A,12)classicBindTheme(A,'BackgroundColor3','SchemeColor')local B=classicCreate(
+'TextLabel',{Name='sectionName',Position=UDim2.fromOffset(12,0),Size=UDim2.new(1,-24,1,0),BackgroundTransparency=1,Font=Enum.Font.GothamBold,Text=x,TextColor3=Color3.fromRGB(7,7,9),TextSize=14,
+TextTruncate=Enum.TextTruncate.AtEnd,TextXAlignment=Enum.TextXAlignment.Left},A)table.insert(au,function(C)B.TextSize=C and 12 or 14 end)local C=classicCreate('Frame',{Name='sectionInners',Size=UDim2.
+new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,BorderSizePixel=0},z)classicCreate('UIListLayout',{Name='sectionElListing',Padding=UDim.new(0,3),SortOrder=Enum.SortOrder.
+LayoutOrder},C)local D={}local function makeElement(E,F,G,H,I)local J=c.TouchEnabled and math.max(F,44)or F local K=classicCreate('TextButton',{Name=E,Size=UDim2.new(1,0,0,J),BackgroundColor3=ab.theme
+.ElementColor,BorderSizePixel=0,AutoButtonColor=false,ClipsDescendants=true,Text=''},C)classicCorner(K,12)local L=classicCreate('UIStroke',{Thickness=1,Transparency=0.82,Color=Color3.fromRGB(80,80,92)
+},K)local M=classicCreate('TextLabel',{Name='touch',Position=UDim2.new(0,7,0.5,-11),Size=UDim2.fromOffset(22,22),BackgroundTransparency=1,Font=Enum.Font.GothamBold,Text='\u{2022}',TextColor3=ab.theme.
+SchemeColor,TextSize=17},K)classicBindTheme(M,'TextColor3','SchemeColor')local N=classicCreate('TextLabel',{Name='togName',Position=UDim2.fromOffset(34,0),Size=UDim2.new(1,-(62+(I or 0)),1,0),
+BackgroundTransparency=1,Font=Enum.Font.GothamSemibold,Text=G,TextColor3=ab.theme.TextColor,TextSize=14,TextTruncate=Enum.TextTruncate.AtEnd,TextXAlignment=Enum.TextXAlignment.Left},K)
+classicBindTheme(N,'TextColor3','TextColor')table.insert(au,function(O)N.TextSize=O and 13 or 14 end)local O=classicCreate('TextButton',{Name='viewInfo',Position=UDim2.new(1,-30,0,0),Size=UDim2.new(0,
+30,1,0),BackgroundTransparency=1,AutoButtonColor=false,Font=Enum.Font.GothamBold,Text='i',TextColor3=ab.theme.SchemeColor,TextSize=14,Visible=H~=nil and H~='',ZIndex=4},K)classicBindTheme(O,
+'TextColor3','SchemeColor')O.Activated:Connect(function()showHint(G,H)end)O.MouseEnter:Connect(function()showHint(G,H)end)K.MouseEnter:Connect(function()K.BackgroundColor3=ab.theme.ElementColor:Lerp(
+Color3.new(1,1,1),0.08)end)K.MouseLeave:Connect(function()K.BackgroundColor3=ab.theme.ElementColor end)return K,N,M,O end function D:NewButton(E,F,G)local H,I,J=makeElement('buttonElement',33,E,F,0)J.
+Text='\u{203a}'J.TextSize=20 H.Activated:Connect(function()classicInvoke(E,G)end)local K={}function K:UpdateButton(L)local M=H:FindFirstChild('togName')if M and L~=nil then M.Text=tostring(L)end end
+return K end function D:NewToggle(E,F,G)local H,I,J=makeElement('toggleElement',33,E,F,0)J.Visible=false local K=c.TouchEnabled and 11 or 6 local L=classicCreate('Frame',{Name='toggleDisabled',
+Position=UDim2.fromOffset(7,K),Size=UDim2.fromOffset(21,21),BackgroundTransparency=1,BorderSizePixel=0},H)classicCorner(L,8)local M=classicCreate('UIStroke',{Thickness=2},L)classicBindTheme(M,'Color',
+'SchemeColor')local N=classicCreate('Frame',{Name='toggleEnabled',Position=UDim2.fromOffset(5,5),Size=UDim2.fromOffset(11,11),BackgroundColor3=ab.theme.SchemeColor,BorderSizePixel=0,Visible=false},L)
+classicCorner(N,6)classicBindTheme(N,'BackgroundColor3','SchemeColor')local O=false local P={}function P:UpdateToggle(Q,R)if Q~=nil then I.Text=tostring(Q)end O=R==true N.Visible=O classicInvoke(E,G,O
+)end H.Activated:Connect(function()P:UpdateToggle(nil,not O)end)return P end function D:NewTextBox(E,F,G)local H,I,J=makeElement('textboxElement',33,E,F,0)local K=c.TouchEnabled and 44 or 33 J.Text=
+'T'J.TextSize=13 I.Size=UDim2.new(0.49,-34,1,0)local L=classicCreate('TextBox',{Name='TextBox',Position=UDim2.new(0.49,0,0.5,-9),Size=UDim2.new(0.43,-2,0,18),BackgroundColor3=Color3.fromRGB(14,14,18),
+BorderSizePixel=0,ClearTextOnFocus=false,PlaceholderText='Type here!',Text='',Font=Enum.Font.Gotham,TextColor3=ab.theme.TextColor,PlaceholderColor3=Color3.fromRGB(135,135,145),TextSize=12,
+TextXAlignment=Enum.TextXAlignment.Left},H)classicCorner(L,9)classicCreate('UIPadding',{PaddingLeft=UDim.new(0,6),PaddingRight=UDim.new(0,6)},L)local function layoutTextBox(M)if M then H.Size=UDim2.
+new(1,0,0,64)J.Position=UDim2.fromOffset(7,4)I.Position=UDim2.fromOffset(34,0)I.Size=UDim2.new(1,-70,0,30)L.Position=UDim2.fromOffset(34,32)L.Size=UDim2.new(1,-72,0,24)else H.Size=UDim2.new(1,0,0,K)J.
+Position=UDim2.new(0,7,0.5,-11)I.Position=UDim2.fromOffset(34,0)I.Size=UDim2.new(0.49,-34,1,0)L.Position=UDim2.new(0.49,0,0.5,-9)L.Size=UDim2.new(0.43,-2,0,18)end end table.insert(au,layoutTextBox)
+layoutTextBox(af.Size.X.Offset<420)L.FocusLost:Connect(function(M)if M then classicInvoke(E,G,L.Text)end end)return L end function D:NewSlider(E,F,G,H,I,J)if type(I)=='function'then J=I I=H end G=
+tonumber(G)or 100 H=tonumber(H)or 0 local K,L,M=makeElement('sliderElement',33,E,F,0)local N=c.TouchEnabled and 44 or 33 M.Text='\u{25c9}'M.TextSize=13 L.Size=UDim2.new(0.49,-34,1,0)local O=math.
+clamp(tonumber(I)or H,H,G)local P=classicCreate('TextLabel',{Name='value',Position=UDim2.new(1,-58,0,0),Size=UDim2.fromOffset(31,33),BackgroundTransparency=1,Font=Enum.Font.GothamSemibold,Text=
+tostring(O),TextSize=12,TextXAlignment=Enum.TextXAlignment.Right},K)classicBindTheme(P,'TextColor3','SchemeColor')local Q=classicCreate('TextButton',{Name='sliderBtn',Position=UDim2.new(0.49,0,0.5,-12
+),Size=UDim2.new(0.34,0,0,23),BackgroundTransparency=1,BorderSizePixel=0,Text=''},K)local R=classicCreate('Frame',{Name='track',AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromScale(0,0.5),Size=
+UDim2.new(1,0,0,6),BackgroundColor3=Color3.fromRGB(45,45,52),BorderSizePixel=0},Q)classicCorner(R,3)local S=classicCreate('Frame',{Name='sliderDrag',Size=UDim2.new(G~=H and((O-H)/(G-H))or 0,0,1,0),
+BorderSizePixel=0},R)classicCorner(S,3)classicBindTheme(S,'BackgroundColor3','SchemeColor')local function layoutSlider(T)if T then K.Size=UDim2.new(1,0,0,60)M.Position=UDim2.fromOffset(7,4)L.Position=
+UDim2.fromOffset(34,0)L.Size=UDim2.new(1,-70,0,30)Q.Position=UDim2.fromOffset(34,30)Q.Size=UDim2.new(1,-136,0,28)P.Position=UDim2.new(1,-100,0,30)P.Size=UDim2.fromOffset(70,28)else K.Size=UDim2.new(1,
+0,0,N)M.Position=UDim2.new(0,7,0.5,-11)L.Position=UDim2.fromOffset(34,0)L.Size=UDim2.new(0.49,-34,1,0)Q.Position=UDim2.new(0.49,0,0.5,-12)Q.Size=UDim2.new(0.34,0,0,23)P.Position=UDim2.new(1,-58,0,0)P.
+Size=UDim2.new(0,31,1,0)end end table.insert(au,layoutSlider)layoutSlider(af.Size.X.Offset<420)local T=false local U=G-H local V={}function V:SetValue(W,X)O=math.clamp(tonumber(W)or H,H,G)local Y=U~=0
+and((O-H)/U)or 0 S.Size=UDim2.new(Y,0,1,0)P.Text=tostring(O)if X~=false then classicInvoke(E,J,O)end end function V:GetValue()return O end local function setFromInput(W)if Q.AbsoluteSize.X<=0 then
+return end local X=math.clamp((W.Position.X-Q.AbsolutePosition.X)/Q.AbsoluteSize.X,0,1)V:SetValue(math.floor(H+(U*X)+0.5),true)end Q.InputBegan:Connect(function(W)if W.UserInputType==Enum.
+UserInputType.MouseButton1 or W.UserInputType==Enum.UserInputType.Touch then T=true setFromInput(W)end end)trackConnection(c.InputChanged:Connect(function(W)if T and(W.UserInputType==Enum.
+UserInputType.MouseMovement or W.UserInputType==Enum.UserInputType.Touch)then setFromInput(W)end end))trackConnection(c.InputEnded:Connect(function(W)if W.UserInputType==Enum.UserInputType.
+MouseButton1 or W.UserInputType==Enum.UserInputType.Touch then T=false end end))return V end function D:NewKeybind(E,F,G,H)local I,J,K=makeElement('keybindElement',33,E,F,70)K.Text='K'K.TextSize=12
+local L=G or Enum.KeyCode.Unknown local M=false local N=classicCreate('TextLabel',{Name='togName',Position=UDim2.new(1,-96,0,0),Size=UDim2.fromOffset(70,33),BackgroundTransparency=1,Font=Enum.Font.
+GothamSemibold,Text=L.Name,TextSize=14,TextXAlignment=Enum.TextXAlignment.Right},I)classicBindTheme(N,'TextColor3','SchemeColor')I.Activated:Connect(function()M=true N.Text='...'end)trackConnection(c.
+InputBegan:Connect(function(O,P)if n then return end if M then if O.KeyCode~=Enum.KeyCode.Unknown then L=O.KeyCode N.Text=L.Name M=false end return end if not P and not c:GetFocusedTextBox()and O.
+KeyCode==L then classicInvoke(E,H)end end))local O={}function O:UpdateKeybind(P,Q)if P~=nil then J.Text=tostring(P)end if Q then L=Q N.Text=L.Name end end return O end return D end return w end local
+t=classicCreate('Frame',{Name='MainOutline',Position=UDim2.fromOffset(1,1),Size=UDim2.new(1,-2,1,-2),BackgroundTransparency=1,BorderSizePixel=0,Active=false,ZIndex=100},af)classicCorner(t,17)local u=
+classicCreate('UIStroke',{Thickness=1,Transparency=0.08,ApplyStrokeMode=Enum.ApplyStrokeMode.Border},t)classicBindTheme(u,'Color','SchemeColor')return s end return ab end)()local function 
+bootstrapAlive()return not n and isCurrentSuiteGeneration()and q and q.Parent~=nil end local function abortBootstrap()n=true for ac=#o,1,-1 do local ad=o[ac]pcall(function()ad:Disconnect()end)o[ac]=
+nil end if ab.gui and ab.gui.Parent then ab.gui:Destroy()end if aa.gui and aa.gui.Parent then aa.gui:Destroy()end if q and q.Parent then q:Destroy()end end if aa.status then aa.status.Text=
+'Montando interface cl\u{e1}ssica local...'end if not bootstrapAlive()then abortBootstrap()return end local ac do local ad,ae=pcall(function()return ab.CreateLib(h,r)end)if not ad or not ae or not
+bootstrapAlive()then warn(g..': falha ao criar a janela local: '..tostring(ae))abortBootstrap()return end ac=ae end local ad local ae={}local function notify(af,ag)if not ad or not ad.Parent then
+warn((af or g)..': '..(ag or''))return end local ah=Instance.new('Frame')ah.Name='NothriloToast'ah.Size=UDim2.new(1,0,0,74)ah.BackgroundColor3=Color3.fromRGB(18,18,23)ah.BackgroundTransparency=1 ah.
+BorderSizePixel=0 ah.Parent=ad Instance.new('UICorner',ah).CornerRadius=UDim.new(0,15)local ai=Instance.new('UIStroke')ai.Name='RGBStroke'ai.Thickness=1.5 ai.Transparency=1 ai.Parent=ah table.insert(
+ae,ai)local aj=Instance.new('TextLabel')aj.Size=UDim2.fromOffset(42,42)aj.Position=UDim2.fromOffset(14,16)aj.BackgroundColor3=Color3.fromRGB(30,30,37)aj.BackgroundTransparency=1 aj.Font=Enum.Font.
+GothamBold aj.Text='N'aj.TextColor3=Color3.fromRGB(255,255,255)aj.TextSize=18 aj.TextTransparency=1 aj.Parent=ah Instance.new('UICorner',aj).CornerRadius=UDim.new(1,0)local ak=Instance.new('TextLabel'
+)ak.Size=UDim2.new(1,-76,0,20)ak.Position=UDim2.fromOffset(68,14)ak.BackgroundTransparency=1 ak.Font=Enum.Font.GothamBold ak.Text=af or g ak.TextColor3=Color3.fromRGB(250,250,252)ak.TextSize=14 ak.
+TextTransparency=1 ak.TextXAlignment=Enum.TextXAlignment.Left ak.Parent=ah local al=Instance.new('TextLabel')al.Size=UDim2.new(1,-76,0,30)al.Position=UDim2.fromOffset(68,34)al.BackgroundTransparency=1
+al.Font=Enum.Font.Gotham al.Text=ag or''al.TextColor3=Color3.fromRGB(185,185,195)al.TextSize=12 al.TextTransparency=1 al.TextWrapped=true al.TextXAlignment=Enum.TextXAlignment.Left al.TextYAlignment=
+Enum.TextYAlignment.Top al.Parent=ah local am=TweenInfo.new(0.22,Enum.EasingStyle.Quint,Enum.EasingDirection.Out)d:Create(ah,am,{BackgroundTransparency=0}):Play()d:Create(ai,TweenInfo.new(0.22),{
+Transparency=0.15}):Play()d:Create(aj,TweenInfo.new(0.22),{BackgroundTransparency=0,TextTransparency=0}):Play()d:Create(ak,TweenInfo.new(0.22),{TextTransparency=0}):Play()d:Create(al,TweenInfo.new(
+0.22),{TextTransparency=0}):Play()task.delay(4,function()if not ah.Parent then return end local an=TweenInfo.new(0.2,Enum.EasingStyle.Quad,Enum.EasingDirection.In)d:Create(ah,an,{
+BackgroundTransparency=1}):Play()d:Create(ai,an,{Transparency=1}):Play()d:Create(aj,an,{BackgroundTransparency=1,TextTransparency=1}):Play()d:Create(ak,an,{TextTransparency=1}):Play()d:Create(al,an,{
+TextTransparency=1}):Play()task.wait(0.25)ah:Destroy()end)end local function getCharacter(af)local ag=f.Character if ag or not af then return ag end local ah=os.clock()+5 repeat task.wait(0.05)ag=f.
+Character until ag or n or not isCurrentSuiteGeneration()or os.clock()>=ah return ag end local function getHumanoid(af,ag)af=af or getCharacter(ag and ag>0)if not af then return nil end local ah=af:
+FindFirstChildOfClass('Humanoid')if not ah and ag and ag>0 then local ai=af:WaitForChild('Humanoid',ag)if ai and ai:IsA('Humanoid')then ah=ai end end return ah end local function getRoot(af,ag)af=af
+or getCharacter(ag and ag>0)if not af then return nil end local ah=af:FindFirstChild('HumanoidRootPart')if not ah and ag and ag>0 then local ai=af:WaitForChild('HumanoidRootPart',ag)if ai and ai:IsA(
+'BasePart')then ah=ai end end return ah end local function teleportCharacter(af)if n or not isCurrentSuiteGeneration()then return false end local ag=getCharacter(true)local ah=getRoot(ag,5)local ai=
+getHumanoid(ag,5)if n or not isCurrentSuiteGeneration()or not ag or not ah then notify('Teleporte','HumanoidRootPart n\u{e3}o encontrado.')return false end if ai and ai.SeatPart then ai.Sit=false
+pcall(function()ai:ChangeState(Enum.HumanoidStateType.GettingUp)end)local aj=os.clock()+0.6 repeat b.Heartbeat:Wait()until not ai.Parent or not ai.SeatPart or os.clock()>=aj end if n or not
+isCurrentSuiteGeneration()then return false end ah=getRoot(ag)if not ah then return false end local aj=pcall(function()local aj=ag:GetPivot():ToObjectSpace(ah.CFrame)ag:PivotTo(af*aj:Inverse())ah.
+AssemblyLinearVelocity=Vector3.zero ah.AssemblyAngularVelocity=Vector3.zero end)if not aj then notify('Teleporte','N\u{e3}o foi poss\u{ed}vel mover o personagem.')end return aj end local af=
+'NothriloESP'local ag=false local ah={}local ai={}local aj={}local ak=0 local function getESPColor(al)if al.Team and al.Team.TeamColor then return al.Team.TeamColor.Color end return Color3.fromRGB(190
+,130,255)end local function removeESP(al)local am=ah[al]if not am then return end if am.Billboard and am.Billboard.Parent then am.Billboard:Destroy()end if am.Highlight and am.Highlight.Parent then am
+.Highlight:Destroy()end local an=am.Humanoid local ao=am.DisplayState if an and an.Parent and ao then pcall(function()an.DisplayDistanceType=ao.DisplayDistanceType an.NameOcclusion=ao.NameOcclusion an
+.NameDisplayDistance=ao.NameDisplayDistance an.HealthDisplayDistance=ao.HealthDisplayDistance end)end ah[al]=nil end local function refreshESPColor(al)local am=ah[al]if not am then return end local an
+=getESPColor(al)if am.Highlight and am.Highlight.Parent then am.Highlight.FillColor=an am.Highlight.OutlineColor=an end if am.Label and am.Label.Parent then am.Label.TextColor3=an end end local 
+function refreshESPDistance(al)local am=ah[al]if not am or not am.Billboard or not am.Billboard.Parent then return end local an=f.Character local ao=an and an:FindFirstChild('HumanoidRootPart')local
+ap=am.Billboard.Adornee if not ao or not ap or not ap.Parent then am.Billboard.Enabled=false return end local aq=(ao.Position-ap.Position).Magnitude local ar=150 am.Billboard.Enabled=true local as=
+math.clamp((aq-ar)/450,0,1)am.Billboard.Size=UDim2.fromOffset(math.floor(118+(210-118)*as),math.floor(20+(38-20)*as))if am.Label and am.Label.Parent then am.Label.Text=string.format('%s  [%d studs]',
+am.BaseText or al.DisplayName or al.Name,math.floor(aq+0.5))end end local function addESP(al,am)if not ag or al==f then return end am=am or al.Character if not am or not am.Parent then return end
+local an=am:FindFirstChild('HumanoidRootPart')local ao=am:FindFirstChildOfClass('Humanoid')if not an or not ao then return end removeESP(al)local ap={DisplayDistanceType=ao.DisplayDistanceType,
+NameOcclusion=ao.NameOcclusion,NameDisplayDistance=ao.NameDisplayDistance,HealthDisplayDistance=ao.HealthDisplayDistance}pcall(function()ao.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None ao
+.NameOcclusion=Enum.NameOcclusion.NoOcclusion ao.NameDisplayDistance=0 ao.HealthDisplayDistance=0 end)local aq=Instance.new('BillboardGui')aq.Name=af..'Name'aq.Size=UDim2.fromOffset(118,20)aq.Enabled=
+false aq.Adornee=an aq.AlwaysOnTop=true aq.LightInfluence=0 aq.MaxDistance=math.huge aq.StudsOffset=Vector3.new(0,3.2,0)aq.Parent=an local ar=Instance.new('TextLabel')ar.Name='NameLabel'ar.Size=UDim2.
+fromScale(1,1)ar.BackgroundTransparency=1 ar.Font=Enum.Font.GothamBold local as=al.DisplayName~=''and al.DisplayName or al.Name ar.Text=as ar.TextScaled=true ar.TextStrokeColor3=Color3.fromRGB(0,0,0)
+ar.TextStrokeTransparency=0 ar.Parent=aq local at=Instance.new('Highlight')at.Name=af at.FillTransparency=0.5 at.OutlineTransparency=0 at.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop at.Adornee=am at
+.Parent=am ah[al]={Billboard=aq,Label=ar,Highlight=at,Humanoid=ao,DisplayState=ap,BaseText=as}refreshESPColor(al)refreshESPDistance(al)end local function disconnectESPPlayer(al)local am=ai[al]if am
+then for an,ao in ipairs(am)do ao:Disconnect()end end ai[al]=nil end local function watchESPPlayer(al)if al==f then return end disconnectESPPlayer(al)local am={}ai[al]=am table.insert(am,al.
+CharacterAdded:Connect(function(an)task.wait(0.2)addESP(al,an)end))table.insert(am,al.CharacterRemoving:Connect(function()removeESP(al)end))table.insert(am,al:GetPropertyChangedSignal('Team'):Connect(
+function()refreshESPColor(al)end))table.insert(am,al:GetPropertyChangedSignal('DisplayName'):Connect(function()local an=ah[al]if an then an.BaseText=al.DisplayName~=''and al.DisplayName or al.Name
+refreshESPDistance(al)end end))addESP(al,al.Character)end local function clearESP()for al,am in ipairs(aj)do am:Disconnect()end table.clear(aj)local al={}for am in pairs(ai)do table.insert(al,am)end
+for am,an in ipairs(al)do disconnectESPPlayer(an)end local am={}for an in pairs(ah)do table.insert(am,an)end for an,ao in ipairs(am)do removeESP(ao)end end local function setESP(al)ag=al ak=ak+1
+clearESP()if not al then notify('ESP','Desligado.')return end for am,an in ipairs(a:GetPlayers())do watchESPPlayer(an)end table.insert(aj,a.PlayerAdded:Connect(watchESPPlayer))table.insert(aj,a.
+PlayerRemoving:Connect(function(am)removeESP(am)disconnectESPPlayer(am)end))local am=ak task.spawn(function()while ag and am==ak do for an,ao in ipairs(a:GetPlayers())do if ao~=f and ao.Character then
+local ap=ah[ao]local aq=ap and ap.Billboard and ap.Billboard.Parent and ap.Highlight and ap.Highlight.Parent if not aq then removeESP(ao)addESP(ao,ao.Character)else refreshESPDistance(ao)end end end
+task.wait(0.5)end end)notify('ESP','Ligado: nomes e contornos ativos.')end local al=false local am local an local ao local ap local aq local ar=false local as=0 local at local au local s local t local
+u={}local v=false local w=0 local x=0 local y local z={}local function restoreDefaultCamera()local A=workspace.CurrentCamera if not A then return end A.CameraType=Enum.CameraType.Custom local B=
+getHumanoid()if B then A.CameraSubject=B end end local function claimCameraMode(A)if y==A then return end local B=y y=A local C=B and z[B]if C then pcall(C)end end local function releaseCameraMode(A)
+if y~=A then return end y=nil restoreDefaultCamera()end local function resetCameraModes()local A=y y=nil local B=A and z[A]if B then pcall(B)end restoreDefaultCamera()end local function 
+restoreCameraWhenCharacterReady(A)z.restoreSession=(z.restoreSession or 0)+1 local B=z.restoreSession task.spawn(function()local C=A and(A:FindFirstChildOfClass('Humanoid')or A:WaitForChild('Humanoid'
+,5))if n or B~=z.restoreSession or y or A~=f.Character or not C or not C.Parent then return end local D=workspace.CurrentCamera if D then D.CameraType=Enum.CameraType.Custom D.CameraSubject=C end end)
+end trackConnection(workspace:GetPropertyChangedSignal('CurrentCamera'):Connect(function()task.defer(function()if not n and not y then restoreDefaultCamera()end end)end))local A=false local B=1 local
+C local D local E={inputEnabled=true}local F=f:GetMouse()local G=0 local H=0 local I local J=0 local function showMobileFlyControls(K)if not c.TouchEnabled then return end if I and I.Parent then I.
+Enabled=K return end if not K then return end local L=Instance.new('ScreenGui')L.Name='NothriloMobileFly'L.ResetOnSpawn=false L.IgnoreGuiInset=true L.DisplayOrder=10020 L.Parent=k I=L local M=Instance
+.new('Frame')M.Name='ControlesDeVoo'M.AnchorPoint=Vector2.new(1,0.5)M.Position=UDim2.new(1,-16,0.5,0)M.Size=UDim2.fromOffset(72,124)M.BackgroundColor3=Color3.fromRGB(10,10,13)M.BackgroundTransparency=
+0.12 M.BorderSizePixel=0 M.Parent=L Instance.new('UICorner',M).CornerRadius=UDim.new(0,14)local N=Instance.new('UIStroke',M)N.Color=r.SchemeColor N.Thickness=1 local O=Instance.new('TextLabel')O.
+BackgroundTransparency=1 O.Position=UDim2.fromOffset(0,6)O.Size=UDim2.new(1,0,0,18)O.Font=Enum.Font.GothamBold O.Text='VOO'O.TextColor3=Color3.fromRGB(245,245,245)O.TextSize=11 O.Parent=M local 
+function makeBtn(P,Q,R)local S=Instance.new('TextButton')S.Size=UDim2.fromOffset(52,38)S.Position=UDim2.new(0.5,-26,0,Q)S.BackgroundColor3=Color3.fromRGB(28,28,35)S.BorderSizePixel=0 S.AutoButtonColor
+=false S.Font=Enum.Font.GothamBold S.Text=P S.TextColor3=r.SchemeColor S.TextSize=22 S.Parent=M Instance.new('UICorner',S).CornerRadius=UDim.new(0,10)S.InputBegan:Connect(function(T)if T.UserInputType
+==Enum.UserInputType.Touch or T.UserInputType==Enum.UserInputType.MouseButton1 then R(1)S.BackgroundColor3=Color3.fromRGB(48,48,58)end end)S.InputEnded:Connect(function(T)if T.UserInputType==Enum.
+UserInputType.Touch or T.UserInputType==Enum.UserInputType.MouseButton1 then R(0)S.BackgroundColor3=Color3.fromRGB(28,28,35)end end)end makeBtn('\u{25b2}',30,function(P)G=P end)makeBtn('\u{25bc}',74,
+function(P)H=P end)end local function stopFly()J=J+1 A=false G=0 H=0 showMobileFlyControls(false)if C then C:Disconnect()C=nil end if D then D:Disconnect()D=nil end local K=E.root or(f.Character and f
+.Character:FindFirstChild('HumanoidRootPart'))if E.gyro and E.gyro.Parent then E.gyro:Destroy()end if E.velocity and E.velocity.Parent then E.velocity:Destroy()end if K then local L=K:FindFirstChild(
+'CafezlVehicleFlyGyro')local M=K:FindFirstChild('CafezlVehicleFlyVelocity')if L then L:Destroy()end if M then M:Destroy()end end E.root=nil E.gyro=nil E.velocity=nil E.startedSeated=false E.
+inputEnabled=true releaseCameraMode('fly')end local function startVehicleFly(K)if z.autoWin then z.autoWin(true)end stopFly()local L=J if n or not isCurrentSuiteGeneration()then return false end local
+M=getCharacter(true)local N=getRoot(M,5)local O=getHumanoid(M,5)if n or not isCurrentSuiteGeneration()or not N or not O then notify('Voo do Ve\u{ed}culo','Personagem n\u{e3}o encontrado.')return false
+end claimCameraMode('fly')pcall(function()if workspace.CurrentCamera then workspace.CurrentCamera.CameraType=Enum.CameraType.Track end end)E.inputEnabled=K~=false E.startedSeated=O.SeatPart~=nil local
+P={F=0,B=0,L=0,R=0,Q=0,E=0}local Q={F=0,B=0,L=0,R=0,Q=0,E=0}A=true showMobileFlyControls(E.inputEnabled)local R=Instance.new('BodyGyro')R.Name='CafezlVehicleFlyGyro'R.P=90000 R.MaxTorque=Vector3.new(
+9e9,9e9,9e9)R.CFrame=N.CFrame R.Parent=N local S=Instance.new('BodyVelocity')S.Name='CafezlVehicleFlyVelocity'S.MaxForce=Vector3.new(9e9,9e9,9e9)S.Velocity=Vector3.zero S.Parent=N E.root=N E.gyro=R E.
+velocity=S C=F.KeyDown:Connect(function(T)if not E.inputEnabled then return end T=T:lower()if T=='w'then P.F=B elseif T=='s'then P.B=-B elseif T=='a'then P.L=-B elseif T=='d'then P.R=B elseif T=='e'
+then P.Q=B*2 elseif T=='q'then P.E=-B*2 end pcall(function()if workspace.CurrentCamera then workspace.CurrentCamera.CameraType=Enum.CameraType.Track end end)end)D=F.KeyUp:Connect(function(T)if not E.
+inputEnabled then return end T=T:lower()if T=='w'then P.F=0 elseif T=='s'then P.B=0 elseif T=='a'then P.L=0 elseif T=='d'then P.R=0 elseif T=='e'then P.Q=0 elseif T=='q'then P.E=0 end end)task.spawn(
+function()local T while A and L==J and N.Parent and O.Parent and R.Parent and S.Parent do task.wait()if E.inputEnabled and c.KeyboardEnabled then P.F=c:IsKeyDown(Enum.KeyCode.W)and B or 0 P.B=c:
+IsKeyDown(Enum.KeyCode.S)and-B or 0 P.L=c:IsKeyDown(Enum.KeyCode.A)and-B or 0 P.R=c:IsKeyDown(Enum.KeyCode.D)and B or 0 P.Q=c:IsKeyDown(Enum.KeyCode.E)and B*2 or 0 P.E=c:IsKeyDown(Enum.KeyCode.Q)and-B
+*2 or 0 end local U=(P.L+P.R~=0)or(P.F+P.B~=0)or(P.Q+P.E~=0)local V=O.MoveDirection if E.inputEnabled and c.TouchEnabled and Vector3.new(V.X,0,V.Z).Magnitude<=0.05 then local W=O.SeatPart local X=
+workspace.CurrentCamera if W and W:IsA('VehicleSeat')and X then local Y=Vector3.new(X.CFrame.LookVector.X,0,X.CFrame.LookVector.Z)local Z=Vector3.new(X.CFrame.RightVector.X,0,X.CFrame.RightVector.Z)if
+Y.Magnitude>0.01 then Y=Y.Unit end if Z.Magnitude>0.01 then Z=Z.Unit end V=Y*W.ThrottleFloat+Z*W.SteerFloat end end local W=E.inputEnabled and c.TouchEnabled and(Vector3.new(V.X,0,V.Z).Magnitude>0.05
+or G~=0 or H~=0)local X=U or W local Y=X and 50 or 0 if U then Q={F=P.F,B=P.B,L=P.L,R=P.R,Q=P.Q,E=P.E}end local Z=U and P or Q if U and Y>0 then local _=workspace.CurrentCamera if not _ then break end
+S.Velocity=((_.CFrame.LookVector*(Z.F+Z.B))+((_.CFrame*CFrame.new(Z.L+Z.R,(Z.F+Z.B+Z.Q+Z.E)*0.2,0)).Position-_.CFrame.Position))*Y elseif W and Y>0 then S.Velocity=Vector3.new(V.X,0,V.Z)*(B*Y)+Vector3
+.new(0,(G-H)*B*Y,0)else S.Velocity=Vector3.zero end local _=workspace.CurrentCamera if not _ then break end if _~=T then T=_ pcall(function()_.CameraType=Enum.CameraType.Track end)end R.CFrame=_.
+CFrame end if R.Parent then R:Destroy()end if S.Parent then S:Destroy()end if L==J then E.root=nil E.gyro=nil E.velocity=nil end if L==J and A then if al and am then am:UpdateToggle(nil,false)else
+stopFly()end end end)return true end z.fly=function()if al and am then am:UpdateToggle(nil,false)else stopFly()end end local function findCartFromSeat(K)if not K or not K:IsA('VehicleSeat')then return
+nil end local L=K.AssemblyRootPart local M=K.Parent local N while M and M~=workspace do if M:IsA('Model')then N=N or M local O=0 for P,Q in ipairs(M:GetDescendants())do if Q:IsA('BasePart')and(not L
+or Q.AssemblyRootPart==L)then O=O+1 if O>=2 then return M end end end end M=M.Parent end return N end local K local L local M local function cacheCartFromSeat(N)K=N M=N and N.AssemblyRootPart or nil L
+=N and findCartFromSeat(N)or nil return L end local function getCurrentCart()local N=getHumanoid()local O=N and N.SeatPart if not O or not O:IsA('VehicleSeat')then K=nil L=nil M=nil return nil end if
+O~=K or not L or not L.Parent or not L:IsAncestorOf(O)or O.AssemblyRootPart~=M then return cacheCartFromSeat(O)end return L end local function getCartPrimary(N)if not N then return nil end local O=K
+if not O or not O.Parent then local P=getHumanoid()O=P and P.SeatPart end if O and O:IsA('VehicleSeat')and N:IsAncestorOf(O)and not O.Anchored then return O end if N.PrimaryPart and not N.PrimaryPart.
+Anchored then return N.PrimaryPart end local P for Q,R in ipairs(N:GetDescendants())do if R:IsA('BasePart')and not R.Anchored then P=P or R if R.AssemblyRootPart==R then return R end end end return P
+or N.PrimaryPart end local N={}local O=false local function restorePanicStop()for P,Q in pairs(N)do if P and P.Parent then P.Anchored=Q end end N={}O=false end local function setPanicStop(P)if not P
+then restorePanicStop()notify('Carrinho','Parada de emerg\u{ea}ncia desligada.')return true end local Q=getCurrentCart()if not Q then notify('Carrinho','Sente em um carrinho primeiro.')return false
+end if v then w=w+1 v=false end if al and am then am:UpdateToggle(nil,false)else stopFly()end if ap then ap()end if an then task.defer(function()an:UpdateToggle(nil,false)end)end restorePanicStop()O=
+true for R,S in ipairs(Q:GetDescendants())do if S:IsA('BasePart')then N[S]=S.Anchored if not S.Anchored then pcall(function()S.AssemblyLinearVelocity=Vector3.zero S.AssemblyAngularVelocity=Vector3.
+zero end)end S.Anchored=true end end notify('Carrinho','Parada de emerg\u{ea}ncia ligada.')return true end local function pivotCartByReference(P,Q)local R=getCartPrimary(P)if not P or not R then
+return false end return pcall(function()local S=P:GetPivot():ToObjectSpace(R.CFrame)for T,U in ipairs(P:GetDescendants())do if U:IsA('BasePart')and not U.Anchored then pcall(function()U.
+AssemblyLinearVelocity=Vector3.zero U.AssemblyAngularVelocity=Vector3.zero end)end end P:PivotTo(Q*S:Inverse())for T,U in ipairs(P:GetDescendants())do if U:IsA('BasePart')and not U.Anchored then
+pcall(function()U.AssemblyLinearVelocity=Vector3.zero U.AssemblyAngularVelocity=Vector3.zero end)end end end)end local function getCheckpointCartModel(P)local Q=getHumanoid()local R=Q and Q.SeatPart
+local S=R and R.Parent if S and S:IsA('Model')and S.PrimaryPart then return S end if P and P:IsA('Model')and P.PrimaryPart then return P end return nil end local function pivotCartByPrimaryPart(P,Q)
+local R=getCheckpointCartModel(P)if not R then return false,'missing_primary'end local S=pcall(function()for S,T in ipairs(R:GetDescendants())do if T:IsA('BasePart')and not T.Anchored then pcall(
+function()T.AssemblyLinearVelocity=Vector3.zero T.AssemblyAngularVelocity=Vector3.zero end)end end R:SetPrimaryPartCFrame(Q)local S=R.PrimaryPart if S then pcall(function()S.AssemblyLinearVelocity=
+Vector3.zero S.AssemblyAngularVelocity=Vector3.zero end)end for T,U in ipairs(R:GetDescendants())do if U:IsA('BasePart')and not U.Anchored then pcall(function()U.AssemblyLinearVelocity=Vector3.zero U.
+AssemblyAngularVelocity=Vector3.zero end)end end end)if S then return true,nil end return false,'pivot_failed'end local function stopCartControllersForTeleport(P)if not P and z.autoWin then z.autoWin(
+true)end x=os.clock()+0.25 if v then w=w+1 v=false end if al and am then am:UpdateToggle(nil,false)else stopFly()end if ap then ap()end restorePanicStop()if an then task.defer(function()an:
+UpdateToggle(nil,false)end)end if ao then task.defer(function()ao:UpdateToggle(nil,false)end)end end local function teleportCart(P)stopCartControllersForTeleport()local Q=getCurrentCart()if not Q then
+notify('Carrinho','Sente em um carrinho primeiro.')return false end local R,S=pivotCartByPrimaryPart(Q,P)if R then notify('Carrinho','Carrinho movido para o checkpoint.')elseif S=='missing_primary'
+then notify('Carrinho','O modelo deste carrinho n\u{e3}o possui PrimaryPart.')else notify('Carrinho','N\u{e3}o foi poss\u{ed}vel mover este carrinho.')end return R end local P={NORMAL_FORCE=2500,
+DOWNHILL_FORCE=800}local Q={enabled=false,cart=nil,forces={},attachments={},heartbeat=nil}local function cleanupStabilizer()if Q.heartbeat then Q.heartbeat:Disconnect()Q.heartbeat=nil end for R,S in
+ipairs(Q.forces)do if S and S.Parent then S:Destroy()end end for R,S in ipairs(Q.attachments)do if S and S.Parent then S:Destroy()end end Q.forces={}Q.attachments={}Q.cart=nil end local function 
+getWheels(R)local S={}local T={'wheel','tire','tyre','roda','pneu','axle','roue'}for U,V in ipairs(R:GetDescendants())do if V:IsA('BasePart')and not V.Anchored then local W=V.Name:lower()for X,Y in
+ipairs(T)do if W:find(Y,1,true)then table.insert(S,V)break end end end end if#S==0 then local U={}for V,W in ipairs(R:GetDescendants())do if W:IsA('BasePart')and not W.Anchored then table.insert(U,W)
+end end table.sort(U,function(V,W)return V.Position.Y<W.Position.Y end)local V=math.max(1,math.floor(#U/3))for W=1,math.min(V,#U)do table.insert(S,U[W])end end return S end local function 
+applyStabilizer(R)if not R or not R.Parent then return end cleanupStabilizer()local S=getWheels(R)if#S==0 then notify('Estabilizador','Nenhuma roda encontrada.')return end Q.cart=R for T,U in ipairs(S
+)do local V=U:FindFirstChild('_CafezlStabilizer')if not V then V=Instance.new('Attachment')V.Name='_CafezlStabilizer'V.Parent=U table.insert(Q.attachments,V)end local W=Instance.new('VectorForce')W.
+Name='CafezlStabilizerForce'W.Attachment0=V W.RelativeTo=Enum.ActuatorRelativeTo.World W.Force=Vector3.zero W.Parent=U table.insert(Q.forces,W)end local T=getCartPrimary(R)or S[1]Q.heartbeat=b.
+Heartbeat:Connect(function()if not T or not T.Parent or getCurrentCart()~=R then cleanupStabilizer()return end local U=0 if Q.enabled and not A and not O and os.clock()>=x then U=math.abs(T.
+AssemblyLinearVelocity.Y)>5 and P.DOWNHILL_FORCE or P.NORMAL_FORCE end for V,W in ipairs(Q.forces)do if W and W.Parent and W.Attachment0 and W.Attachment0.Parent then W.Force=Vector3.new(0,-U*W.Parent
+.AssemblyMass,0)end end end)end local function refreshStabilizer()if Q.enabled then local R=getCurrentCart()if R then applyStabilizer(R)else notify('Estabilizador','Sente em um carrinho primeiro.')end
+else cleanupStabilizer()end end local R local function watchSeat(S,T)local U=T or getHumanoid(S)if not U then return end if R then R:Disconnect()R=nil end cacheCartFromSeat(U.SeatPart)R=
+trackConnection(U.Seated:Connect(function(V,W)if not V then cacheCartFromSeat(nil)cleanupStabilizer()restorePanicStop()if ap then ap()end if A and E.startedSeated then if al and am then task.defer(
+function()am:UpdateToggle(nil,false)end)else stopFly()end end if an then task.defer(function()an:UpdateToggle(nil,false)end)end if ao then task.defer(function()ao:UpdateToggle(nil,false)end)end else
+local X=cacheCartFromSeat(W)if Q.enabled then applyStabilizer(X)end end end))end local function watchSeatWhenReady(S,T)if not S then return end task.spawn(function()local U=S:FindFirstChildOfClass(
+'Humanoid')or S:WaitForChild('Humanoid',5)if n or not isCurrentSuiteGeneration()or not S.Parent or not U or not U:IsA('Humanoid')then return end watchSeat(S,U)if T and not ar then if au then U.
+WalkSpeed=au end if U.UseJumpPower and s then U.JumpPower=s elseif not U.UseJumpPower and t then U.JumpHeight=t end end end)end watchSeatWhenReady(f.Character,false)trackConnection(f.CharacterAdded:
+Connect(function(S)if z.autoWin then z.autoWin(true)end cacheCartFromSeat(nil)cleanupStabilizer()restorePanicStop()if ao then task.defer(function()ao:UpdateToggle(nil,false)end)end as=as+1 ar=false at
+=nil if ap then ap()end if an then task.defer(function()an:UpdateToggle(nil,false)end)end if al and am then am:UpdateToggle(nil,false)else stopFly()end resetCameraModes()
+restoreCameraWhenCharacterReady(S)watchSeatWhenReady(S,true)end))trackConnection(f.CharacterRemoving:Connect(function()if z.autoWin then z.autoWin(true)end w=w+1 v=false cacheCartFromSeat(nil)
+cleanupStabilizer()restorePanicStop()if ap then ap()end if al and am then am:UpdateToggle(nil,false)else stopFly()end if an then task.defer(function()an:UpdateToggle(nil,false)end)end if ao then task.
+defer(function()ao:UpdateToggle(nil,false)end)end resetCameraModes()end))local function findNearestFreeVehicleSeat()local S=getRoot(nil,5)if n or not isCurrentSuiteGeneration()or not S then return nil
+end local T,U=nil,math.huge for V,W in ipairs(workspace:GetDescendants())do if W:IsA('VehicleSeat')and not W.Occupant then local X=(S.Position-W.Position).Magnitude if X<U then T=W U=X end end end
+return T end local function findPlayerByPartialName(S)S=(S or''):match('^%s*(.-)%s*$'):lower()if S==''then return nil end for T,U in ipairs(a:GetPlayers())do if U.Name:lower()==S or U.DisplayName:
+lower()==S then return U end end for T,U in ipairs(a:GetPlayers())do local V=U.Name:lower()local W=U.DisplayName:lower()if V:sub(1,#S)==S or W:sub(1,#S)==S then return U end end for T,U in ipairs(a:
+GetPlayers())do if U.Name:lower():find(S,1,true)or U.DisplayName:lower():find(S,1,true)then return U end end return nil end local function sitOnVehicleSeat(S,T)local U=getRoot(nil,5)local V=
+getHumanoid(nil,5)if n or not isCurrentSuiteGeneration()or(T and T~=w)or not S or not U or not V or(S.Occupant and S.Occupant~=V)then return false end if V.SeatPart==S or S.Occupant==V then return
+true end if V.SeatPart and V.SeatPart~=S then V.Sit=false pcall(function()V:ChangeState(Enum.HumanoidStateType.GettingUp)end)local W=os.clock()+0.5 repeat b.Heartbeat:Wait()until n or(T and T~=w)or
+not V.Parent or not V.SeatPart or os.clock()>=W if n or(T and T~=w)or not V.Parent then return false end end for W=1,3 do if V.SeatPart==S or S.Occupant==V then return true end if n or not
+isCurrentSuiteGeneration()or(T and T~=w)or not S.Parent or(S.Occupant and S.Occupant~=V)then break end U.CFrame=S.CFrame*CFrame.new(0,2,0)task.wait(0.12)if V.SeatPart==S or S.Occupant==V then return
+true end if n or(T and T~=w)or not S.Parent or not V.Parent or(S.Occupant and S.Occupant~=V)then break end pcall(function()S:Sit(V)end)task.wait(0.2)if n or(T and T~=w)or not S.Parent or not V.Parent
+or not U.Parent then return false end if V.SeatPart==S or S.Occupant==V then return true end V.Sit=true task.wait(0.12)if n or(T and T~=w)or not S.Parent or not V.Parent or not U.Parent then return
+false end if V.SeatPart==S or S.Occupant==V then return true end end return false end local function moveToTarget(S,T,U,V,W)local X=getRoot()local Y=getHumanoid()local Z=os.clock()while os.clock()-Z<T
+do if n or not v or U~=w then return false end if not X or not X.Parent or not Y or not Y.Parent or not S or not S.Parent or not V or not V.Parent or V.Occupant~=Y or Y.SeatPart~=V or getCurrentCart()
+~=W then return false end local _=S.Position-S.CFrame.LookVector*1.2+Vector3.new(0,1.5,0)X.CFrame=CFrame.lookAt(_,S.Position)b.Heartbeat:Wait()end return true end local function finishKiller(S,T)if T
+and T~=w then return end w=w+1 local U=w local V=getHumanoid()local W=V and V.SeatPart~=nil if V then V.Sit=false end if W then task.wait(0.05)if w~=U then return end end if al and am then am:
+UpdateToggle(nil,false)else stopFly()end v=false if S then notify('Eliminador',S)end end local function executeKiller(S)if v then notify('Eliminador','Aguarde a tentativa atual terminar.')return end
+if z.autoWin then z.autoWin(true)end local T=findPlayerByPartialName(S)if not T or T==f then notify('Eliminador',T==f and'Escolha outro jogador.'or'Jogador n\u{e3}o encontrado.')return end w=w+1 local
+U=w v=true if al and am then am:UpdateToggle(nil,false)else stopFly()end if ap then ap()end if an then task.defer(function()an:UpdateToggle(nil,false)end)end local V=getHumanoid()local W=V and V.
+SeatPart local X=W and W:IsA('VehicleSeat')and(W.Occupant==V or V.SeatPart==W)if not X then W=findNearestFreeVehicleSeat()if not W then finishKiller('N\u{e3}o h\u{e1} carrinho livre por perto.',U)
+return end if n or U~=w then return end if not sitOnVehicleSeat(W,U)then if U==w then finishKiller('N\u{e3}o foi poss\u{ed}vel sentar no carrinho.',U)end return end end if n or U~=w then return end
+local Y=cacheCartFromSeat(W)if not Y then finishKiller('Estrutura do carrinho n\u{e3}o reconhecida.',U)return end if not startVehicleFly(false)then finishKiller(
+'N\u{e3}o foi poss\u{ed}vel iniciar o voo.',U)return end task.wait(0.15)if n or U~=w then return end local Z local _=os.clock()+2 repeat local av=T.Character Z=av and av:FindFirstChild(
+'HumanoidRootPart')if Z then break end task.wait(0.2)until os.clock()>=_ or n or U~=w if not Z then finishKiller('Personagem do alvo n\u{e3}o carregou.',U)return end local av=moveToTarget(Z,3,U,W,Y)if
+U==w then finishKiller(av and'Carrinho levado ao alvo.'or'Tentativa cancelada.',U)end end local function teleportPlayerOrCart(av)local S=getCurrentCart()if S then stopCartControllersForTeleport()
+return pivotCartByReference(S,av)end return teleportCharacter(av)end trackConnection(f.CharacterAdded:Connect(function()w=w+1 v=false end))local av local S local T=false local U local V local W=ac:
+NewTab('Jogador'):NewSection('Configura\u{e7}\u{f5}es do Jogador')W:NewSlider('Velocidade','Velocidade de caminhada (padr\u{e3}o 16).',500,0,16,function(X)au=X local Y=getHumanoid()if Y and not ar
+then Y.WalkSpeed=X end end)W:NewButton('Redefinir Velocidade','Volta para 16.',function()au=16 local X=getHumanoid()if X and not ar then X.WalkSpeed=16 end notify('Velocidade','Redefinida para 16.')
+end)V=W:NewToggle('Pulo Infinito','Pula no ar. Tecla P.',function(X)T=X notify('Pulo Infinito',X and'Ligado.'or'Desligado.')end)trackConnection(c.JumpRequest:Connect(function()if n or not T then
+return end local X=getHumanoid()if X then X:ChangeState(Enum.HumanoidStateType.Jumping)end end))local function giveClickTeleportTool()local X=f:FindFirstChildOfClass('Backpack')if not X then return
+end local Y=f.Character if X:FindFirstChild('NothriloClickTP')or(Y and Y:FindFirstChild('NothriloClickTP'))then notify('Teleporte por Clique','A ferramenta j\u{e1} est\u{e1} na mochila.')return end
+local Z=Instance.new('Tool')Z.Name='NothriloClickTP'Z.RequiresHandle=false Z:SetAttribute('CafezlOwner','Nothrilo')Z.Activated:Connect(function()teleportCharacter(CFrame.new(F.Hit.Position+Vector3.
+new(0,2.5,0)))end)Z.Parent=X table.insert(u,Z)notify('Teleporte por Clique','Ferramenta criada. Clique no mapa para teleportar.')end W:NewButton('Teleporte por Clique',
+'Cria ferramenta na mochila. Tecla T.',giveClickTeleportTool)W:NewTextBox('Ir at\u{e9} Jogador','Nome do jogador. Enter.',function(X)local Y=findPlayerByPartialName(X)if not Y then notify(
+'Ir at\u{e9} Jogador','Jogador n\u{e3}o encontrado.')return end local Z local _=os.clock()+2 repeat local aw=Y.Character Z=aw and aw:FindFirstChild('HumanoidRootPart')if Z then break end task.wait(0.2
+)until os.clock()>=_ if not Z then notify('Ir at\u{e9} Jogador','Personagem n\u{e3}o carregou.')return end teleportCharacter(Z.CFrame*CFrame.new(0,2,0))notify('Ir at\u{e9} Jogador','Teleportado para '
+..Y.DisplayName..'.')end)local function setVehicleFlyEnabled(aw)al=aw if aw then if v then al=false notify('Voo do Ve\u{ed}culo','Indispon\u{ed}vel durante o Eliminador.')task.defer(function()if am
+then am:UpdateToggle(nil,false)end end)return end if O then restorePanicStop()if ao then task.defer(function()ao:UpdateToggle(nil,false)end)end end if ap then ap()end if an then task.defer(function()
+an:UpdateToggle(nil,false)end)end if startVehicleFly()then notify('Voo do Ve\u{ed}culo','Ligado.')else al=false task.defer(function()if am then am:UpdateToggle(nil,false)end end)end else stopFly()
+notify('Voo do Ve\u{ed}culo','Desligado.')end end am=W:NewToggle('Voo do Ve\u{ed}culo','Tecla V liga/desliga.',setVehicleFlyEnabled)U=W:NewToggle('ESP','Destaca jogadores. Tecla L.',setESP)W:
+NewTextBox('Velocidade do Voo','Digite e aperte Enter.',function(aw)local X=tonumber(aw)if X and X>0 then B=X notify('Voo','Velocidade: '..X)else notify('Voo','Digite um n\u{fa}mero maior que zero.')
+end end)W:NewButton('Redefinir Velocidade do Voo','Volta para 1.',function()B=1 S('Velocidade do Voo',1)notify('Voo','Velocidade redefinida para 1.')end)local aw=false local X local Y local Z local _
+local ax local function restoreGodHumanoid()if X then X:Disconnect()X=nil end local ay=Z if ay and ay.Parent and _ then ay.MaxHealth=_ ay.Health=math.clamp(ax or _,1,_)end Z,_,ax=nil,nil,nil end local 
+function connectGod()restoreGodHumanoid()local ay=getHumanoid()if not ay then return end Z=ay _=ay.MaxHealth ax=ay.Health ay.MaxHealth=math.huge ay.Health=math.huge X=ay.HealthChanged:Connect(function
+()if aw and ay.Parent and ay.Health<1 then ay.Health=ay.MaxHealth end end)end local function setGodMode(ay)aw=ay if not ay then restoreGodHumanoid()notify('God Mode','Desligado.')return end
+connectGod()if not Y then Y=f.CharacterAdded:Connect(function()task.wait(0.3)if aw then connectGod()end end)end notify('God Mode','Ligado (s\u{f3} funciona localmente).')end W:NewToggle(
+'God Mode (local)','Impede que sua vida caia abaixo de 1 localmente.',setGodMode)local ay=false local az W:NewToggle('Anti-AFK','Mant\u{e9}m a sess\u{e3}o de teste ativa.',function(aA)ay=aA if az then
+az:Disconnect()az=nil end if not aA then notify('Anti-AFK','Desligado.')return end az=f.Idled:Connect(function()if not ay then return end pcall(function()local aB=game:GetService('VirtualUser')aB:
+CaptureController()aB:ClickButton2(Vector2.zero,workspace.CurrentCamera.CFrame)end)end)notify('Anti-AFK','Ligado.')end)do local aA=0 local aB=false local aC local aD local function autoWinAlive(aE)
+return aB and aE==aA and not n and isCurrentSuiteGeneration()end local function waitAutoWin(aE,aF)local aG=os.clock()+aE repeat task.wait(math.min(0.1,math.max(0,aG-os.clock())))until os.clock()>=aG
+or not autoWinAlive(aF)return autoWinAlive(aF)end local function restoreAutoWinAnchor()if aC and aC.Parent then aC.Anchored=aD==true end aC=nil aD=nil end local function cancelAutoWin(aE)local aF=aB
+aA=aA+1 aB=false restoreAutoWinAnchor()if aF and not aE then notify('Vit\u{f3}ria Autom\u{e1}tica','Rota cancelada.')end end z.autoWin=cancelAutoWin local function setAutoWinRoot(aE,aF)if not
+autoWinAlive(aF)then return false end local aG=getRoot(nil,5)if not aG or not autoWinAlive(aF)then return false end local aH=pcall(function()aG.CFrame=aE aG.AssemblyLinearVelocity=Vector3.zero aG.
+AssemblyAngularVelocity=Vector3.zero end)return aH end local function setAutoWinSitting(aE,aF)if not autoWinAlive(aF)then return false end local aG=getHumanoid(nil,5)if not aG or not autoWinAlive(aF)
+then return false end aG.Sit=aE return true end local function startAutoWin()if aB then notify('Vit\u{f3}ria Autom\u{e1}tica','A rota j\u{e1} est\u{e1} em andamento.')return end
+stopCartControllersForTeleport(true)aA=aA+1 local aE=aA aB=true notify('Vit\u{f3}ria Autom\u{e1}tica','Rota antiga iniciada; n\u{e3}o feche o menu.')task.spawn(function()local function abort(aF)if aE
+~=aA then return end cancelAutoWin(true)if aF and not n then notify('Vit\u{f3}ria Autom\u{e1}tica',aF)end end if not teleportCharacter(CFrame.new(-430.898926,165.25,101.645676,1,1.51719295e-8,-
+1.24212969e-14,-1.51719295e-8,1,-1.1467514699999999e-9,1.24038988e-14,1.1467514699999999e-9,1))then abort('N\u{e3}o foi poss\u{ed}vel iniciar a rota.')return end if not waitAutoWin(4.1,aE)then return
+end if not setAutoWinRoot(CFrame.new(-430.898529,163.273926,131.145554,1,-2.85942061e-8,2.0407586e-7,2.85942079e-8,1,-1.0792735599999999e-8,-2.0407586e-7,1.07927409e-8,1),aE)then abort(
+'Personagem perdido durante a rota.')return end if not waitAutoWin(10,aE)then return end if not setAutoWinSitting(true,aE)then abort('Humanoid n\u{e3}o encontrado.')return end if not waitAutoWin(33,aE
+)then return end if not setAutoWinSitting(false,aE)then abort('Humanoid n\u{e3}o encontrado.')return end if not waitAutoWin(2,aE)then return end if not setAutoWinRoot(CFrame.new(-500.748535,-21.78265,
+-302.303406,0,0,1,0,-1,0,1,0,0),aE)then abort('N\u{e3}o foi poss\u{ed}vel entrar na segunda etapa.')return end if not waitAutoWin(0.1,aE)then return end local aF=getRoot(nil,5)if not aF or not
+autoWinAlive(aE)then abort('HumanoidRootPart n\u{e3}o encontrado.')return end aC=aF aD=aF.Anchored aF.Anchored=true if not waitAutoWin(1.3,aE)then return end restoreAutoWinAnchor()if not waitAutoWin(
+0.6,aE)then return end if not setAutoWinRoot(CFrame.new(-470.360138,-21.1945782,-302.303101,0,0,1,0,-1,0,1,0,0),aE)then abort('N\u{e3}o foi poss\u{ed}vel continuar a segunda etapa.')return end if not
+waitAutoWin(10,aE)then return end if not setAutoWinSitting(true,aE)then abort('Humanoid n\u{e3}o encontrado.')return end if not waitAutoWin(35,aE)then return end if not setAutoWinSitting(false,aE)then
+abort('Humanoid n\u{e3}o encontrado.')return end if not waitAutoWin(0.5,aE)then return end if not setAutoWinRoot(CFrame.new(-421.770264,-44.2260475,-297.081909,0.999515891,6.59387993e-8,0.0311128739,-
+6.60972859e-8,1,4.06536627e-9,-0.0311128739,-6.11987483e-9,0.999515891),aE)then abort('N\u{e3}o foi poss\u{ed}vel concluir a rota.')return end if aE==aA then aB=false restoreAutoWinAnchor()notify(
+'Vit\u{f3}ria Autom\u{e1}tica','Rota conclu\u{ed}da.')end end)end local aE=ac:NewTab('Teleporte'):NewSection('Teleportes')aE:NewButton('In\u{ed}cio','Teleporta para o in\u{ed}cio da trilha.',function(
+)if teleportCharacter(CFrame.new(1,3.11,38))then notify('Teleporte','Teleportado para o in\u{ed}cio.')end end)aE:NewButton('Bot\u{e3}o de Carrinho','Teleporta para o bot\u{e3}o do carrinho.',function(
+)if teleportCharacter(CFrame.new(-33,3.11,21.5)*CFrame.Angles(0,math.rad(180),0))then notify('Teleporte','Teleportado para o bot\u{e3}o.')end end)aE:NewButton('Equipe Suffering',
+'Teleporta para a \u{e1}rea Suffering.',function()if teleportCharacter(CFrame.new(-416.844727,163.402969,171.087555,0.0174489655,5.45878223e-8,0.99984777,-4.55684486e-8,1,-5.38008926e-8,-0.99984777,-
+4.46227411e-8,0.0174489655))then notify('Teleporte','Teleportado para Suffering.')end end)aE:NewButton('Ins\u{ed}gnia Secreta','Teleporta para a Secret Badge da refer\u{ea}ncia.',function()if
+teleportCharacter(CFrame.new(234.500259,2.28650475,296.495483))then notify('Teleporte','Teleportado para a ins\u{ed}gnia secreta.')end end)aE:NewButton('Sala Secreta','Procura Workspace.Misc.Giver.',
+function()local aF=workspace:FindFirstChild('Misc')local aG=aF and aF:FindFirstChild('Giver')local aH=aG and(aG:IsA('BasePart')and aG or aG:FindFirstChildWhichIsA('BasePart',true))if not aH then
+notify('Teleporte','Misc.Giver n\u{e3}o encontrado.')return end if teleportPlayerOrCart(aH.CFrame*CFrame.new(0,3,0))then notify('Teleporte','Teleportado para a sala secreta.')end end)aE:NewButton(
+'Vit\u{f3}ria Autom\u{e1}tica','Executa a rota completa do menu antigo.',startAutoWin)aE:NewButton('Cancelar Vit\u{f3}ria Autom\u{e1}tica','Interrompe a rota com seguran\u{e7}a.',function()
+cancelAutoWin(false)end)end local aA={[1]=CFrame.new(-430.898926,164.75,101.645676)*CFrame.Angles(0,math.rad(90),0),[2]=CFrame.new(511.88,3.69,306.59)*CFrame.Angles(0,math.rad(270),0),[3]=CFrame.new(
+171.09,2.78,-410.31)*CFrame.Angles(0,math.rad(90),0)}local function teleportToCheckpoint(aB)local aC=aA[aB]if aC then teleportCart(aC)end end local aB=ac:NewTab('Carrinho')local aC=aB:NewSection(
+'Controle do Carrinho')ao=aC:NewToggle('Parada de Emerg\u{ea}ncia','Para e trava o carrinho.',function(aD)local aE=setPanicStop(aD)if aD and not aE then task.defer(function()ao:UpdateToggle(nil,false)
+end)end end)aC:NewButton('Ir ao Checkpoint 1','NumPad 1.',function()teleportToCheckpoint(1)end)aC:NewButton('Ir ao Checkpoint 2','NumPad 2.',function()teleportToCheckpoint(2)end)aC:NewButton(
+'Ir ao Checkpoint 3','NumPad 3.',function()teleportToCheckpoint(3)end)aC:NewButton('Ver Velocidade do Carrinho','Mostra studs/s na notifica\u{e7}\u{e3}o.',function()local aD=getCurrentCart()if not aD
+then notify('Velocidade','Sente em um carrinho primeiro.')return end local aE=getCartPrimary(aD)if not aE then notify('Velocidade','Estrutura n\u{e3}o reconhecida.')return end local aF=aE.
+AssemblyLinearVelocity.Magnitude notify('Velocidade do Cart',string.format('%.1f studs/s',aF))end)aC:NewButton('Ejetar do Carrinho','Sai do assento atual.',function()local aD=getHumanoid()if aD then
+aD.Sit=false notify('Carrinho','Ejetado.')else notify('Carrinho','Personagem n\u{e3}o encontrado.')end end)local aD=aB:NewSection('Estabilizador')aD:NewToggle('Estabilizador do Carrinho',
+'Mant\u{e9}m est\u{e1}vel enquanto sentado.',function(aE)Q.enabled=aE refreshStabilizer()if aE and getCurrentCart()then notify('Estabilizador','Ligado.')elseif not aE then notify('Estabilizador',
+'Desligado.')end end)aD:NewTextBox('For\u{e7}a Normal','Padr\u{e3}o 2500. Enter.',function(aE)local aF=tonumber(aE)if aF and aF>0 then P.NORMAL_FORCE=aF S('For\u{e7}a Normal',aF)notify('Estabilizador'
+,'For\u{e7}a normal: '..aF)else notify('Estabilizador','Digite um n\u{fa}mero maior que zero.')end end)aD:NewTextBox('For\u{e7}a em Descidas','Padr\u{e3}o 800. Enter.',function(aE)local aF=tonumber(aE
+)if aF and aF>0 then P.DOWNHILL_FORCE=aF S('For\u{e7}a em Descidas',aF)notify('Estabilizador','For\u{e7}a descida: '..aF)else notify('Estabilizador','Digite um n\u{fa}mero maior que zero.')end end)aD:
+NewButton('Redefinir For\u{e7}as','Volta para 2500 e 800.',function()P.NORMAL_FORCE=2500 P.DOWNHILL_FORCE=800 S('For\u{e7}a Normal',2500)S('For\u{e7}a em Descidas',800)refreshStabilizer()notify(
+'Estabilizador','For\u{e7}as redefinidas.')end)local aE=ac:NewTab('Cart+'):NewSection('Boost e F\u{ed}sica')local aF=false local aG=500 local aH local aI=nil local aJ local aK=false local aL ap=
+function()aF=false if aH then aH:Disconnect()aH=nil end if aI and aI.Parent then aI:Destroy()end if aK and aJ and aJ.Parent then aJ:Destroy()end aI=nil aJ=nil aK=false aL=nil end local function 
+startBoost()ap()if O or A or v then notify('Boost','Indispon\u{ed}vel durante parada, voo ou Eliminador.')return false end local aM=getCurrentCart()if not aM then notify('Boost',
+'Sente em um carrinho primeiro.')return false end local aN=getCartPrimary(aM)if not aN then notify('Boost','Estrutura do carrinho n\u{e3}o reconhecida.')return false end aL=aN.AssemblyRootPart or aN
+local aO=aN:FindFirstChild('NothriloBoostAttachment')if not aO then aO=Instance.new('Attachment')aO.Name='NothriloBoostAttachment'aO.Parent=aN aK=true end aJ=aO local aP=Instance.new('VectorForce')aP.
+Name='NothriloBoost'aP.Attachment0=aO aP.RelativeTo=Enum.ActuatorRelativeTo.World aP.ApplyAtCenterOfMass=true aP.Force=Vector3.zero aP.Parent=aN aI=aP aF=true aH=b.Heartbeat:Connect(function()local aQ
+=getCurrentCart()local aR=aQ and getCartPrimary(aQ)local aS=aR and(aR.AssemblyRootPart or aR)if not aF or O or A or v or not aN.Parent or not aP.Parent or aQ~=aM or aS~=aL then ap()if an then task.
+defer(function()an:UpdateToggle(nil,false)end)end return end aP.Force=aN.CFrame.LookVector*aG*aN.AssemblyMass*60 end)notify('Boost','Ligado \u{2014} for\u{e7}a '..aG..'.')return true end an=aE:
+NewToggle('Boost do Carrinho','Empurra pra frente. Tecla B.',function(aM)if aM then if not startBoost()then task.defer(function()an:UpdateToggle(nil,false)end)end else ap()notify('Boost','Desligado.')
+end end)aE:NewSlider('For\u{e7}a do Boost','Intensidade (padr\u{e3}o 500).',3000,0,500,function(aM)aG=aM if aF and not startBoost()then task.defer(function()an:UpdateToggle(nil,false)end)end end)local
+aM=false local aN local aO={antiFlipReadyAt=0,autobrakeHoldUntil=0,autobrakeReadyAt=0}aE:NewToggle('Anti-Flip','Endireita o carrinho ao tombar automaticamente.',function(aP)aM=aP if aN then aN:
+Disconnect()aN=nil end aO.antiFlipReadyAt=0 if not aP then notify('Anti-Flip','Desligado.')return end aN=b.Heartbeat:Connect(function()if not aM or O or A or v or os.clock()<x or os.clock()<aO.
+antiFlipReadyAt then return end local aQ=getCurrentCart()if not aQ then return end local aR=getCartPrimary(aQ)if not aR or not aR.Parent then return end local aS=aR.CFrame.UpVector:Dot(Vector3.new(0,1
+,0))if aS<0.5 then aO.antiFlipReadyAt=os.clock()+1.5 if aF then ap()if an then task.defer(function()an:UpdateToggle(nil,false)end)end end local aT=aR.CFrame.Position local aU=Vector3.new(aR.CFrame.
+LookVector.X,0,aR.CFrame.LookVector.Z)aU=aU.Magnitude>0.01 and aU.Unit or Vector3.new(1,0,0)local aV=pivotCartByReference(aQ,CFrame.new(aT+Vector3.new(0,2,0),aT+Vector3.new(0,2,0)+aU))if aV then
+notify('Anti-Flip','Carrinho endireitado.')end end end)notify('Anti-Flip','Ligado.')end)local aP=false local aQ aE:NewToggle('Freio Autom\u{e1}tico','Trava ao detectar queda livre.',function(aR)aP=aR
+if aQ then aQ:Disconnect()aQ=nil end aO.autobrakeHoldUntil=0 aO.autobrakeReadyAt=0 if not aR then notify('Freio Autom\u{e1}tico','Desligado.')return end aQ=b.Heartbeat:Connect(function()if not aP or O
+or A or v or os.clock()<x then return end local aS=getCurrentCart()if not aS then return end local aT=getCartPrimary(aS)if not aT then return end local aU=os.clock()if aU<aO.autobrakeHoldUntil then
+for aV,aW in ipairs(aS:GetDescendants())do if aW:IsA('BasePart')and not aW.Anchored then pcall(function()aW.AssemblyLinearVelocity=Vector3.zero aW.AssemblyAngularVelocity=Vector3.zero end)end end
+return end if aU>=aO.autobrakeReadyAt and aT.AssemblyLinearVelocity.Y<-35 then aO.autobrakeHoldUntil=aU+0.45 aO.autobrakeReadyAt=aU+1.25 if aF then ap()if an then task.defer(function()an:UpdateToggle(
+nil,false)end)end end for aV,aW in ipairs(aS:GetDescendants())do if aW:IsA('BasePart')and not aW.Anchored then pcall(function()aW.AssemblyLinearVelocity=Vector3.zero aW.AssemblyAngularVelocity=Vector3
+.zero end)end end notify('Freio Autom\u{e1}tico','Queda detectada \u{2014} travado.')end end)notify('Freio Autom\u{e1}tico','Ligado.')end)local aR=ac:NewTab('Extras'):NewSection(
+'Movimento e F\u{ed}sica')local aS=false local aT={}local function restoreNoclip()for aU,aV in pairs(aT)do if aU and aU.Parent then aU.CanCollide=aV end end table.clear(aT)end trackConnection(b.
+Stepped:Connect(function()if not aS then return end local aU=f.Character if not aU then return end for aV,aW in ipairs(aU:GetDescendants())do if aW:IsA('BasePart')then if aT[aW]==nil then aT[aW]=aW.
+CanCollide end aW.CanCollide=false end end end))aR:NewToggle('Noclip','Atravessa paredes durante o teste.',function(aU)aS=aU if not aU then restoreNoclip()end notify('Noclip',aU and'Ligado.'or
+'Desligado.')end)local aU=false local aV={}local function setLocalInvisible(aW)local aX=f.Character if not aX then return end for aY,aZ in ipairs(aX:GetDescendants())do if aZ:IsA('BasePart')or aZ:IsA(
+'Decal')then if aW and aV[aZ]==nil then aV[aZ]=aZ.LocalTransparencyModifier end aZ.LocalTransparencyModifier=aW and 1 or(aV[aZ]or 0)end end if not aW then table.clear(aV)end end aR:NewToggle(
+'Invis\u{ed}vel (local)','S\u{f3} voc\u{ea} se v\u{ea} transparente.',function(aW)aU=aW setLocalInvisible(aW)notify('Invis\u{ed}vel',aW and'Ligado (s\u{f3} voc\u{ea} v\u{ea}).'or'Desligado.')end)
+trackConnection(f.CharacterAdded:Connect(function()task.wait(0.25)if aU and not n then setLocalInvisible(true)end end))aR:NewSlider('Jump Power','Altura do pulo (padr\u{e3}o 50).',300,0,50,function(aW
+)s=aW t=7.2*(aW/50)local aX=getHumanoid()if aX and not ar then if aX.UseJumpPower then aX.JumpPower=s else aX.JumpHeight=t end end end)aR:NewButton('Redefinir Jump Power','Volta para 50.',function()s=
+50 t=7.2 local aW=getHumanoid()if aW and not ar then if aW.UseJumpPower then aW.JumpPower=s else aW.JumpHeight=t end end notify('Jump Power','Redefinido.')end)aR:NewSlider('Gravidade',
+'Gravidade global (padr\u{e3}o 196.2).',400,0,p,function(aW)workspace.Gravity=aW end)aR:NewButton('Redefinir Gravidade','Volta ao valor original do jogo.',function()workspace.Gravity=p notify(
+'Gravidade','Valor original restaurado.')end)local aW=nil aR:NewButton('Salvar Posi\u{e7}\u{e3}o Atual','Salva onde voc\u{ea} est\u{e1}.',function()local aX=getRoot()if not aX then notify(
+'Posi\u{e7}\u{e3}o','Personagem n\u{e3}o encontrado.')return end aW=aX.CFrame local aY=aX.Position notify('Posi\u{e7}\u{e3}o',string.format('Salva em %.0f, %.0f, %.0f',aY.X,aY.Y,aY.Z))end)aR:
+NewButton('Voltar \u{e0} Posi\u{e7}\u{e3}o Salva','Teleporta de volta.',function()if not aW then notify('Posi\u{e7}\u{e3}o','Nenhuma posi\u{e7}\u{e3}o salva ainda.')return end if teleportPlayerOrCart(
+aW)then notify('Posi\u{e7}\u{e3}o','Teleportado.')end end)local aX=ac:NewTab('Mapa'):NewSection('Explora\u{e7}\u{e3}o')aX:NewTextBox('Ir at\u{e9} Parte','Nome da parte no workspace. Enter.',function(
+aY)aY=aY:match('^%s*(.-)%s*$'):lower()if aY==''then return end local aZ,a_=nil,0 for a0,a1 in ipairs(workspace:GetDescendants())do if a1:IsA('BasePart')then local a2=a1.Name:lower()local a3=0 if a2==
+aY then a3=3 elseif a2:sub(1,#aY)==aY then a3=2 elseif a2:find(aY,1,true)then a3=1 end if a3>a_ then aZ=a1 a_=a3 end end end if not aZ then notify('Mapa',"Parte '"..aY.."' n\u{e3}o encontrada.")return
+end teleportCharacter(aZ.CFrame*CFrame.new(0,4,0))notify('Mapa','Teleportado para: '..aZ.Name)end)aX:NewButton('Listar Partes no Output (F9)','Imprime 30 BaseParts no console.',function()print(
+'[Nothrilo] === BaseParts no Workspace ===')local aY=0 for aZ,a_ in ipairs(workspace:GetDescendants())do if a_:IsA('BasePart')and aY<30 then print(('[Nothrilo] %s  pos: %s'):format(a_:GetFullName(),
+tostring(a_.Position)))aY=aY+1 end end print(('[Nothrilo] %d partes listadas. Abra F9 para ver.'):format(aY))notify('Mapa',aY..' partes no output (F9).')end)local function findNearestCartSeat()local
+aY=getRoot()if not aY then return nil end for aZ,a_ in ipairs({'VehicleSeat','Seat'})do local a0,a1=nil,math.huge for a2,a3 in ipairs(workspace:GetDescendants())do if a3:IsA(a_)then local a4=(aY.
+Position-a3.Position).Magnitude if a4<a1 then a0=a3 a1=a4 end end end if a0 then return a0 end end return nil end aX:NewButton('Ir ao Carrinho','Procura o assento do carrinho mais pr\u{f3}ximo.',
+function()local aY=findNearestCartSeat()if not aY then notify('Carrinho','Nenhum assento de carrinho foi encontrado.')return end if teleportCharacter(aY.CFrame*CFrame.new(0,4,0))then notify('Carrinho'
+,'Teleportado para o carrinho.')end end)local aY=false local aZ local a_=1 local a0 local function stopFreecam()aY=false if aZ then aZ:Disconnect()aZ=nil end releaseCameraMode('freecam')end z.freecam=
+function()if a0 then a0:UpdateToggle(nil,false)else stopFreecam()end end a0=aX:NewToggle('C\u{e2}mera Livre','WASD move, Q/E sobe e desce.',function(a1)if not a1 then stopFreecam()notify(
+'C\u{e2}mera Livre','Desligada.')return end claimCameraMode('freecam')aY=true local a2=workspace.CurrentCamera if not a2 then stopFreecam()task.defer(function()a0:UpdateToggle(nil,false)end)return end
+a2.CameraType=Enum.CameraType.Scriptable local a3=a2.CFrame aZ=b.RenderStepped:Connect(function()if not aY then return end local a4=workspace.CurrentCamera if not a4 then return end if a4~=a2 then a2=
+a4 end if a2.CameraType~=Enum.CameraType.Scriptable then a2.CameraType=Enum.CameraType.Scriptable end local a5=Vector3.zero if c:IsKeyDown(Enum.KeyCode.W)then a5=a5+a3.LookVector end if c:IsKeyDown(
+Enum.KeyCode.S)then a5=a5-a3.LookVector end if c:IsKeyDown(Enum.KeyCode.A)then a5=a5-a3.RightVector end if c:IsKeyDown(Enum.KeyCode.D)then a5=a5+a3.RightVector end if c:IsKeyDown(Enum.KeyCode.E)then
+a5=a5+Vector3.new(0,1,0)end if c:IsKeyDown(Enum.KeyCode.Q)then a5=a5-Vector3.new(0,1,0)end if a5.Magnitude>0 then a3=CFrame.new(a3.Position+a5*a_)*(a3-a3.Position)end a2.CFrame=a3 a2.Focus=a3*CFrame.
+new(0,0,-12)end)notify('C\u{e2}mera Livre','WASD move, Q/E sobe e desce. Desative para voltar.')end)aX:NewSlider('Velocidade da C\u{e2}mera Livre','Velocidade de movimento (1\u{2013}10).',10,1,a_,
+function(a1)a_=a1 end)local a1=ac:NewTab('Eliminador'):NewSection('Killer \u{2022} GR\u{c1}TIS \u{2713}')local a2=''a1:NewTextBox('Nome do Alvo','Digite parte do nome e pressione Enter.',function(a3)
+a2=a3 end)a1:NewButton('Alcan\u{e7}ar Alvo','Usa o carrinho livre mais pr\u{f3}ximo contra o alvo.',function()if not a2 or a2:match('^%s*$')then notify('Eliminador',
+'Digite parte do nome e pressione Enter.')return end local a3=a2 task.spawn(function()local a4,a5=xpcall(function()executeKiller(a3)end,function(a4)local a5=debug if type(a5)=='table'and type(a5.
+traceback)=='function'then local a6,a7=pcall(a5.traceback,tostring(a4),2)if a6 then return a7 end end return tostring(a4)end)if not a4 then warn(g..' Killer: '..a5)if v then finishKiller(
+'Erro na tentativa. Tente de novo.')end end end)end)local a3=ac:NewTab('Troll'):NewSection('Divers\u{e3}o')local a4=5 local a5 local function stopSpin(a6)if a5 then a5:Disconnect()a5=nil end
+releaseCameraMode('spin')if not a6 then notify('Troll','C\u{e2}mera voltou ao normal.')end end z.spin=function()stopSpin(true)end a3:NewButton('C\u{e2}mera Girat\u{f3}ria',
+'Gira a c\u{e2}mera por alguns segundos.',function()stopSpin(true)claimCameraMode('spin')local a6=workspace.CurrentCamera if not a6 then releaseCameraMode('spin')return end a6.CameraType=Enum.
+CameraType.Scriptable local a7=os.clock()local a8=a6.CFrame a5=b.RenderStepped:Connect(function()local a9=os.clock()-a7 if a9>=a4 then stopSpin(false)return end local ba=workspace.CurrentCamera if not
+ba then return end if ba~=a6 then a6=ba end if a6.CameraType~=Enum.CameraType.Scriptable then a6.CameraType=Enum.CameraType.Scriptable end local bb=a9*math.pi*2 a6.CFrame=CFrame.new(a8.Position)*
+CFrame.Angles(0,bb,0)*CFrame.new(0,0,-10)a6.Focus=CFrame.new(a8.Position)end)notify('Troll','C\u{e2}mera girando por '..a4..'s.')end)a3:NewSlider('Dura\u{e7}\u{e3}o C\u{e2}mera (s)',
+'Segundos de giro.',30,1,a4,function(a6)a4=a6 end)local a6=2 local function restoreFakeLag()local a7=at ar=false if a7 and a7.Parent then a7.WalkSpeed=au or 16 if a7.UseJumpPower then a7.JumpPower=s
+or 50 else a7.JumpHeight=t or 7.2 end end at=nil end a3:NewButton('Fake Lag','Congela voc\u{ea} por alguns segundos.',function()local a7=getHumanoid()if not a7 then return end if not ar then au=au or
+a7.WalkSpeed s=s or a7.JumpPower t=t or a7.JumpHeight elseif at~=a7 then restoreFakeLag()end as=as+1 local a8=as ar=true at=a7 a7.WalkSpeed=0 if a7.UseJumpPower then a7.JumpPower=0 else a7.JumpHeight=
+0 end notify('Troll','Fake lag por '..a6..'s.')task.spawn(function()task.wait(a6)if a8~=as or n then return end restoreFakeLag()notify('Troll','Fake lag encerrado.')end)end)a3:NewSlider(
+'Dura\u{e7}\u{e3}o Fake Lag (s)','Dura\u{e7}\u{e3}o em segundos.',15,1,a6,function(a7)a6=a7 end)local a7=false local a8 local function stopSpectate(a9)a7=false if a8 then a8:Disconnect()a8=nil end
+releaseCameraMode('spectate')if not a9 then notify('Spectate','Parado.')end end z.spectate=function()stopSpectate(true)end a3:NewTextBox('Spectate Jogador','Nome do jogador. Enter para seguir.',
+function(a9)local ba=findPlayerByPartialName(a9)if not ba or ba==f then notify('Spectate','Escolha outro jogador.')return end stopSpectate(true)claimCameraMode('spectate')a7=true local bb=workspace.
+CurrentCamera if not bb then stopSpectate(true)return end bb.CameraType=Enum.CameraType.Scriptable a8=b.RenderStepped:Connect(function()if not a7 then return end local bc=workspace.CurrentCamera if
+not bc then return end if bc~=bb then bb=bc end if bb.CameraType~=Enum.CameraType.Scriptable then bb.CameraType=Enum.CameraType.Scriptable end local bd=ba.Character local be=bd and bd:FindFirstChild(
+'HumanoidRootPart')if not be then stopSpectate(false)return end bb.CFrame=CFrame.new(be.Position+Vector3.new(0,8,-14),be.Position)bb.Focus=CFrame.new(be.Position)end)notify('Spectate','Seguindo '..ba.
+DisplayName..'.')end)a3:NewButton('Parar Spectate','Para de seguir.',function()stopSpectate(false)end)a3:NewButton('Teleporte Aleat\u{f3}rio','Te joga em uma parte aleat\u{f3}ria.',function()local a9=
+{}for ba,bb in ipairs(workspace:GetDescendants())do if bb:IsA('BasePart')and bb.Transparency<0.9 and bb.Size.Magnitude>2 and bb~=workspace.Terrain then table.insert(a9,bb)end end if#a9==0 then notify(
+'Troll','Nenhuma parte \u{fa}til encontrada.')return end local ba=a9[math.random(1,#a9)]teleportCharacter(ba.CFrame*CFrame.new(0,5,0))notify('Troll','Caiu em: '..ba.Name)end)local function findMenuGui
+()local a9 for ba,bb in ipairs(l)do for bc,bd in ipairs(bb:GetChildren())do if bd:IsA('ScreenGui')then local be=bd:FindFirstChild('Main',true)local bf=be and be:FindFirstChild('MainHeader')local bg=bf
+and bf:FindFirstChild('title')if bg and bg:IsA('TextLabel')and bg.Text==h then return bd end if be and bf then a9=bd end for bh,bi in ipairs(bd:GetDescendants())do if bi:IsA('TextLabel')and bi.Text==h
+then return bd end end end end end return a9 end local a9=ac and ac.gui or findMenuGui()if not bootstrapAlive()then abortBootstrap()return end local ba if not a9 then warn(g..
+': n\u{e3}o foi poss\u{ed}vel localizar a janela cl\u{e1}ssica local.')a9=Instance.new('ScreenGui')a9.Name='NothriloFallbackHost'a9.ResetOnSpawn=false a9.Parent=k end av=function(bb)for bc,bd in
+ipairs(a9:GetDescendants())do if bd:IsA('TextButton')and bd.Name=='textboxElement'then local be=bd:FindFirstChild('togName')local bf=bd:FindFirstChildOfClass('TextBox')if be and be.Text==bb and bf
+then return bf end end end return nil end S=function(bb,bc)task.delay(0.22,function()local bd=av(bb)if bd and bd.Parent then bd.Text=tostring(bc)end end)end local function configureKavoTextBox(bb,bc,
+bd)local be=av(bb)if not be then return end be.PlaceholderText=bc if bd~=nil then be.Text=tostring(bd)end end for bb,bc in ipairs(a9:GetDescendants())do if bc:IsA('TextBox')and bc.PlaceholderText==
+'Type here!'then bc.PlaceholderText='Digite aqui...'end end configureKavoTextBox('Ir at\u{e9} Jogador','Nome ou come\u{e7}o do nome',nil)configureKavoTextBox('Velocidade do Voo','Digite a velocidade',
+nil)configureKavoTextBox('Nome do Alvo','Nome ou come\u{e7}o do nome',nil)configureKavoTextBox('For\u{e7}a Normal','2500',2500)configureKavoTextBox('For\u{e7}a em Descidas','800',800)local bb={}local 
+function addShortcutBadge(bc,bd)if c.TouchEnabled then return end for be,bf in ipairs(a9:GetDescendants())do if bf:IsA('TextButton')then local bg for bh,bi in ipairs(bf:GetDescendants())do if bi:IsA(
+'TextLabel')and bi.Text==bc then bg=bi break end end if bg and not bf:FindFirstChild('NothriloShortcut_'..bd)then local bh=bd=='1/2/3'and 42 or 21 local bi=Instance.new('TextButton')bi.Name=
+'NothriloShortcut_'..bd bi.Size=UDim2.fromOffset(bh,21)bi.Position=UDim2.new(1,-(bh+31),0,6)bi.BackgroundColor3=Color3.fromRGB(30,30,37)bi.BorderSizePixel=0 bi.AutoButtonColor=false bi.Font=Enum.Font.
+GothamBold bi.Text=bd bi.TextColor3=r.SchemeColor bi.TextSize=bd=='1/2/3'and 9 or 12 bi.ZIndex=3 bi.Parent=bf Instance.new('UICorner',bi).CornerRadius=UDim.new(0,7)table.insert(bb,bi)if bg.Parent==bf
+then bg.Size=UDim2.new(1,-(bh+70),1,0)end bi.Activated:Connect(function()if bd=='V'then am:UpdateToggle(nil,not al)elseif bd=='L'then U:UpdateToggle(nil,not ag)elseif bd=='P'then V:UpdateToggle(nil,
+not T)elseif bd=='T'then giveClickTeleportTool()elseif bd=='1'then teleportToCheckpoint(1)elseif bd=='2'then teleportToCheckpoint(2)elseif bd=='3'then teleportToCheckpoint(3)elseif bd=='1/2/3'then
+notify('Checkpoints','Use NumPad 1, 2 ou 3.')elseif bd=='B'then an:UpdateToggle(nil,not aF)elseif bd=='K'then aq(false)elseif bd=='X'and m then m()end end)return end end end end addShortcutBadge(
+'Voo do Ve\u{ed}culo','V')addShortcutBadge('ESP','L')addShortcutBadge('Pulo Infinito','P')addShortcutBadge('Teleporte por Clique','T')addShortcutBadge('Boost do Carrinho','B')addShortcutBadge(
+'Ir ao Checkpoint 1','1')addShortcutBadge('Ir ao Checkpoint 2','2')addShortcutBadge('Ir ao Checkpoint 3','3')local bc=Instance.new('ScreenGui')bc.Name='NothriloNotifications'bc.ResetOnSpawn=false bc.
+IgnoreGuiInset=true bc.DisplayOrder=10001 bc.Parent=a9.Parent ad=Instance.new('Frame')ad.Name='ToastContainer'ad.AnchorPoint=Vector2.new(1,0)ad.Position=UDim2.new(1,-18,0,20)ad.Size=UDim2.fromOffset(
+300,300)ad.BackgroundTransparency=1 ad.Parent=bc do local bd=Instance.new('UIListLayout')bd.Padding=UDim.new(0,8)bd.SortOrder=Enum.SortOrder.LayoutOrder bd.Parent=ad end local function enableDrag(bd,
+be,bf)bd.Active=true be.Active=true local bg,bh,bi,bj,bk=false,nil,nil,nil,false local function updatePos(bl)local bm=bl.Position-bi if bm.Magnitude>6 then bk=true end bd.Position=UDim2.new(bj.X.Scale
+,bj.X.Offset+bm.X,bj.Y.Scale,bj.Y.Offset+bm.Y)end be.InputBegan:Connect(function(bl)if bl.UserInputType~=Enum.UserInputType.MouseButton1 and bl.UserInputType~=Enum.UserInputType.Touch then return end
+bg=true bk=false bi=bl.Position bj=bd.Position bl.Changed:Connect(function()if bl.UserInputState==Enum.UserInputState.End then bg=false if bf then bf(bk)end end end)end)be.InputChanged:Connect(
+function(bl)if bl.UserInputType==Enum.UserInputType.MouseMovement or bl.UserInputType==Enum.UserInputType.Touch then bh=bl end end)trackConnection(c.InputChanged:Connect(function(bl)if bg and bl==bh
+then updatePos(bl)end end))end local bd=Instance.new('ScreenGui')bd.Name='NothriloLauncher'bd.ResetOnSpawn=false bd.IgnoreGuiInset=true bd.DisplayOrder=10000 bd.Parent=a9.Parent local be=Instance.new(
+'TextButton')be.Name='OpenNothriloMenu'be.Size=UDim2.fromOffset(178,50)be.Position=UDim2.new(0,16,0.5,-25)be.BackgroundColor3=Color3.fromRGB(10,10,12)be.BorderSizePixel=0 be.AutoButtonColor=false be.
+Font=Enum.Font.GothamBold be.Text=string.upper(g)be.TextColor3=Color3.fromRGB(255,255,255)be.TextSize=15 be.TextXAlignment=Enum.TextXAlignment.Left be.Visible=false be.Parent=bd Instance.new(
+'UICorner',be).CornerRadius=UDim.new(0,18)do local bf=Instance.new('UIPadding')bf.PaddingLeft=UDim.new(0,52)bf.PaddingRight=UDim.new(0,10)bf.Parent=be end local bf=Instance.new('UIStroke')bf.Thickness
+=1.5 bf.Parent=be local bg=Instance.new('TextLabel')bg.BackgroundColor3=Color3.fromRGB(26,26,33)bg.BackgroundTransparency=0 bg.Size=UDim2.fromOffset(36,36)bg.Position=UDim2.fromOffset(7,7)bg.Font=Enum
+.Font.GothamBold bg.Text='N'bg.TextColor3=Color3.fromRGB(255,255,255)bg.TextSize=18 bg.Parent=be Instance.new('UICorner',bg).CornerRadius=UDim.new(1,0)aq=function(bh)if n then return end a9.Enabled=bh
+be.Visible=not bh end do local bh=a9:FindFirstChild('Main')local bi=bh and bh:FindFirstChild('MainHeader')local bj=bi and bi:FindFirstChild('close')if bj then bj.Visible=false bj.Active=false end if
+bi then local bk=Instance.new('TextButton')bk.Name='Minimize'bk.Size=UDim2.fromOffset(30,30)bk.Position=UDim2.new(1,-32,0,2)bk.BackgroundColor3=Color3.fromRGB(28,28,34)bk.BackgroundTransparency=0.2 bk
+.AutoButtonColor=false bk.Font=Enum.Font.GothamBold bk.Text='\u{2014}'bk.TextColor3=Color3.fromRGB(255,255,255)bk.TextSize=17 bk.Parent=bi Instance.new('UICorner',bk).CornerRadius=UDim.new(0,10)bk.
+MouseButton1Click:Connect(function()aq(false)end)enableDrag(bh,bi)end end local bh=0 enableDrag(be,be,function(bi)if bi then bh=os.clock()end end)be.Activated:Connect(function()if os.clock()-bh<0.25
+then return end aq(true)end)trackConnection(c.InputBegan:Connect(function(bi,bj)if n or bj or c:GetFocusedTextBox()then return end if bi.KeyCode==Enum.KeyCode.V then am:UpdateToggle(nil,not al)elseif
+bi.KeyCode==Enum.KeyCode.L then U:UpdateToggle(nil,not ag)elseif bi.KeyCode==Enum.KeyCode.P then V:UpdateToggle(nil,not T)elseif bi.KeyCode==Enum.KeyCode.T then giveClickTeleportTool()elseif bi.
+KeyCode==Enum.KeyCode.B then an:UpdateToggle(nil,not aF)elseif bi.KeyCode==Enum.KeyCode.KeypadOne then teleportToCheckpoint(1)elseif bi.KeyCode==Enum.KeyCode.KeypadTwo then teleportToCheckpoint(2)
+elseif bi.KeyCode==Enum.KeyCode.KeypadThree then teleportToCheckpoint(3)elseif bi.KeyCode==Enum.KeyCode.K then aq(not a9.Enabled)elseif bi.KeyCode==Enum.KeyCode.X then m()end end))local bi=true m=
+function()if n then return end n=true bi=false v=false w=w+1 if z.autoWin then z.autoWin(true)end z.restoreSession=(z.restoreSession or 0)+1 T=false as=as+1 restoreFakeLag()stopSpin(true)stopSpectate(
+true)stopFreecam()aS=false restoreNoclip()aU=false setLocalInvisible(false)aw=false if Y then Y:Disconnect()Y=nil end restoreGodHumanoid()ay=false if az then az:Disconnect()az=nil end stopFly()ap()ag=
+false ak=ak+1 clearESP()Q.enabled=false cleanupStabilizer()restorePanicStop()workspace.Gravity=p aM=false aP=false aO.antiFlipReadyAt=0 aO.autobrakeHoldUntil=0 aO.autobrakeReadyAt=0 if aN then aN:
+Disconnect()aN=nil end if aQ then aQ:Disconnect()aQ=nil end y=nil restoreDefaultCamera()for bj=#o,1,-1 do local bk=o[bj]pcall(function()bk:Disconnect()end)o[bj]=nil end for bj=#u,1,-1 do local bk=u[bj
+]if bk and bk.Parent then bk:Destroy()end u[bj]=nil end if I and I.Parent then I:Destroy()end if bc and bc.Parent then bc:Destroy()end if bd and bd.Parent then bd:Destroy()end if a9 and a9.Parent then
+a9:Destroy()end if q and q.Parent then q:Destroy()end end do local bj=ac:NewTab('Comandos'):NewSection('Atalhos')ba=a9:FindFirstChild('ComandosTabButton',true)bj:NewButton(
+'V  \u{2022}  Voo do Ve\u{ed}culo','Tecla V',function()am:UpdateToggle(nil,not al)end)bj:NewButton('L  \u{2022}  ESP','Tecla L',function()U:UpdateToggle(nil,not ag)end)bj:NewButton(
+'P  \u{2022}  Pulo Infinito','Tecla P',function()V:UpdateToggle(nil,not T)end)bj:NewButton('T  \u{2022}  Teleporte por Clique','Tecla T',giveClickTeleportTool)bj:NewButton(
+'B  \u{2022}  Boost do Carrinho','Tecla B',function()an:UpdateToggle(nil,not aF)end)bj:NewButton('NumPad 1/2/3  \u{2022}  Checkpoints','Teclado num\u{e9}rico',function()notify('Checkpoints',
+'Use NumPad 1, 2 ou 3.')end)bj:NewButton('K  \u{2022}  Minimizar / Abrir','Tecla K',function()aq(false)end)bj:NewButton('X  \u{2022}  Fechar o Nothrilo','Tecla X',m)end addShortcutBadge(
+'V  \u{2022}  Voo do Ve\u{ed}culo','V')addShortcutBadge('L  \u{2022}  ESP','L')addShortcutBadge('P  \u{2022}  Pulo Infinito','P')addShortcutBadge('T  \u{2022}  Teleporte por Clique','T')
+addShortcutBadge('B  \u{2022}  Boost do Carrinho','B')addShortcutBadge('NumPad 1/2/3  \u{2022}  Checkpoints','1/2/3')addShortcutBadge('K  \u{2022}  Minimizar / Abrir','K')addShortcutBadge(
+'X  \u{2022}  Fechar o Nothrilo','X')task.delay(0.3,function()if not a9 or not a9.Parent then return end addShortcutBadge('V  \u{2022}  Voo do Ve\u{ed}culo','V')addShortcutBadge('L  \u{2022}  ESP','L'
+)addShortcutBadge('P  \u{2022}  Pulo Infinito','P')addShortcutBadge('T  \u{2022}  Teleporte por Clique','T')addShortcutBadge('B  \u{2022}  Boost do Carrinho','B')addShortcutBadge(
+'NumPad 1/2/3  \u{2022}  Checkpoints','1/2/3')addShortcutBadge('K  \u{2022}  Minimizar / Abrir','K')addShortcutBadge('X  \u{2022}  Fechar o Nothrilo','X')end)do local bj=ac:NewTab('Interface'):
+NewSection('Interface')bj:NewButton('Fechar Menu','Fecha agora; a tecla X tamb\u{e9}m funciona.',m)end addShortcutBadge('Fechar Menu','X')if not bootstrapAlive()then abortBootstrap()return end a9.
+Enabled=false if os.clock()<aa.beganAt+aa.seconds then if aa.status then aa.status.Text='Fun\u{e7}\u{f5}es prontas \u{2022} terminando carregamento seguro...'end repeat b.RenderStepped:Wait()if not
+bootstrapAlive()then abortBootstrap()return end until os.clock()>=aa.beganAt+aa.seconds end if aa.gui and aa.gui.Parent then aa.gui:Destroy()end a9.Enabled=true task.spawn(function()while bi and not n
+and a9.Parent and bd.Parent do local bj=Color3.fromHSV((os.clock()*0.12)%1,0.85,1)ab:ChangeColor('SchemeColor',bj)if ba and ba.Parent then ba.BackgroundColor3=bj end bf.Color=bj bg.TextColor3=bj for
+bk=#bb,1,-1 do local bl=bb[bk]if bl and bl.Parent then bl.TextColor3=bj else table.remove(bb,bk)end end for bk=#ae,1,-1 do local bl=ae[bk]if bl and bl.Parent then bl.Color=bj else table.remove(ae,bk)
+end end task.wait(0.3)end end)notify(g,'Feito por Cafezl  \u{2022}  K minimiza e reabre o menu.')
 
-local Players        = game:GetService("Players")
-local RunService     = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService   = game:GetService("TweenService")
-local StarterGui     = game:GetService("StarterGui")
-
-local LocalPlayer  = Players.LocalPlayer
-if not LocalPlayer then return end
-local MENU_NAME    = "Nothrilo 🇧🇷"
-local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
-
--- Token compartilhado entre as skins. Uma execução nova invalida imediatamente
--- qualquer bootstrap antigo que ainda esteja esperando PlayerGui/GUI.
-local suiteEnvironment = _G
-if type(getgenv) == "function" then
-    local ok, environment = pcall(getgenv)
-    if ok and type(environment) == "table" then suiteEnvironment = environment end
-end
-local suiteGeneration = (tonumber(suiteEnvironment.__CafezlSuiteGeneration) or 0) + 1
-do
-    local storedGeneration = pcall(function()
-        suiteEnvironment.__CafezlSuiteGeneration = suiteGeneration
-    end)
-    if not storedGeneration then
-        suiteEnvironment = _G
-        suiteGeneration = (tonumber(suiteEnvironment.__CafezlSuiteGeneration) or 0) + 1
-        suiteEnvironment.__CafezlSuiteGeneration = suiteGeneration
-    end
-end
-
-local function isCurrentSuiteGeneration()
-    return suiteEnvironment.__CafezlSuiteGeneration == suiteGeneration
-end
-
--- Alguns ambientes bloqueiam GUI direto em CoreGui e outros usam gethui().
--- Escolher o pai aqui evita o menu morrer antes mesmo de aparecer.
-local CoreGui = (function()
-    if type(gethui) == "function" then
-        local ok, parent = pcall(gethui)
-        if ok and parent then return parent end
-    end
-
-    local ok, coreGui = pcall(function()
-        return game:GetService("CoreGui")
-    end)
-    if ok and coreGui then
-        local probe = Instance.new("ScreenGui")
-        local accepted = pcall(function() probe.Parent = coreGui end)
-        if probe.Parent then probe:Destroy() end
-        if accepted then return coreGui end
-    end
-
-    return LocalPlayer:FindFirstChildOfClass("PlayerGui")
-        or LocalPlayer:FindFirstChild("PlayerGui")
-end)()
-if not isCurrentSuiteGeneration() then return end
-if not CoreGui then
-    warn(MENU_NAME .. ": PlayerGui/CoreGui ainda não está disponível.")
-    return
-end
-
--- A UI clássica local usa o pai escolhido acima. Os outros roots entram apenas
--- na descoberta/limpeza de versões antigas que ainda possam estar abertas.
-local guiRoots = {}
-do
-    local guiRootSet = {}
-    local function addGuiRoot(root)
-        if root and not guiRootSet[root] then
-            guiRootSet[root] = true
-            table.insert(guiRoots, root)
-        end
-    end
-
-    addGuiRoot(CoreGui)
-    pcall(function() addGuiRoot(game:GetService("CoreGui")) end)
-    addGuiRoot(LocalPlayer:FindFirstChild("PlayerGui"))
-end
-
-local destroyNothrilo
-local destroyed = false
-local runtimeConnections = {}
-
-local function trackConnection(connection)
-    table.insert(runtimeConnections, connection)
-    return connection
-end
-
--- Encerra qualquer skin anterior da suíte. Assim Nothrilo e Cafezitos não
--- disputam os mesmos atalhos, movers e forças quando um é aberto após o outro.
-for _, guiRoot in ipairs(guiRoots) do
-    for _, runtimeName in ipairs({ "NothriloRuntime", "CafezitosRuntime" }) do
-        local previousRuntime = guiRoot:FindFirstChild(runtimeName)
-        if previousRuntime then
-            local previousCleanup = previousRuntime:FindFirstChild("Cleanup")
-            if previousCleanup and previousCleanup:IsA("BindableEvent") then
-                previousCleanup:Fire()
-            end
-            previousRuntime:Destroy()
-        end
-    end
-end
-
--- Só capture o valor original depois que a instância anterior se restaurou.
-local originalGravity = workspace.Gravity
-
-local runtime = Instance.new("Folder")
-runtime.Name  = "NothriloRuntime"
-runtime.Parent = CoreGui
-
-do
-    local runtimeCleanup = Instance.new("BindableEvent")
-    runtimeCleanup.Name   = "Cleanup"
-    runtimeCleanup.Parent = runtime
-
-    -- O handler existe desde o começo da inicialização. Se uma execução nova
-    -- chegar durante o carregamento, a instância incompleta também é descartada.
-    trackConnection(runtimeCleanup.Event:Connect(function()
-        if destroyNothrilo then
-            destroyNothrilo()
-            return
-        end
-        destroyed = true
-        for index = #runtimeConnections, 1, -1 do
-            local connection = runtimeConnections[index]
-            pcall(function() connection:Disconnect() end)
-            runtimeConnections[index] = nil
-        end
-        if runtime and runtime.Parent then runtime:Destroy() end
-    end))
-end
-
--- Remove somente GUIs antigas do próprio Nothrilo.
-for _, guiRoot in ipairs(guiRoots) do
-    for _, gui in ipairs(guiRoot:GetChildren()) do
-        if gui:IsA("ScreenGui") then
-            if gui.Name == "NothriloLauncher"
-                or gui.Name == "NothriloNotifications"
-                or gui.Name == "NothriloLoading"
-                or gui.Name == "NothriloMobileFly"
-            then
-                gui:Destroy()
-            else
-                local main   = gui:FindFirstChild("Main")
-                local header = main and main:FindFirstChild("MainHeader")
-                local title  = header and header:FindFirstChild("title")
-                if title and title:IsA("TextLabel") and title.Text:find("Nothrilo", 1, true) then
-                    gui:Destroy()
-                end
-            end
-        end
-    end
-end
-
--- Tema escuro — só os detalhes passam pelo RGB
-local Theme = {
-    SchemeColor  = Color3.fromRGB(255, 0, 170),
-    Background   = Color3.fromRGB(8, 8, 10),
-    Header       = Color3.fromRGB(15, 15, 18),
-    TextColor    = Color3.fromRGB(245, 245, 245),
-    ElementColor = Color3.fromRGB(22, 22, 27),
-}
-
--- =============================================================================
--- Tela de carregamento
--- =============================================================================
--- Loader compacto e procedural: não depende de vídeo, GIF, arquivo local nem
--- APIs diferentes entre executores. Por isso abre igual no Roblox e no Xeno.
-local startup = {
-    seconds = 5,
-    beganAt = os.clock(),
-}
-startup.gui, startup.status, startup.progress = (function()
-    local gui = Instance.new("ScreenGui")
-    gui.Name            = "NothriloLoading"
-    gui.ResetOnSpawn    = false
-    gui.IgnoreGuiInset  = true
-    gui.DisplayOrder    = 10050
-    gui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
-    gui.Parent          = CoreGui
-
-    local shade = Instance.new("Frame")
-    shade.Name                   = "Shade"
-    shade.Size                   = UDim2.fromScale(1, 1)
-    shade.BackgroundColor3       = Color3.fromRGB(3, 3, 5)
-    shade.BackgroundTransparency = 0.08
-    shade.BorderSizePixel        = 0
-    shade.Parent                 = gui
-
-    local shadow = Instance.new("Frame")
-    shadow.Name                   = "Shadow"
-    shadow.AnchorPoint            = Vector2.new(0.5, 0.5)
-    shadow.Position               = UDim2.new(0.5, 0, 0.5, 6)
-    shadow.Size                   = UDim2.new(0.88, 0, 0, 190)
-    shadow.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-    shadow.BackgroundTransparency = 0.38
-    shadow.BorderSizePixel        = 0
-    shadow.Parent                 = shade
-    Instance.new("UICorner", shadow).CornerRadius = UDim.new(0, 24)
-
-    local shadowSize = Instance.new("UISizeConstraint")
-    shadowSize.MinSize = Vector2.new(278, 190)
-    shadowSize.MaxSize = Vector2.new(390, 190)
-    shadowSize.Parent  = shadow
-
-    local card = Instance.new("Frame")
-    card.Name            = "Card"
-    card.AnchorPoint     = Vector2.new(0.5, 0.5)
-    card.Position        = UDim2.fromScale(0.5, 0.5)
-    card.Size            = UDim2.new(0.88, 0, 0, 190)
-    card.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
-    card.BorderSizePixel = 0
-    card.ClipsDescendants = true
-    card.Parent          = shade
-    local cardSize = Instance.new("UISizeConstraint")
-    cardSize.MinSize = Vector2.new(278, 190)
-    cardSize.MaxSize = Vector2.new(390, 190)
-    cardSize.Parent = card
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 24)
-    corner.Parent = card
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Thickness = 2
-    stroke.Color     = Theme.SchemeColor
-    stroke.Parent    = card
-
-    stroke.Transparency = 0.06
-
-    local brandDot = Instance.new("Frame")
-    brandDot.Name             = "BrandDot"
-    brandDot.Position         = UDim2.fromOffset(18, 18)
-    brandDot.Size             = UDim2.fromOffset(18, 18)
-    brandDot.BackgroundColor3 = Theme.SchemeColor
-    brandDot.BorderSizePixel  = 0
-    brandDot.Parent           = card
-    Instance.new("UICorner", brandDot).CornerRadius = UDim.new(1, 0)
-
-    local titleL = Instance.new("TextLabel")
-    titleL.BackgroundTransparency = 1
-    titleL.Position  = UDim2.fromOffset(46, 14)
-    titleL.Size      = UDim2.new(1, -64, 0, 26)
-    titleL.Font      = Enum.Font.GothamBold
-    titleL.Text      = MENU_NAME
-    titleL.TextColor3 = Color3.fromRGB(248, 248, 250)
-    titleL.TextSize  = 18
-    titleL.TextXAlignment = Enum.TextXAlignment.Left
-    titleL.Parent    = card
-
-    local subtitleL = Instance.new("TextLabel")
-    subtitleL.BackgroundTransparency = 1
-    subtitleL.Position  = UDim2.fromOffset(18, 43)
-    subtitleL.Size      = UDim2.new(1, -36, 0, 17)
-    subtitleL.Font      = Enum.Font.Gotham
-    subtitleL.Text      = "Feito por Cafezl  •  preparando tudo"
-    subtitleL.TextColor3 = Color3.fromRGB(205, 205, 214)
-    subtitleL.TextSize  = 12
-    subtitleL.TextXAlignment = Enum.TextXAlignment.Left
-    subtitleL.Parent    = card
-
-    local emojiPanel = Instance.new("Frame")
-    emojiPanel.Name             = "EmojiPanel"
-    emojiPanel.Position         = UDim2.fromOffset(14, 66)
-    emojiPanel.Size             = UDim2.new(1, -28, 0, 62)
-    emojiPanel.BackgroundColor3 = Color3.fromRGB(17, 17, 23)
-    emojiPanel.BorderSizePixel  = 0
-    emojiPanel.ClipsDescendants = true
-    emojiPanel.Parent           = card
-    Instance.new("UICorner", emojiPanel).CornerRadius = UDim.new(0, 16)
-
-    local emojiStroke = Instance.new("UIStroke")
-    emojiStroke.Thickness    = 1
-    emojiStroke.Transparency = 0.60
-    emojiStroke.Color        = Theme.SchemeColor
-    emojiStroke.Parent       = emojiPanel
-
-    local emojiLabels = {}
-    local emojis = { "🐱", "😸", "✨", "⚡", "🚀", "🎮" }
-    for index, emoji in ipairs(emojis) do
-        local label = Instance.new("TextLabel")
-        label.Name = "Emoji" .. index
-        label.AnchorPoint = Vector2.new(0.5, 0.5)
-        label.Position = UDim2.new((index - 0.5) / #emojis, 0, 0.5, 0)
-        label.Size = UDim2.fromOffset(42, 46)
-        label.BackgroundTransparency = 1
-        label.Font = Enum.Font.GothamBold
-        label.Text = emoji
-        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        label.TextSize = 27
-        label.Parent = emojiPanel
-        table.insert(emojiLabels, label)
-    end
-
-    local statusDot = Instance.new("Frame")
-    statusDot.Name             = "StatusDot"
-    statusDot.AnchorPoint      = Vector2.new(0.5, 0.5)
-    statusDot.Position         = UDim2.fromOffset(22, 148)
-    statusDot.Size             = UDim2.fromOffset(8, 8)
-    statusDot.BackgroundColor3 = Theme.SchemeColor
-    statusDot.BorderSizePixel  = 0
-    statusDot.Parent           = card
-    Instance.new("UICorner", statusDot).CornerRadius = UDim.new(1, 0)
-
-    local status = Instance.new("TextLabel")
-    status.BackgroundTransparency = 1
-    status.Position  = UDim2.fromOffset(34, 137)
-    status.Size      = UDim2.new(1, -100, 0, 22)
-    status.Font      = Enum.Font.Gotham
-    status.Text      = "Preparando interface..."
-    status.TextColor3 = Theme.SchemeColor
-    status.TextSize  = 12
-    status.TextXAlignment = Enum.TextXAlignment.Left
-    status.Parent    = card
-
-    local percent = Instance.new("TextLabel")
-    percent.Name = "Percent"
-    percent.BackgroundTransparency = 1
-    percent.Position = UDim2.new(1, -68, 0, 137)
-    percent.Size = UDim2.fromOffset(50, 22)
-    percent.Font = Enum.Font.GothamSemibold
-    percent.Text = "0%"
-    percent.TextColor3 = Theme.SchemeColor
-    percent.TextSize = 12
-    percent.TextXAlignment = Enum.TextXAlignment.Right
-    percent.Parent = card
-
-    local progressTrack = Instance.new("Frame")
-    progressTrack.Name = "ProgressTrack"
-    progressTrack.Position = UDim2.fromOffset(18, 166)
-    progressTrack.Size = UDim2.new(1, -36, 0, 8)
-    progressTrack.BackgroundColor3 = Color3.fromRGB(34, 34, 42)
-    progressTrack.BorderSizePixel = 0
-    progressTrack.Parent = card
-    Instance.new("UICorner", progressTrack).CornerRadius = UDim.new(1, 0)
-
-    local progress = Instance.new("Frame")
-    progress.Name = "Progress"
-    progress.Size = UDim2.fromScale(0, 1)
-    progress.BackgroundColor3 = Theme.SchemeColor
-    progress.BorderSizePixel = 0
-    progress.Parent = progressTrack
-    Instance.new("UICorner", progress).CornerRadius = UDim.new(1, 0)
-
-    task.spawn(function()
-        local generatedStatus = status.Text
-        while gui.Parent do
-            local elapsed = os.clock() - startup.beganAt
-            local alpha = math.clamp(elapsed / startup.seconds, 0, 1)
-            progress.Size = UDim2.fromScale(alpha, 1)
-
-            local rgb = Color3.fromHSV((elapsed * 0.20) % 1, 0.84, 1)
-            progress.BackgroundColor3 = rgb
-            stroke.Color = rgb
-            emojiStroke.Color = rgb
-            brandDot.BackgroundColor3 = rgb
-            statusDot.BackgroundColor3 = rgb
-            status.TextColor3 = rgb
-            percent.TextColor3 = rgb
-            percent.Text = ("%d%%"):format(math.floor(alpha * 100))
-
-            local message
-            if alpha < 0.24 then
-                message = "Preparando interface..."
-            elseif alpha < 0.50 then
-                message = "Carregando funções..."
-            elseif alpha < 0.76 then
-                message = "Organizando atalhos..."
-            elseif alpha < 0.98 then
-                message = "Aplicando acabamento..."
-            else
-                message = "Tudo pronto!"
-            end
-            if status.Text == generatedStatus then
-                generatedStatus = message
-                status.Text = generatedStatus
-            end
-
-            for index, label in ipairs(emojiLabels) do
-                local wave = elapsed * 5.2 + index * 0.78
-                label.Position = UDim2.new(
-                    (index - 0.5) / #emojiLabels,
-                    0,
-                    0.5,
-                    math.floor(math.sin(wave) * 4)
-                )
-                label.Rotation = math.sin(wave * 0.82) * 7
-                label.TextSize = 27 + math.floor((math.sin(wave) + 1) * 1.5)
-            end
-
-            RunService.RenderStepped:Wait()
-        end
-    end)
-
-    return gui, status, progress
-end)()
-
--- =============================================================================
--- Classic UI local — API compatível com Kavo sem polling por controle
--- =============================================================================
--- A Kavo upstream abre um `while wait()` permanente para praticamente cada
--- aba, seção e elemento. Neste menu isso passava de 80 loops simultâneos e
--- continuava mesmo após destruir a ScreenGui. Esta implementação preserva a
--- API e a estrutura visual usadas abaixo, mas atualiza cores apenas por evento.
-local ClassicUI = (function()
-local ClassicUI = {
-    gui = nil,
-    theme = Theme,
-    themeBindings = {},
-}
-
-local function classicCreate(className, properties, parent)
-    local object = Instance.new(className)
-    for property, value in pairs(properties or {}) do object[property] = value end
-    object.Parent = parent
-    return object
-end
-
-local function classicCorner(parent, radius)
-    return classicCreate("UICorner", { CornerRadius = UDim.new(0, radius or 4) }, parent)
-end
-
-local function classicBindTheme(object, property, themeKey)
-    table.insert(ClassicUI.themeBindings, {
-        object = object,
-        property = property,
-        themeKey = themeKey,
-    })
-    object[property] = ClassicUI.theme[themeKey]
-    return object
-end
-
-local function classicInvoke(name, callback, ...)
-    if not callback then return end
-    local args = table.pack(...)
-    local ok, err = xpcall(function()
-        callback(table.unpack(args, 1, args.n))
-    end, function(message)
-        if debug and type(debug.traceback) == "function" then
-            return debug.traceback(tostring(message), 2)
-        end
-        return tostring(message)
-    end)
-    if not ok then warn(("[%s/%s] %s"):format(MENU_NAME, name, tostring(err))) end
-end
-
-function ClassicUI:ChangeColor(themeKey, color)
-    if not self.theme[themeKey] then return end
-    self.theme[themeKey] = color
-    for index = #self.themeBindings, 1, -1 do
-        local binding = self.themeBindings[index]
-        if not binding.object or not binding.object.Parent then
-            table.remove(self.themeBindings, index)
-        elseif binding.themeKey == themeKey then
-            binding.object[binding.property] = color
-        end
-    end
-end
-
-function ClassicUI:ToggleUI()
-    if self.gui and self.gui.Parent then self.gui.Enabled = not self.gui.Enabled end
-end
-
-function ClassicUI.CreateLib(title, suppliedTheme)
-    ClassicUI.theme = suppliedTheme or Theme
-    table.clear(ClassicUI.themeBindings)
-
-    local gui = classicCreate("ScreenGui", {
-        Name = "NothriloClassicUI",
-        Enabled = false,
-        ResetOnSpawn = false,
-        IgnoreGuiInset = true,
-        DisplayOrder = 10000,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    }, CoreGui)
-    ClassicUI.gui = gui
-
-    local main = classicCreate("Frame", {
-        Name = "Main",
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.5, 0.5),
-        -- Geometria da Kavo clássica usada no roteiro de referência.
-        Size = UDim2.fromOffset(525, 318),
-        BackgroundColor3 = ClassicUI.theme.Background,
-        BorderSizePixel = 0,
-        ClipsDescendants = true,
-    }, gui)
-    classicCorner(main, 14)
-
-    local header = classicCreate("Frame", {
-        Name = "MainHeader",
-        Size = UDim2.new(1, 0, 0, 34),
-        BackgroundColor3 = ClassicUI.theme.Header,
-        BorderSizePixel = 0,
-    }, main)
-    -- O header arredonda os dois cantos de cima. O preenchimento inferior
-    -- mantém a junção com o conteúdo reta sem encobrir o contorno externo.
-    classicCorner(header, 14)
-    local headerSquareBottom = classicCreate("Frame", {
-        Name = "SquareBottom",
-        Position = UDim2.new(0, 0, 1, -14),
-        Size = UDim2.new(1, 0, 0, 14),
-        BackgroundColor3 = ClassicUI.theme.Header,
-        BorderSizePixel = 0,
-    }, header)
-    classicBindTheme(headerSquareBottom, "BackgroundColor3", "Header")
-    local titleLabel = classicCreate("TextLabel", {
-        Name = "title",
-        Position = UDim2.fromOffset(12, 0),
-        Size = UDim2.new(1, -46, 1, 0),
-        BackgroundTransparency = 1,
-        Font = Enum.Font.GothamSemibold,
-        Text = title,
-        TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 15,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        RichText = true,
-    }, header)
-    classicBindTheme(titleLabel, "TextColor3", "TextColor")
-    local close = classicCreate("TextButton", {
-        Name = "close",
-        Position = UDim2.new(1, -34, 0, 0),
-        Size = UDim2.fromOffset(34, 34),
-        BackgroundTransparency = 1,
-        Text = "×",
-        Font = Enum.Font.GothamBold,
-        TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 20,
-    }, header)
-    close.Activated:Connect(function()
-        if destroyNothrilo then destroyNothrilo() elseif gui.Parent then gui:Destroy() end
-    end)
-
-    local side = classicCreate("Frame", {
-        Name = "MainSide",
-        Position = UDim2.fromOffset(0, 34),
-        Size = UDim2.new(0, 145, 1, -34),
-        BackgroundColor3 = ClassicUI.theme.Header,
-        BorderSizePixel = 0,
-    }, main)
-    -- Só o canto inferior esquerdo da lateral é externo. Os preenchimentos
-    -- deixam os outros três cantos retos e preservam a união entre painéis.
-    classicCorner(side, 14)
-    local sideSquareTop = classicCreate("Frame", {
-        Name = "SquareTop",
-        Size = UDim2.new(1, 0, 0, 14),
-        BackgroundColor3 = ClassicUI.theme.Header,
-        BorderSizePixel = 0,
-    }, side)
-    classicBindTheme(sideSquareTop, "BackgroundColor3", "Header")
-    local sideSquareRight = classicCreate("Frame", {
-        Name = "SquareRight",
-        Position = UDim2.new(1, -14, 0, 0),
-        Size = UDim2.new(0, 14, 1, 0),
-        BackgroundColor3 = ClassicUI.theme.Header,
-        BorderSizePixel = 0,
-    }, side)
-    classicBindTheme(sideSquareRight, "BackgroundColor3", "Header")
-    local tabFrames = classicCreate("ScrollingFrame", {
-        Name = "tabFrames",
-        Position = UDim2.fromOffset(6, 3),
-        Size = UDim2.new(0, 133, 1, -6),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        ScrollBarThickness = 0,
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        CanvasSize = UDim2.new(),
-        ScrollingDirection = Enum.ScrollingDirection.Y,
-    }, side)
-    classicBindTheme(tabFrames, "ScrollBarImageColor3", "SchemeColor")
-    classicCreate("UIListLayout", {
-        Name = "tabListing",
-        Padding = UDim.new(0, 2),
-        SortOrder = Enum.SortOrder.LayoutOrder,
-    }, tabFrames)
-
-    local pages = classicCreate("Frame", {
-        Name = "pages",
-        Position = UDim2.fromOffset(153, 42),
-        Size = UDim2.fromOffset(364, 268),
-        BackgroundColor3 = ClassicUI.theme.Background,
-        BorderSizePixel = 0,
-    }, main)
-    local pageFolder = classicCreate("Folder", { Name = "Pages" }, pages)
-
-    -- A Kavo mostra a descrição em uma faixa inferior, não espremida embaixo
-    -- do nome do controle. Um único tooltip atende todos os itens sem workers.
-    local hintBar = classicCreate("TextLabel", {
-        Name = "infoContainer",
-        Position = UDim2.fromOffset(153, 268),
-        Size = UDim2.fromOffset(364, 42),
-        BackgroundColor3 = ClassicUI.theme.ElementColor,
-        BorderSizePixel = 0,
-        Font = Enum.Font.GothamSemibold,
-        Text = "",
-        TextColor3 = ClassicUI.theme.TextColor,
-        TextSize = 12,
-        TextWrapped = true,
-        TextTruncate = Enum.TextTruncate.AtEnd,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Visible = false,
-        ZIndex = 60,
-    }, main)
-    classicCorner(hintBar, 10)
-    classicCreate("UIPadding", {
-        PaddingLeft = UDim.new(0, 10),
-        PaddingRight = UDim.new(0, 10),
-    }, hintBar)
-    classicBindTheme(hintBar, "BackgroundColor3", "ElementColor")
-    classicBindTheme(hintBar, "TextColor3", "TextColor")
-    local hintStroke = classicCreate("UIStroke", { Thickness = 1, Transparency = 0.1 }, hintBar)
-    classicBindTheme(hintStroke, "Color", "SchemeColor")
-    local hintSession = 0
-    local function showHint(label, description)
-        if not description or description == "" then return end
-        hintSession = hintSession + 1
-        local session = hintSession
-        hintBar.Text = tostring(label) .. "  •  " .. tostring(description)
-        hintBar.Visible = true
-        task.delay(4, function()
-            if session == hintSession and hintBar.Parent then hintBar.Visible = false end
-        end)
-    end
-
-    -- A referência usa 525x318 sem UIScale. Em telas menores só a geometria
-    -- disponível é reduzida; as fontes continuam com o mesmo tamanho.
-    local viewportConnection
-    local responsiveCallbacks = {}
-    local function updateResponsiveLayout()
-        local camera = workspace.CurrentCamera
-        local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
-        local width = math.clamp(viewport.X - 16, 300, 525)
-        local height = math.clamp(viewport.Y - 16, 260, 318)
-        local sideWidth = width < 420 and 96 or 145
-        local contentX = sideWidth + 8
-        local contentY = 42
-
-        main.Size = UDim2.fromOffset(width, height)
-        side.Position = UDim2.fromOffset(0, 34)
-        side.Size = UDim2.new(0, sideWidth, 1, -34)
-        tabFrames.Size = UDim2.new(1, -12, 1, -6)
-        pages.Position = UDim2.fromOffset(contentX, contentY)
-        pages.Size = UDim2.new(1, -(contentX + 8), 1, -(contentY + 8))
-        hintBar.Position = UDim2.fromOffset(contentX, height - 50)
-        hintBar.Size = UDim2.new(1, -(contentX + 8), 0, 42)
-        local compact = width < 420
-        for _, callback in ipairs(responsiveCallbacks) do
-            callback(compact)
-        end
-    end
-    local function bindViewportCamera()
-        if viewportConnection then
-            viewportConnection:Disconnect()
-            viewportConnection = nil
-        end
-        local camera = workspace.CurrentCamera
-        if camera then
-            viewportConnection = trackConnection(
-                camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateResponsiveLayout)
-            )
-        end
-        updateResponsiveLayout()
-    end
-    bindViewportCamera()
-    trackConnection(workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindViewportCamera))
-
-    local window = { tabs = {}, gui = gui }
-    local function showTab(selected)
-        for _, tab in ipairs(window.tabs) do
-            local active = tab == selected
-            tab.page.Visible = active
-            tab.button.BackgroundTransparency = active and 0 or 1
-            tab.button.Font = active and Enum.Font.GothamSemibold or Enum.Font.GothamMedium
-            tab.button.TextColor3 = active and Color3.fromRGB(7, 7, 9)
-                or ClassicUI.theme.TextColor
-            if active then tab.page.CanvasPosition = Vector2.zero end
-        end
-    end
-
-    function window:NewTab(name)
-        local tabButton = classicCreate("TextButton", {
-            Name = name .. "TabButton",
-            Size = UDim2.new(1, 0, 0, 26),
-            BackgroundTransparency = 1,
-            BorderSizePixel = 0,
-            AutoButtonColor = false,
-            Font = Enum.Font.GothamMedium,
-            Text = name,
-            TextColor3 = ClassicUI.theme.TextColor,
-            TextSize = 13,
-        }, tabFrames)
-        classicCorner(tabButton, 8)
-        classicBindTheme(tabButton, "BackgroundColor3", "SchemeColor")
-        classicBindTheme(tabButton, "TextColor3", "TextColor")
-
-        local page = classicCreate("ScrollingFrame", {
-            Name = "Page",
-            Size = UDim2.fromScale(1, 1),
-            BackgroundColor3 = ClassicUI.theme.Background,
-            BorderSizePixel = 0,
-            ScrollBarThickness = 5,
-            AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            CanvasSize = UDim2.new(),
-            ScrollingDirection = Enum.ScrollingDirection.Y,
-            Visible = false,
-        }, pageFolder)
-        classicBindTheme(page, "ScrollBarImageColor3", "SchemeColor")
-        classicCreate("UIPadding", {
-            PaddingLeft = UDim.new(0, 4),
-            PaddingRight = UDim.new(0, 4),
-            PaddingTop = UDim.new(0, 4),
-            PaddingBottom = UDim.new(0, 50),
-        }, page)
-        classicCreate("UIListLayout", {
-            Name = "pageListing",
-            Padding = UDim.new(0, 5),
-            SortOrder = Enum.SortOrder.LayoutOrder,
-        }, page)
-
-        local tab = { button = tabButton, page = page }
-        table.insert(self.tabs, tab)
-        tabButton.Activated:Connect(function() showTab(tab) end)
-        if #self.tabs == 1 then showTab(tab) end
-
-        function tab:NewSection(sectionName, hidden)
-            local sectionFrame = classicCreate("Frame", {
-                Name = "sectionFrame",
-                Size = UDim2.new(1, 0, 0, 0),
-                AutomaticSize = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-            }, page)
-            classicCreate("UIListLayout", {
-                Name = "sectionlistoknvm",
-                Padding = UDim.new(0, 5),
-                SortOrder = Enum.SortOrder.LayoutOrder,
-            }, sectionFrame)
-
-            local sectionHead = classicCreate("Frame", {
-                Name = "sectionHead",
-                Size = UDim2.new(1, 0, 0, hidden and 0 or 33),
-                Visible = not hidden,
-                BackgroundColor3 = ClassicUI.theme.SchemeColor,
-                BorderSizePixel = 0,
-            }, sectionFrame)
-            classicCorner(sectionHead, 10)
-            classicBindTheme(sectionHead, "BackgroundColor3", "SchemeColor")
-            local sectionNameLabel = classicCreate("TextLabel", {
-                Name = "sectionName",
-                Position = UDim2.fromOffset(12, 0),
-                Size = UDim2.new(1, -24, 1, 0),
-                BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
-                Text = sectionName,
-                TextColor3 = Color3.fromRGB(7, 7, 9),
-                TextSize = 13,
-                TextXAlignment = Enum.TextXAlignment.Left,
-            }, sectionHead)
-
-            local sectionInners = classicCreate("Frame", {
-                Name = "sectionInners",
-                Size = UDim2.new(1, 0, 0, 0),
-                AutomaticSize = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-            }, sectionFrame)
-            classicCreate("UIListLayout", {
-                Name = "sectionElListing",
-                Padding = UDim.new(0, 3),
-                SortOrder = Enum.SortOrder.LayoutOrder,
-            }, sectionInners)
-
-            local api = {}
-            local function makeElement(name, height, label, description, rightInset)
-                local rowHeight = UserInputService.TouchEnabled and math.max(height, 44) or height
-                local element = classicCreate("TextButton", {
-                    Name = name,
-                    Size = UDim2.new(1, 0, 0, rowHeight),
-                    BackgroundColor3 = ClassicUI.theme.ElementColor,
-                    BorderSizePixel = 0,
-                    AutoButtonColor = false,
-                    ClipsDescendants = true,
-                    Text = "",
-                }, sectionInners)
-                classicCorner(element, 10)
-                local elementStroke = classicCreate("UIStroke", {
-                    Thickness = 1,
-                    Transparency = 0.82,
-                    Color = Color3.fromRGB(80, 80, 92),
-                }, element)
-                local accentIcon = classicCreate("TextLabel", {
-                    Name = "touch",
-                    Position = UDim2.new(0, 7, 0.5, -11),
-                    Size = UDim2.fromOffset(22, 22),
-                    BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamBold,
-                    Text = "•",
-                    TextColor3 = ClassicUI.theme.SchemeColor,
-                    TextSize = 17,
-                }, element)
-                classicBindTheme(accentIcon, "TextColor3", "SchemeColor")
-                local title = classicCreate("TextLabel", {
-                    Name = "togName",
-                    Position = UDim2.fromOffset(34, 0),
-                    Size = UDim2.new(1, -(62 + (rightInset or 0)), 1, 0),
-                    BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamSemibold,
-                    Text = label,
-                    TextColor3 = ClassicUI.theme.TextColor,
-                    TextSize = 14,
-                    TextTruncate = Enum.TextTruncate.AtEnd,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                }, element)
-                classicBindTheme(title, "TextColor3", "TextColor")
-                local info = classicCreate("TextButton", {
-                    Name = "viewInfo",
-                    Position = UDim2.new(1, -30, 0, 0),
-                    Size = UDim2.new(0, 30, 1, 0),
-                    BackgroundTransparency = 1,
-                    AutoButtonColor = false,
-                    Font = Enum.Font.GothamBold,
-                    Text = "i",
-                    TextColor3 = ClassicUI.theme.SchemeColor,
-                    TextSize = 14,
-                    Visible = description ~= nil and description ~= "",
-                    ZIndex = 4,
-                }, element)
-                classicBindTheme(info, "TextColor3", "SchemeColor")
-                info.Activated:Connect(function() showHint(label, description) end)
-                info.MouseEnter:Connect(function() showHint(label, description) end)
-                element.MouseEnter:Connect(function()
-                    element.BackgroundColor3 = ClassicUI.theme.ElementColor:Lerp(Color3.new(1, 1, 1), 0.08)
-                end)
-                element.MouseLeave:Connect(function()
-                    element.BackgroundColor3 = ClassicUI.theme.ElementColor
-                end)
-                return element, title, accentIcon, info
-            end
-
-            function api:NewButton(label, description, callback)
-                local element, _, accentIcon = makeElement("buttonElement", 33, label, description, 0)
-                accentIcon.Text = "›"
-                accentIcon.TextSize = 20
-                element.Activated:Connect(function() classicInvoke(label, callback) end)
-                local control = {}
-                function control:UpdateButton(newTitle)
-                    local titleObject = element:FindFirstChild("togName")
-                    if titleObject and newTitle ~= nil then titleObject.Text = tostring(newTitle) end
-                end
-                return control
-            end
-
-            function api:NewToggle(label, description, callback)
-                local element, title, accentIcon = makeElement("toggleElement", 33, label, description, 0)
-                accentIcon.Visible = false
-                local toggleVisualY = UserInputService.TouchEnabled and 11 or 6
-                local switch = classicCreate("Frame", {
-                    Name = "toggleDisabled",
-                    Position = UDim2.fromOffset(7, toggleVisualY),
-                    Size = UDim2.fromOffset(21, 21),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                }, element)
-                classicCorner(switch, 6)
-                local switchStroke = classicCreate("UIStroke", { Thickness = 2 }, switch)
-                classicBindTheme(switchStroke, "Color", "SchemeColor")
-                local dot = classicCreate("Frame", {
-                    Name = "toggleEnabled",
-                    Position = UDim2.fromOffset(5, 5),
-                    Size = UDim2.fromOffset(11, 11),
-                    BackgroundColor3 = ClassicUI.theme.SchemeColor,
-                    BorderSizePixel = 0,
-                    Visible = false,
-                }, switch)
-                classicCorner(dot, 4)
-                classicBindTheme(dot, "BackgroundColor3", "SchemeColor")
-                local state = false
-                local control = {}
-                function control:UpdateToggle(newText, enabled)
-                    if newText ~= nil then title.Text = tostring(newText) end
-                    state = enabled == true
-                    dot.Visible = state
-                    classicInvoke(label, callback, state)
-                end
-                element.Activated:Connect(function() control:UpdateToggle(nil, not state) end)
-                return control
-            end
-
-            function api:NewTextBox(label, description, callback)
-                local element, title, accentIcon = makeElement("textboxElement", 33, label, description, 0)
-                local normalHeight = UserInputService.TouchEnabled and 44 or 33
-                accentIcon.Text = "T"
-                accentIcon.TextSize = 13
-                title.Size = UDim2.new(0.49, -34, 1, 0)
-                local input = classicCreate("TextBox", {
-                    Name = "TextBox",
-                    Position = UDim2.new(0.49, 0, 0.5, -9),
-                    Size = UDim2.new(0.43, -2, 0, 18),
-                    BackgroundColor3 = Color3.fromRGB(14, 14, 18),
-                    BorderSizePixel = 0,
-                    ClearTextOnFocus = false,
-                    PlaceholderText = "Type here!",
-                    Text = "",
-                    Font = Enum.Font.Gotham,
-                    TextColor3 = ClassicUI.theme.TextColor,
-                    PlaceholderColor3 = Color3.fromRGB(135, 135, 145),
-                    TextSize = 12,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                }, element)
-                classicCorner(input, 6)
-                classicCreate("UIPadding", {
-                    PaddingLeft = UDim.new(0, 6),
-                    PaddingRight = UDim.new(0, 6),
-                }, input)
-                local function layoutTextBox(compact)
-                    if compact then
-                        element.Size = UDim2.new(1, 0, 0, 64)
-                        accentIcon.Position = UDim2.fromOffset(7, 4)
-                        title.Position = UDim2.fromOffset(34, 0)
-                        title.Size = UDim2.new(1, -70, 0, 30)
-                        input.Position = UDim2.fromOffset(34, 32)
-                        input.Size = UDim2.new(1, -72, 0, 24)
-                    else
-                        element.Size = UDim2.new(1, 0, 0, normalHeight)
-                        accentIcon.Position = UDim2.new(0, 7, 0.5, -11)
-                        title.Position = UDim2.fromOffset(34, 0)
-                        title.Size = UDim2.new(0.49, -34, 1, 0)
-                        input.Position = UDim2.new(0.49, 0, 0.5, -9)
-                        input.Size = UDim2.new(0.43, -2, 0, 18)
-                    end
-                end
-                table.insert(responsiveCallbacks, layoutTextBox)
-                layoutTextBox(main.Size.X.Offset < 420)
-                input.FocusLost:Connect(function(enterPressed)
-                    if enterPressed then classicInvoke(label, callback, input.Text) end
-                end)
-                return input
-            end
-
-            function api:NewSlider(label, description, maximum, minimum, defaultValue, callback)
-                if type(defaultValue) == "function" then
-                    callback = defaultValue
-                    defaultValue = minimum
-                end
-                maximum = tonumber(maximum) or 100
-                minimum = tonumber(minimum) or 0
-                local element, title, accentIcon = makeElement("sliderElement", 33, label, description, 0)
-                local normalHeight = UserInputService.TouchEnabled and 44 or 33
-                accentIcon.Text = "◉"
-                accentIcon.TextSize = 13
-                title.Size = UDim2.new(0.49, -34, 1, 0)
-                local value = math.clamp(tonumber(defaultValue) or minimum, minimum, maximum)
-                local valueLabel = classicCreate("TextLabel", {
-                    Name = "value",
-                    Position = UDim2.new(1, -58, 0, 0),
-                    Size = UDim2.fromOffset(31, 33),
-                    BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamSemibold,
-                    Text = tostring(value),
-                    TextSize = 12,
-                    TextXAlignment = Enum.TextXAlignment.Right,
-                }, element)
-                classicBindTheme(valueLabel, "TextColor3", "SchemeColor")
-                local bar = classicCreate("TextButton", {
-                    Name = "sliderBtn",
-                    Position = UDim2.new(0.49, 0, 0.5, -12),
-                    Size = UDim2.new(0.34, 0, 0, 23),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                    Text = "",
-                }, element)
-                local track = classicCreate("Frame", {
-                    Name = "track",
-                    AnchorPoint = Vector2.new(0, 0.5),
-                    Position = UDim2.fromScale(0, 0.5),
-                    Size = UDim2.new(1, 0, 0, 6),
-                    BackgroundColor3 = Color3.fromRGB(45, 45, 52),
-                    BorderSizePixel = 0,
-                }, bar)
-                classicCorner(track, 3)
-                local fill = classicCreate("Frame", {
-                    Name = "sliderDrag",
-                    Size = UDim2.new(
-                        maximum ~= minimum and ((value - minimum) / (maximum - minimum)) or 0,
-                        0,
-                        1,
-                        0
-                    ),
-                    BorderSizePixel = 0,
-                }, track)
-                classicCorner(fill, 3)
-                classicBindTheme(fill, "BackgroundColor3", "SchemeColor")
-                local function layoutSlider(compact)
-                    if compact then
-                        element.Size = UDim2.new(1, 0, 0, 60)
-                        accentIcon.Position = UDim2.fromOffset(7, 4)
-                        title.Position = UDim2.fromOffset(34, 0)
-                        title.Size = UDim2.new(1, -70, 0, 30)
-                        bar.Position = UDim2.fromOffset(34, 30)
-                        bar.Size = UDim2.new(1, -136, 0, 28)
-                        valueLabel.Position = UDim2.new(1, -100, 0, 30)
-                        valueLabel.Size = UDim2.fromOffset(70, 28)
-                    else
-                        element.Size = UDim2.new(1, 0, 0, normalHeight)
-                        accentIcon.Position = UDim2.new(0, 7, 0.5, -11)
-                        title.Position = UDim2.fromOffset(34, 0)
-                        title.Size = UDim2.new(0.49, -34, 1, 0)
-                        bar.Position = UDim2.new(0.49, 0, 0.5, -12)
-                        bar.Size = UDim2.new(0.34, 0, 0, 23)
-                        valueLabel.Position = UDim2.new(1, -58, 0, 0)
-                        valueLabel.Size = UDim2.new(0, 31, 1, 0)
-                    end
-                end
-                table.insert(responsiveCallbacks, layoutSlider)
-                layoutSlider(main.Size.X.Offset < 420)
-                local dragging = false
-                local range = maximum - minimum
-                local control = {}
-                function control:SetValue(nextValue, invokeCallback)
-                    value = math.clamp(tonumber(nextValue) or minimum, minimum, maximum)
-                    local percent = range ~= 0 and ((value - minimum) / range) or 0
-                    fill.Size = UDim2.new(percent, 0, 1, 0)
-                    valueLabel.Text = tostring(value)
-                    if invokeCallback ~= false then classicInvoke(label, callback, value) end
-                end
-                function control:GetValue() return value end
-                local function setFromInput(input)
-                    if bar.AbsoluteSize.X <= 0 then return end
-                    local percent = math.clamp(
-                        (input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
-                        0,
-                        1
-                    )
-                    control:SetValue(math.floor(minimum + (range * percent) + 0.5), true)
-                end
-                bar.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1
-                    or input.UserInputType == Enum.UserInputType.Touch then
-                        dragging = true
-                        setFromInput(input)
-                    end
-                end)
-                trackConnection(UserInputService.InputChanged:Connect(function(input)
-                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-                    or input.UserInputType == Enum.UserInputType.Touch) then
-                        setFromInput(input)
-                    end
-                end))
-                trackConnection(UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1
-                    or input.UserInputType == Enum.UserInputType.Touch then
-                        dragging = false
-                    end
-                end))
-                return control
-            end
-
-            function api:NewKeybind(label, description, keyCode, callback)
-                local element, title, accentIcon = makeElement("keybindElement", 33, label, description, 70)
-                accentIcon.Text = "K"
-                accentIcon.TextSize = 12
-                local activeKey = keyCode or Enum.KeyCode.Unknown
-                local listening = false
-                local keyLabel = classicCreate("TextLabel", {
-                    Name = "togName",
-                    Position = UDim2.new(1, -96, 0, 0),
-                    Size = UDim2.fromOffset(70, 33),
-                    BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamSemibold,
-                    Text = activeKey.Name,
-                    TextSize = 14,
-                    TextXAlignment = Enum.TextXAlignment.Right,
-                }, element)
-                classicBindTheme(keyLabel, "TextColor3", "SchemeColor")
-                element.Activated:Connect(function()
-                    listening = true
-                    keyLabel.Text = "..."
-                end)
-                trackConnection(UserInputService.InputBegan:Connect(function(input, processed)
-                    if destroyed then return end
-                    if listening then
-                        if input.KeyCode ~= Enum.KeyCode.Unknown then
-                            activeKey = input.KeyCode
-                            keyLabel.Text = activeKey.Name
-                            listening = false
-                        end
-                        return
-                    end
-                    if not processed and not UserInputService:GetFocusedTextBox()
-                    and input.KeyCode == activeKey then
-                        classicInvoke(label, callback)
-                    end
-                end))
-                local control = {}
-                function control:UpdateKeybind(newText, newKey)
-                    if newText ~= nil then title.Text = tostring(newText) end
-                    if newKey then activeKey = newKey; keyLabel.Text = activeKey.Name end
-                end
-                return control
-            end
-
-            return api
-        end
-
-        return tab
-    end
-
-    -- Contorno desenhado por último e um pixel para dentro: permanece visível
-    -- sobre header/lateral e fecha os quatro cantos sem bloquear os controles.
-    local outline = classicCreate("Frame", {
-        Name = "MainOutline",
-        Position = UDim2.fromOffset(1, 1),
-        Size = UDim2.new(1, -2, 1, -2),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        Active = false,
-        ZIndex = 100,
-    }, main)
-    classicCorner(outline, 13)
-    local outlineStroke = classicCreate("UIStroke", {
-        Thickness = 1,
-        Transparency = 0.08,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-    }, outline)
-    classicBindTheme(outlineStroke, "Color", "SchemeColor")
-
-    return window
-end
-
-return ClassicUI
-end)()
-
-local function bootstrapAlive()
-    return not destroyed
-        and isCurrentSuiteGeneration()
-        and runtime
-        and runtime.Parent ~= nil
-end
-
-local function abortBootstrap()
-    destroyed = true
-    for index = #runtimeConnections, 1, -1 do
-        local connection = runtimeConnections[index]
-        pcall(function() connection:Disconnect() end)
-        runtimeConnections[index] = nil
-    end
-    if ClassicUI.gui and ClassicUI.gui.Parent then ClassicUI.gui:Destroy() end
-    if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
-    if runtime and runtime.Parent then runtime:Destroy() end
-end
-
-if startup.status then startup.status.Text = "Montando interface clássica local..." end
-if not bootstrapAlive() then
-    abortBootstrap()
-    return
-end
-
-local Window
-do
-    local windowOk, windowOrError = pcall(function()
-        return ClassicUI.CreateLib(UI_TITLE, Theme)
-    end)
-    if not windowOk or not windowOrError or not bootstrapAlive() then
-        warn(MENU_NAME .. ": falha ao criar a janela local: " .. tostring(windowOrError))
-        abortBootstrap()
-        return
-    end
-    Window = windowOrError
-end
-
--- =============================================================================
--- Sistema de notificações (toasts)
--- =============================================================================
-local toastContainer
-local toastStrokes = {}
-
-local function notify(title, text)
-    if not toastContainer or not toastContainer.Parent then
-        warn((title or MENU_NAME) .. ": " .. (text or ""))
-        return
-    end
-
-    local card = Instance.new("Frame")
-    card.Name             = "NothriloToast"
-    card.Size             = UDim2.new(1, 0, 0, 74)
-    card.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
-    card.BackgroundTransparency = 1
-    card.BorderSizePixel  = 0
-    card.Parent           = toastContainer
-
-    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 15)
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Name        = "RGBStroke"
-    stroke.Thickness   = 1.5
-    stroke.Transparency = 1
-    stroke.Parent      = card
-    table.insert(toastStrokes, stroke)
-
-    local icon = Instance.new("TextLabel")
-    icon.Size             = UDim2.fromOffset(42, 42)
-    icon.Position         = UDim2.fromOffset(14, 16)
-    icon.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
-    icon.BackgroundTransparency = 1
-    icon.Font             = Enum.Font.GothamBold
-    icon.Text             = "N"
-    icon.TextColor3       = Color3.fromRGB(255, 255, 255)
-    icon.TextSize         = 18
-    icon.TextTransparency = 1
-    icon.Parent           = card
-    Instance.new("UICorner", icon).CornerRadius = UDim.new(1, 0)
-
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size             = UDim2.new(1, -76, 0, 20)
-    titleLabel.Position         = UDim2.fromOffset(68, 14)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Font             = Enum.Font.GothamBold
-    titleLabel.Text             = title or MENU_NAME
-    titleLabel.TextColor3       = Color3.fromRGB(250, 250, 252)
-    titleLabel.TextSize         = 14
-    titleLabel.TextTransparency = 1
-    titleLabel.TextXAlignment   = Enum.TextXAlignment.Left
-    titleLabel.Parent           = card
-
-    local bodyLabel = Instance.new("TextLabel")
-    bodyLabel.Size              = UDim2.new(1, -76, 0, 30)
-    bodyLabel.Position          = UDim2.fromOffset(68, 34)
-    bodyLabel.BackgroundTransparency = 1
-    bodyLabel.Font              = Enum.Font.Gotham
-    bodyLabel.Text              = text or ""
-    bodyLabel.TextColor3        = Color3.fromRGB(185, 185, 195)
-    bodyLabel.TextSize          = 12
-    bodyLabel.TextTransparency  = 1
-    bodyLabel.TextWrapped       = true
-    bodyLabel.TextXAlignment    = Enum.TextXAlignment.Left
-    bodyLabel.TextYAlignment    = Enum.TextYAlignment.Top
-    bodyLabel.Parent            = card
-
-    local ti = TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-    TweenService:Create(card,       ti, { BackgroundTransparency = 0 }):Play()
-    TweenService:Create(stroke,     TweenInfo.new(0.22), { Transparency = 0.15 }):Play()
-    TweenService:Create(icon,       TweenInfo.new(0.22), { BackgroundTransparency = 0, TextTransparency = 0 }):Play()
-    TweenService:Create(titleLabel, TweenInfo.new(0.22), { TextTransparency = 0 }):Play()
-    TweenService:Create(bodyLabel,  TweenInfo.new(0.22), { TextTransparency = 0 }):Play()
-
-    task.delay(4, function()
-        if not card.Parent then return end
-        local tiOut = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        TweenService:Create(card,       tiOut, { BackgroundTransparency = 1 }):Play()
-        TweenService:Create(stroke,     tiOut, { Transparency = 1 }):Play()
-        TweenService:Create(icon,       tiOut, { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
-        TweenService:Create(titleLabel, tiOut, { TextTransparency = 1 }):Play()
-        TweenService:Create(bodyLabel,  tiOut, { TextTransparency = 1 }):Play()
-        task.wait(0.25)
-        card:Destroy()
-    end)
-end
-
--- =============================================================================
--- Helpers de personagem
--- =============================================================================
-local function getCharacter()
-    return LocalPlayer.Character
-end
-
-local function getHumanoid(character)
-    character = character or getCharacter()
-    return character and character:FindFirstChildOfClass("Humanoid")
-end
-
-local function getRoot(character)
-    character = character or getCharacter()
-    return character and character:FindFirstChild("HumanoidRootPart")
-end
-
-local function teleportCharacter(cframe)
-    local character = getCharacter()
-    local root = getRoot(character)
-    local humanoid = getHumanoid(character)
-    if not character or not root then
-        notify("Teleporte", "HumanoidRootPart não encontrado.")
-        return false
-    end
-
-    -- Teleportar o HRP enquanto ele está soldado ao assento pode mover o
-    -- carrinho inteiro ou causar snapback. Solte o assento primeiro.
-    if humanoid and humanoid.SeatPart then
-        humanoid.Sit = false
-        pcall(function() humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
-        local deadline = os.clock() + 0.6
-        repeat
-            RunService.Heartbeat:Wait()
-        until not humanoid.Parent or not humanoid.SeatPart or os.clock() >= deadline
-    end
-
-    root = getRoot(character)
-    if not root then return false end
-    local ok = pcall(function()
-        local rootOffset = character:GetPivot():ToObjectSpace(root.CFrame)
-        character:PivotTo(cframe * rootOffset:Inverse())
-        root.AssemblyLinearVelocity = Vector3.zero
-        root.AssemblyAngularVelocity = Vector3.zero
-    end)
-    if not ok then notify("Teleporte", "Não foi possível mover o personagem.") end
-    return ok
-end
-
--- =============================================================================
--- ESP
--- =============================================================================
-local ESP_TAG             = "NothriloESP"
-local espEnabled          = false
-local espObjects          = {}
-local espPlayerConnections = {}
-local espGlobalConnections = {}
-local espSession          = 0
-
-local function getESPColor(player)
-    if player.Team and player.Team.TeamColor then
-        return player.Team.TeamColor.Color
-    end
-    return Color3.fromRGB(190, 130, 255)
-end
-
-local function removeESP(player)
-    local objects = espObjects[player]
-    if not objects then return end
-    for _, object in pairs(objects) do
-        if object and object.Parent then object:Destroy() end
-    end
-    espObjects[player] = nil
-end
-
-local function refreshESPColor(player)
-    local objects = espObjects[player]
-    if not objects then return end
-    local color = getESPColor(player)
-    if objects.Highlight and objects.Highlight.Parent then
-        objects.Highlight.FillColor    = color
-        objects.Highlight.OutlineColor = color
-    end
-    if objects.Label and objects.Label.Parent then
-        objects.Label.TextColor3 = color
-    end
-end
-
-local function refreshESPSize(player)
-    local objects = espObjects[player]
-    if not objects or not objects.Billboard or not objects.Billboard.Parent then return end
-    local localCharacter = LocalPlayer.Character
-    local localRoot      = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
-    local targetRoot     = objects.Billboard.Adornee
-    if not localRoot or not targetRoot or not targetRoot.Parent then return end
-
-    local distance           = (localRoot.Position - targetRoot.Position).Magnitude
-    local scaleStartDistance = 150
-    objects.Billboard.Enabled = true
-
-    local progress = math.clamp((distance - scaleStartDistance) / 450, 0, 1)
-    objects.Billboard.Size = UDim2.fromOffset(
-        math.floor(82  + (170 - 82)  * progress),
-        math.floor(18  + (36  - 18)  * progress)
-    )
-end
-
-local function addESP(player, character)
-    if not espEnabled or player == LocalPlayer then return end
-    character = character or player.Character
-    if not character or not character.Parent then return end
-    local root = character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    removeESP(player)
-
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name          = ESP_TAG .. "Name"
-    billboard.Size          = UDim2.fromOffset(78, 16)
-    billboard.Enabled       = false
-    billboard.Adornee       = root
-    billboard.AlwaysOnTop   = true
-    billboard.LightInfluence = 0
-    billboard.MaxDistance   = math.huge
-    billboard.StudsOffset   = Vector3.new(0, 3.2, 0)
-    billboard.Parent        = root
-
-    local label = Instance.new("TextLabel")
-    label.Name                 = "NameLabel"
-    label.Size                 = UDim2.fromScale(1, 1)
-    label.BackgroundTransparency = 1
-    label.Font                 = Enum.Font.GothamBold
-    label.Text                 = player.DisplayName ~= "" and player.DisplayName or player.Name
-    label.TextScaled           = true
-    label.TextStrokeColor3     = Color3.fromRGB(0, 0, 0)
-    label.TextStrokeTransparency = 0
-    label.Parent               = billboard
-
-    local highlight = Instance.new("Highlight")
-    highlight.Name             = ESP_TAG
-    highlight.FillTransparency = 0.5
-    highlight.OutlineTransparency = 0
-    highlight.DepthMode        = Enum.HighlightDepthMode.AlwaysOnTop
-    highlight.Adornee          = character
-    highlight.Parent           = character
-
-    espObjects[player] = { Billboard = billboard, Label = label, Highlight = highlight }
-    refreshESPColor(player)
-    refreshESPSize(player)
-end
-
-local function disconnectESPPlayer(player)
-    local connections = espPlayerConnections[player]
-    if connections then
-        for _, c in ipairs(connections) do c:Disconnect() end
-    end
-    espPlayerConnections[player] = nil
-end
-
-local function watchESPPlayer(player)
-    if player == LocalPlayer then return end
-    disconnectESPPlayer(player)
-    local connections = {}
-    espPlayerConnections[player] = connections
-
-    table.insert(connections, player.CharacterAdded:Connect(function(character)
-        task.wait(0.2)
-        addESP(player, character)
-    end))
-    table.insert(connections, player.CharacterRemoving:Connect(function()
-        removeESP(player)
-    end))
-    table.insert(connections, player:GetPropertyChangedSignal("Team"):Connect(function()
-        refreshESPColor(player)
-    end))
-    addESP(player, player.Character)
-end
-
-local function clearESP()
-    for _, c in ipairs(espGlobalConnections) do c:Disconnect() end
-    table.clear(espGlobalConnections)
-    for player in pairs(espPlayerConnections) do disconnectESPPlayer(player) end
-    for player in pairs(espObjects) do removeESP(player) end
-end
-
-local function setESP(enabled)
-    espEnabled = enabled
-    espSession = espSession + 1
-    clearESP()
-    if not enabled then notify("ESP", "Desligado.") return end
-
-    for _, player in ipairs(Players:GetPlayers()) do watchESPPlayer(player) end
-    table.insert(espGlobalConnections, Players.PlayerAdded:Connect(watchESPPlayer))
-    table.insert(espGlobalConnections, Players.PlayerRemoving:Connect(function(player)
-        removeESP(player)
-        disconnectESPPlayer(player)
-    end))
-
-    local session = espSession
-    task.spawn(function()
-        while espEnabled and session == espSession do
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    local objects = espObjects[player]
-                    local valid = objects
-                        and objects.Billboard and objects.Billboard.Parent
-                        and objects.Highlight and objects.Highlight.Parent
-                    if not valid then
-                        removeESP(player)
-                        addESP(player, player.Character)
-                    else
-                        refreshESPSize(player)
-                    end
-                end
-            end
-            task.wait(0.5)
-        end
-    end)
-    notify("ESP", "Ligado: nomes e contornos ativos.")
-end
-
--- Estados declarados antes dos workers para que respawn, Killer e atalhos
--- sempre enxerguem a mesma fonte de verdade.
-local flyEnabled = false
-local flyToggleControl
-local boostToggleControl
-local panicToggleControl
-local stopBoost
-local setMenuVisible
-local fakeLagActive = false
-local fakeLagSession = 0
-local fakeLagHumanoid
-local desiredWalkSpeed
-local desiredJumpPower
-local desiredJumpHeight
-local createdTools = {}
-local killerActive = false
-local killerSession = 0
-local cartMotionPauseUntil = 0
-
--- Fly, câmera livre, giro e spectate não podem escrever na câmera ao mesmo
--- tempo. Cada modo registra como parar e o próximo assume de forma atômica.
-local activeCameraMode
-local cameraModeStoppers = {}
-
-local function restoreDefaultCamera()
-    local camera = workspace.CurrentCamera
-    if not camera then return end
-    camera.CameraType = Enum.CameraType.Custom
-    local humanoid = getHumanoid()
-    if humanoid then camera.CameraSubject = humanoid end
-end
-
-local function claimCameraMode(mode)
-    if activeCameraMode == mode then return end
-    local previous = activeCameraMode
-    activeCameraMode = mode
-    local stopper = previous and cameraModeStoppers[previous]
-    if stopper then pcall(stopper) end
-end
-
-local function releaseCameraMode(mode)
-    if activeCameraMode ~= mode then return end
-    activeCameraMode = nil
-    restoreDefaultCamera()
-end
-
-local function resetCameraModes()
-    local previous = activeCameraMode
-    activeCameraMode = nil
-    local stopper = previous and cameraModeStoppers[previous]
-    if stopper then pcall(stopper) end
-    restoreDefaultCamera()
-end
-
--- =============================================================================
--- Voo (Vehicle Fly)
--- =============================================================================
-local FLYING         = false
-local vehicleFlySpeed = 1
-local flyKeyDown
-local flyKeyUp
-local flyHumanoid
-local flyAutoRotate
-local flyPlatformStand
-local flySavedState = { freefall = nil, fallingDown = nil, inputEnabled = true }
-local mouse        = LocalPlayer:GetMouse()
-local flyTouchUp   = 0
-local flyTouchDown = 0
-local flyMobileGui
-local flySession   = 0
-
-local function showMobileFlyControls(visible)
-    if not UserInputService.TouchEnabled then return end
-    if flyMobileGui and flyMobileGui.Parent then
-        flyMobileGui.Enabled = visible
-        return
-    end
-    if not visible then return end
-
-    local gui = Instance.new("ScreenGui")
-    gui.Name           = "NothriloMobileFly"
-    gui.ResetOnSpawn   = false
-    gui.IgnoreGuiInset = true
-    gui.DisplayOrder   = 10020
-    gui.Parent         = CoreGui
-    flyMobileGui       = gui
-
-    local panel = Instance.new("Frame")
-    panel.Name              = "ControlesDeVoo"
-    panel.AnchorPoint       = Vector2.new(1, 0.5)
-    panel.Position          = UDim2.new(1, -16, 0.5, 0)
-    panel.Size              = UDim2.fromOffset(72, 124)
-    panel.BackgroundColor3  = Color3.fromRGB(10, 10, 13)
-    panel.BackgroundTransparency = 0.12
-    panel.BorderSizePixel   = 0
-    panel.Parent            = gui
-    Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 14)
-    local ps = Instance.new("UIStroke", panel)
-    ps.Color = Theme.SchemeColor
-    ps.Thickness = 1
-
-    local titleL = Instance.new("TextLabel")
-    titleL.BackgroundTransparency = 1
-    titleL.Position = UDim2.fromOffset(0, 6)
-    titleL.Size     = UDim2.new(1, 0, 0, 18)
-    titleL.Font     = Enum.Font.GothamBold
-    titleL.Text     = "VOO"
-    titleL.TextColor3 = Color3.fromRGB(245, 245, 245)
-    titleL.TextSize = 11
-    titleL.Parent   = panel
-
-    local function makeBtn(symbol, y, setDir)
-        local btn = Instance.new("TextButton")
-        btn.Size              = UDim2.fromOffset(52, 38)
-        btn.Position          = UDim2.new(0.5, -26, 0, y)
-        btn.BackgroundColor3  = Color3.fromRGB(28, 28, 35)
-        btn.BorderSizePixel   = 0
-        btn.AutoButtonColor   = false
-        btn.Font              = Enum.Font.GothamBold
-        btn.Text              = symbol
-        btn.TextColor3        = Theme.SchemeColor
-        btn.TextSize          = 22
-        btn.Parent            = panel
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-
-        btn.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch
-            or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                setDir(1)
-                btn.BackgroundColor3 = Color3.fromRGB(48, 48, 58)
-            end
-        end)
-        btn.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch
-            or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                setDir(0)
-                btn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-            end
-        end)
-    end
-
-    makeBtn("▲", 30, function(v) flyTouchUp   = v end)
-    makeBtn("▼", 74, function(v) flyTouchDown = v end)
-end
-
-local function stopFly()
-    flySession = flySession + 1
-    FLYING     = false
-    flyTouchUp = 0
-    flyTouchDown = 0
-    showMobileFlyControls(false)
-
-    if flyKeyDown then flyKeyDown:Disconnect() flyKeyDown = nil end
-    if flyKeyUp   then flyKeyUp:Disconnect()   flyKeyUp   = nil end
-
-    -- Remove os movers imediatamente; não espera o loop antigo chegar ao fim.
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if root then
-        local gyro = root:FindFirstChild("CafezlVehicleFlyGyro")
-        local velocity = root:FindFirstChild("CafezlVehicleFlyVelocity")
-        if gyro then gyro:Destroy() end
-        if velocity then velocity:Destroy() end
-    end
-
-    local humanoid = flyHumanoid or getHumanoid()
-    if humanoid then
-        humanoid.PlatformStand = flyPlatformStand ~= nil and flyPlatformStand or false
-        humanoid.AutoRotate    = flyAutoRotate    ~= nil and flyAutoRotate    or true
-        pcall(function()
-            local freefall = flySavedState.freefall
-            local fallingDown = flySavedState.fallingDown
-            humanoid:SetStateEnabled(
-                Enum.HumanoidStateType.Freefall,
-                freefall == nil and true or freefall
-            )
-            humanoid:SetStateEnabled(
-                Enum.HumanoidStateType.FallingDown,
-                fallingDown == nil and true or fallingDown
-            )
-        end)
-    end
-    flyHumanoid     = nil
-    flyAutoRotate   = nil
-    flyPlatformStand = nil
-    flySavedState.freefall = nil
-    flySavedState.fallingDown = nil
-    flySavedState.inputEnabled = true
-    releaseCameraMode("fly")
-end
-
-local function startVehicleFly(inputEnabled)
-    stopFly()
-    local session = flySession
-    local character = getCharacter()
-    local root      = getRoot(character)
-    local humanoid  = getHumanoid(character)
-    if not root or not humanoid then
-        notify("Voo do Veículo", "Personagem não encontrado.")
-        return false
-    end
-
-    claimCameraMode("fly")
-    pcall(function()
-        if workspace.CurrentCamera then
-            workspace.CurrentCamera.CameraType = Enum.CameraType.Track
-        end
-    end)
-
-    flyHumanoid      = humanoid
-    flyAutoRotate    = humanoid.AutoRotate
-    flyPlatformStand = humanoid.PlatformStand
-    flySavedState.inputEnabled = inputEnabled ~= false
-    pcall(function()
-        flySavedState.freefall = humanoid:GetStateEnabled(Enum.HumanoidStateType.Freefall)
-        flySavedState.fallingDown = humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown)
-    end)
-    humanoid.AutoRotate = false
-    if not humanoid.SeatPart and not UserInputService.TouchEnabled then
-        humanoid.PlatformStand = true
-    end
-    pcall(function()
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,    false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-    end)
-
-    local control     = { F=0, B=0, L=0, R=0, Q=0, E=0 }
-    local lastControl = { F=0, B=0, L=0, R=0, Q=0, E=0 }
-    FLYING = true
-    showMobileFlyControls(flySavedState.inputEnabled)
-
-    local bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.Name      = "CafezlVehicleFlyGyro"
-    bodyGyro.P         = 90000
-    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-    bodyGyro.CFrame    = root.CFrame
-    bodyGyro.Parent    = root
-
-    local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.Name     = "CafezlVehicleFlyVelocity"
-    bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    bodyVelocity.Velocity = Vector3.zero
-    bodyVelocity.Parent   = root
-
-    flyKeyDown = mouse.KeyDown:Connect(function(key)
-        if not flySavedState.inputEnabled then return end
-        key = key:lower()
-        if     key == "w" then control.F =  vehicleFlySpeed
-        elseif key == "s" then control.B = -vehicleFlySpeed
-        elseif key == "a" then control.L = -vehicleFlySpeed
-        elseif key == "d" then control.R =  vehicleFlySpeed
-        elseif key == "e" then control.Q =  vehicleFlySpeed * 2
-        elseif key == "q" then control.E = -vehicleFlySpeed * 2
-        end
-    end)
-
-    flyKeyUp = mouse.KeyUp:Connect(function(key)
-        if not flySavedState.inputEnabled then return end
-        key = key:lower()
-        if     key == "w" then control.F = 0
-        elseif key == "s" then control.B = 0
-        elseif key == "a" then control.L = 0
-        elseif key == "d" then control.R = 0
-        elseif key == "e" then control.Q = 0
-        elseif key == "q" then control.E = 0
-        end
-    end)
-
-    task.spawn(function()
-        while FLYING and session == flySession and root.Parent and humanoid.Parent do
-            task.wait()
-
-            local keyboardMoving = (control.L + control.R ~= 0)
-                or (control.F + control.B ~= 0)
-                or (control.Q + control.E ~= 0)
-            local mobileDir     = humanoid.MoveDirection
-            local mobileMoving  = flySavedState.inputEnabled and UserInputService.TouchEnabled and (
-                Vector3.new(mobileDir.X, 0, mobileDir.Z).Magnitude > 0.05
-                or flyTouchUp ~= 0 or flyTouchDown ~= 0
-            )
-            local moving = keyboardMoving or mobileMoving
-            local spd    = moving and 50 or 0
-
-            if keyboardMoving then
-                lastControl = { F=control.F, B=control.B, L=control.L, R=control.R, Q=control.Q, E=control.E }
-            end
-
-            local cur = keyboardMoving and control or lastControl
-            if keyboardMoving and spd > 0 then
-                local cam = workspace.CurrentCamera
-                if not cam then break end
-                bodyVelocity.Velocity = (
-                    (cam.CFrame.LookVector * (cur.F + cur.B))
-                    + ((cam.CFrame * CFrame.new(
-                        cur.L + cur.R,
-                        (cur.F + cur.B + cur.Q + cur.E) * 0.2,
-                        0
-                    )).Position - cam.CFrame.Position)
-                ) * spd
-            elseif mobileMoving and spd > 0 then
-                bodyVelocity.Velocity =
-                    Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * spd)
-                    + Vector3.new(0, (flyTouchUp - flyTouchDown) * vehicleFlySpeed * spd, 0)
-            else
-                bodyVelocity.Velocity = Vector3.zero
-            end
-            local currentCamera = workspace.CurrentCamera
-            if not currentCamera then break end
-            bodyGyro.CFrame = currentCamera.CFrame
-        end
-        if bodyGyro.Parent    then bodyGyro:Destroy()    end
-        if bodyVelocity.Parent then bodyVelocity:Destroy() end
-
-        -- Respawn/remoção do personagem encerra também o estado visual.
-        if session == flySession and FLYING then
-            if flyEnabled and flyToggleControl then
-                flyToggleControl:UpdateToggle(nil, false)
-            else
-                stopFly()
-            end
-        end
-    end)
-    return true
-end
-
-cameraModeStoppers.fly = function()
-    if flyEnabled and flyToggleControl then
-        flyToggleControl:UpdateToggle(nil, false)
-    else
-        stopFly()
-    end
-end
-
--- =============================================================================
--- Carrinho: helpers, parada, checkpoints, estabilizador
--- =============================================================================
-local function findCartFromSeat(seat)
-    if not seat or not seat:IsA("BasePart") then return nil end
-    local assemblyRoot = seat.AssemblyRootPart
-    local current = seat.Parent
-    local fallback
-    while current and current ~= workspace do
-        if current:IsA("Model") then
-            fallback = fallback or current
-            local assemblyParts = 0
-            for _, object in ipairs(current:GetDescendants()) do
-                if object:IsA("BasePart")
-                    and (not assemblyRoot or object.AssemblyRootPart == assemblyRoot)
-                then
-                    assemblyParts = assemblyParts + 1
-                    if assemblyParts >= 2 then
-                        -- O primeiro Model compatível é o invólucro mais próximo
-                        -- do assento, não um Model gigante do mapa.
-                        return current
-                    end
-                end
-            end
-        end
-        current = current.Parent
-    end
-    return fallback
-end
-
-local cachedCartSeat
-local cachedCart
-local cachedCartAssemblyRoot
-
-local function cacheCartFromSeat(seat)
-    cachedCartSeat = seat
-    cachedCartAssemblyRoot = seat and seat.AssemblyRootPart or nil
-    cachedCart = seat and findCartFromSeat(seat) or nil
-    return cachedCart
-end
-
-local function getCurrentCart()
-    local humanoid = getHumanoid()
-    local seat = humanoid and humanoid.SeatPart
-    if not seat then
-        cachedCartSeat = nil
-        cachedCart = nil
-        cachedCartAssemblyRoot = nil
-        return nil
-    end
-    if seat ~= cachedCartSeat
-        or not cachedCart
-        or not cachedCart.Parent
-        or not cachedCart:IsAncestorOf(seat)
-        or seat.AssemblyRootPart ~= cachedCartAssemblyRoot
-    then
-        return cacheCartFromSeat(seat)
-    end
-    return cachedCart
-end
-
--- Retorna a parte principal do carrinho de forma robusta
-local function getCartPrimary(cart)
-    if not cart then return nil end
-    if cart.PrimaryPart then return cart.PrimaryPart end
-    local seat = cachedCartSeat
-    if not seat or not seat.Parent then
-        local humanoid = getHumanoid()
-        seat = humanoid and humanoid.SeatPart
-    end
-    if seat and cart:IsAncestorOf(seat) and seat.AssemblyRootPart then
-        return seat.AssemblyRootPart
-    end
-    local firstUnanchored
-    for _, part in ipairs(cart:GetDescendants()) do
-        if part:IsA("BasePart") and not part.Anchored then
-            firstUnanchored = firstUnanchored or part
-            if part.AssemblyRootPart == part then return part end
-        end
-    end
-    return firstUnanchored
-end
-
-local panicParts = {}
-local panicActive = false
-local function restorePanicStop()
-    for part, wasAnchored in pairs(panicParts) do
-        if part and part.Parent then part.Anchored = wasAnchored end
-    end
-    panicParts = {}
-    panicActive = false
-end
-
-local function setPanicStop(enabled)
-    if not enabled then
-        restorePanicStop()
-        notify("Carrinho", "Parada de emergência desligada.")
-        return true
-    end
-
-    local cart = getCurrentCart()
-    if not cart then
-        notify("Carrinho", "Sente em um carrinho primeiro.")
-        return false
-    end
-
-    if killerActive then
-        killerSession = killerSession + 1
-        killerActive = false
-    end
-    if flyEnabled and flyToggleControl then
-        flyToggleControl:UpdateToggle(nil, false)
-    else
-        stopFly()
-    end
-    if stopBoost then stopBoost() end
-    if boostToggleControl then
-        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-    end
-
-    -- Repor um bloqueio anterior antes de capturar o estado do carrinho atual.
-    restorePanicStop()
-    panicActive = true
-    for _, part in ipairs(cart:GetDescendants()) do
-        if part:IsA("BasePart") then
-            panicParts[part]             = part.Anchored
-            part.Anchored                = true
-            part.AssemblyLinearVelocity  = Vector3.zero
-            part.AssemblyAngularVelocity = Vector3.zero
-        end
-    end
-    notify("Carrinho", "Parada de emergência ligada.")
-    return true
-end
-
-local function pivotCartByReference(cart, desiredReferenceCFrame)
-    local reference = getCartPrimary(cart)
-    if not cart or not reference then return false end
-    return pcall(function()
-        local referenceOffset = cart:GetPivot():ToObjectSpace(reference.CFrame)
-        for _, part in ipairs(cart:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.AssemblyLinearVelocity = Vector3.zero
-                part.AssemblyAngularVelocity = Vector3.zero
-            end
-        end
-        cart:PivotTo(desiredReferenceCFrame * referenceOffset:Inverse())
-        for _, part in ipairs(cart:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.AssemblyLinearVelocity = Vector3.zero
-                part.AssemblyAngularVelocity = Vector3.zero
-            end
-        end
-    end)
-end
-
-local function stopCartControllersForTeleport()
-    cartMotionPauseUntil = os.clock() + 0.25
-    if killerActive then
-        killerSession = killerSession + 1
-        killerActive = false
-    end
-    if flyEnabled and flyToggleControl then
-        flyToggleControl:UpdateToggle(nil, false)
-    else
-        stopFly()
-    end
-    if stopBoost then stopBoost() end
-    restorePanicStop()
-    if boostToggleControl then
-        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-    end
-    if panicToggleControl then
-        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
-    end
-end
-
-local function teleportCart(cframe)
-    local cart = getCurrentCart()
-    if not cart then notify("Carrinho", "Sente em um carrinho primeiro.") return false end
-    stopCartControllersForTeleport()
-    local ok = pivotCartByReference(cart, cframe)
-    if ok then
-        notify("Carrinho", "Carrinho movido para o checkpoint.")
-    else
-        notify("Carrinho", "Não foi possível mover este carrinho.")
-    end
-    return ok
-end
-
-local STABILIZER_CONFIG = { NORMAL_FORCE = 2500, DOWNHILL_FORCE = 800 }
-local stabilizer = {
-    enabled = false,
-    cart = nil,
-    forces = {},
-    attachments = {},
-    heartbeat = nil,
-}
-
-local function cleanupStabilizer()
-    if stabilizer.heartbeat then stabilizer.heartbeat:Disconnect() stabilizer.heartbeat = nil end
-    for _, force in ipairs(stabilizer.forces) do
-        if force and force.Parent then force:Destroy() end
-    end
-    for _, attachment in ipairs(stabilizer.attachments) do
-        if attachment and attachment.Parent then attachment:Destroy() end
-    end
-    stabilizer.forces = {}
-    stabilizer.attachments = {}
-    stabilizer.cart   = nil
-end
-
-local function getWheels(cart)
-    local wheels   = {}
-    local keywords = { "wheel", "tire", "tyre", "roda", "pneu", "axle", "roue" }
-    for _, part in ipairs(cart:GetDescendants()) do
-        if part:IsA("BasePart") and not part.Anchored then
-            local name = part.Name:lower()
-            for _, kw in ipairs(keywords) do
-                if name:find(kw, 1, true) then
-                    table.insert(wheels, part)
-                    break
-                end
-            end
-        end
-    end
-    if #wheels == 0 then
-        local parts = {}
-        for _, part in ipairs(cart:GetDescendants()) do
-            if part:IsA("BasePart") and not part.Anchored then
-                table.insert(parts, part)
-            end
-        end
-        table.sort(parts, function(a, b) return a.Position.Y < b.Position.Y end)
-        local count = math.max(1, math.floor(#parts / 3))
-        for i = 1, math.min(count, #parts) do table.insert(wheels, parts[i]) end
-    end
-    return wheels
-end
-
-local function applyStabilizer(cart)
-    if not cart or not cart.Parent then return end
-    cleanupStabilizer()
-
-    local wheels = getWheels(cart)
-    if #wheels == 0 then notify("Estabilizador", "Nenhuma roda encontrada.") return end
-
-    stabilizer.cart = cart
-    for _, part in ipairs(wheels) do
-        local att = part:FindFirstChild("_CafezlStabilizer")
-        if not att then
-            att        = Instance.new("Attachment")
-            att.Name   = "_CafezlStabilizer"
-            att.Parent = part
-            table.insert(stabilizer.attachments, att)
-        end
-        local force = Instance.new("VectorForce")
-        force.Name       = "CafezlStabilizerForce"
-        force.Attachment0 = att
-        force.RelativeTo = Enum.ActuatorRelativeTo.World
-        force.Force      = Vector3.zero
-        force.Parent     = part
-        table.insert(stabilizer.forces, force)
-    end
-
-    local reference = cart.PrimaryPart or wheels[1]
-    stabilizer.heartbeat = RunService.Heartbeat:Connect(function()
-        if not reference or not reference.Parent then cleanupStabilizer() return end
-        local mag = 0
-        if stabilizer.enabled and not FLYING and not panicActive
-            and os.clock() >= cartMotionPauseUntil
-        then
-            mag = math.abs(reference.AssemblyLinearVelocity.Y) > 5
-                and STABILIZER_CONFIG.DOWNHILL_FORCE
-                or  STABILIZER_CONFIG.NORMAL_FORCE
-        end
-        local forceCount = math.max(#stabilizer.forces, 1)
-        for _, force in ipairs(stabilizer.forces) do
-            if force and force.Parent then
-                force.Force = Vector3.new(
-                    0,
-                    -(mag * force.Parent.AssemblyMass) / forceCount,
-                    0
-                )
-            end
-        end
-    end)
-end
-
-local function refreshStabilizer()
-    if stabilizer.enabled then
-        local cart = getCurrentCart()
-        if cart then applyStabilizer(cart)
-        else notify("Estabilizador", "Sente em um carrinho primeiro.") end
-    else
-        cleanupStabilizer()
-    end
-end
-
-local seatConnection
-local function watchSeat(character, readyHumanoid)
-    local humanoid = readyHumanoid or getHumanoid(character)
-    if not humanoid then return end
-    if seatConnection then
-        seatConnection:Disconnect()
-        seatConnection = nil
-    end
-    cacheCartFromSeat(humanoid.SeatPart)
-    seatConnection = trackConnection(humanoid.Seated:Connect(function(isSeated, seat)
-        if not isSeated then
-            cacheCartFromSeat(nil)
-            cleanupStabilizer()
-            restorePanicStop()
-            if stopBoost then stopBoost() end
-            if boostToggleControl then
-                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-            end
-            if panicToggleControl then
-                task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
-            end
-        else
-            local cart = cacheCartFromSeat(seat)
-            if stabilizer.enabled then applyStabilizer(cart) end
-        end
-    end))
-end
-
-local function watchSeatWhenReady(character, restoreDesiredSettings)
-    if not character then return end
-    task.spawn(function()
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-            or character:WaitForChild("Humanoid", 5)
-        if destroyed or not isCurrentSuiteGeneration()
-            or not character.Parent or not humanoid or not humanoid:IsA("Humanoid")
-        then
-            return
-        end
-        watchSeat(character, humanoid)
-        if restoreDesiredSettings and not fakeLagActive then
-            if desiredWalkSpeed then humanoid.WalkSpeed = desiredWalkSpeed end
-            if humanoid.UseJumpPower and desiredJumpPower then
-                humanoid.JumpPower = desiredJumpPower
-            elseif not humanoid.UseJumpPower and desiredJumpHeight then
-                humanoid.JumpHeight = desiredJumpHeight
-            end
-        end
-    end)
-end
-
-watchSeatWhenReady(LocalPlayer.Character, false)
-trackConnection(LocalPlayer.CharacterAdded:Connect(function(character)
-    cacheCartFromSeat(nil)
-    cleanupStabilizer()
-    restorePanicStop()
-    if panicToggleControl then
-        task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
-    end
-    fakeLagSession = fakeLagSession + 1
-    fakeLagActive = false
-    fakeLagHumanoid = nil
-    if stopBoost then stopBoost() end
-    if flyEnabled and flyToggleControl then
-        flyToggleControl:UpdateToggle(nil, false)
-    else
-        stopFly()
-    end
-    task.defer(resetCameraModes)
-    watchSeatWhenReady(character, true)
-end))
-
--- =============================================================================
--- Eliminador (Killer)
--- =============================================================================
-local function findNearestFreeVehicleSeat()
-    local root = getRoot()
-    if not root then return nil end
-    local bestVS, bestVD = nil, math.huge
-    for _, inst in ipairs(workspace:GetDescendants()) do
-        if inst:IsA("VehicleSeat") and not inst.Occupant then
-            local dist = (root.Position - inst.Position).Magnitude
-            if dist < bestVD then bestVS = inst; bestVD = dist end
-        end
-    end
-    return bestVS
-end
-
-local function findPlayerByPartialName(value)
-    value = (value or ""):match("^%s*(.-)%s*$"):lower()
-    if value == "" then return nil end
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Name:lower() == value or p.DisplayName:lower() == value then return p end
-    end
-    for _, p in ipairs(Players:GetPlayers()) do
-        local n = p.Name:lower(); local d = p.DisplayName:lower()
-        if n:sub(1, #value) == value or d:sub(1, #value) == value then return p end
-    end
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Name:lower():find(value, 1, true) or p.DisplayName:lower():find(value, 1, true) then return p end
-    end
-    return nil
-end
-
-local function sitOnVehicleSeat(seat)
-    local root     = getRoot()
-    local humanoid = getHumanoid()
-    if not seat or not root or not humanoid or seat.Occupant then return false end
-    for _ = 1, 3 do
-        if not seat.Parent or seat.Occupant then break end
-        root.CFrame = seat.CFrame * CFrame.new(0, 2, 0)
-        task.wait(0.12)
-        pcall(function() seat:Sit(humanoid) end)
-        task.wait(0.2)
-        if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
-        humanoid.Sit = true
-        task.wait(0.12)
-        if humanoid.SeatPart == seat or seat.Occupant == humanoid then return true end
-    end
-    return false
-end
-
-local function moveToTarget(targetRoot, duration, session)
-    local root    = getRoot()
-    local started = os.clock()
-    while os.clock() - started < duration do
-        if destroyed or not killerActive or session ~= killerSession then return false end
-        if not root or not root.Parent or not targetRoot or not targetRoot.Parent then return false end
-        local pos = targetRoot.Position - targetRoot.CFrame.LookVector * 1.2 + Vector3.new(0, 1.5, 0)
-        root.CFrame = CFrame.lookAt(pos, targetRoot.Position)
-        task.wait()
-    end
-    return true
-end
-
-local function finishKiller(message, session)
-    if session and session ~= killerSession then return end
-    killerSession = killerSession + 1
-    local humanoid = getHumanoid()
-    if humanoid then humanoid.Sit = false end
-    if flyEnabled and flyToggleControl then
-        flyToggleControl:UpdateToggle(nil, false)
-    else
-        stopFly()
-    end
-    killerActive = false
-    if message then notify("Eliminador", message) end
-end
-
-local function executeKiller(partialName)
-    if killerActive then notify("Eliminador", "Aguarde a tentativa atual terminar.") return end
-    local target = findPlayerByPartialName(partialName)
-    if not target or target == LocalPlayer then
-        notify("Eliminador", target == LocalPlayer and "Escolha outro jogador." or "Jogador não encontrado.")
-        return
-    end
-
-    killerSession = killerSession + 1
-    local session = killerSession
-    killerActive = true
-    if flyEnabled and flyToggleControl then
-        flyToggleControl:UpdateToggle(nil, false)
-    else
-        stopFly()
-    end
-    if stopBoost then stopBoost() end
-    if boostToggleControl then
-        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-    end
-
-    local seat = findNearestFreeVehicleSeat()
-    if not seat then finishKiller("Não há carrinho livre por perto.", session) return end
-    if not sitOnVehicleSeat(seat) then finishKiller("Não foi possível sentar no carrinho.", session) return end
-    if destroyed or session ~= killerSession then return end
-
-    -- O Eliminador controla o CFrame até o alvo; bloqueie WASD temporariamente
-    -- para não deixar dois escritores moverem o mesmo carrinho.
-    if not startVehicleFly(false) then finishKiller("Não foi possível iniciar o voo.", session) return end
-    task.wait(0.15)
-    if destroyed or session ~= killerSession then return end
-
-    local targetRoot
-    local deadline = os.clock() + 2
-    repeat
-        local char = target.Character
-        targetRoot = char and char:FindFirstChild("HumanoidRootPart")
-        if targetRoot then break end
-        task.wait(0.2)
-    until os.clock() >= deadline or destroyed or session ~= killerSession
-
-    if not targetRoot then finishKiller("Personagem do alvo não carregou.", session) return end
-    local reached = moveToTarget(targetRoot, 3, session)
-    if session == killerSession then
-        finishKiller(reached and "Carrinho levado ao alvo." or "Tentativa cancelada.", session)
-    end
-end
-
-local function teleportPlayerOrCart(cframe)
-    local cart = getCurrentCart()
-    if cart then
-        stopCartControllersForTeleport()
-        return pivotCartByReference(cart, cframe)
-    end
-    return teleportCharacter(cframe)
-end
-
-trackConnection(LocalPlayer.CharacterAdded:Connect(function()
-    killerSession = killerSession + 1
-    killerActive = false
-end))
-
--- =============================================================================
--- Variáveis adiantadas (usadas nos callbacks de atalho)
--- =============================================================================
-local getKavoTextBoxByLabel
-local restoreKavoTextBox
-local infiniteJump = false
-local espToggleControl
-local infiniteJumpToggleControl
-
--- =============================================================================
--- ABA: Jogador
--- =============================================================================
-local PlayerSection = Window:NewTab("Jogador"):NewSection("Configurações do Jogador")
-
-PlayerSection:NewSlider("Velocidade", "Velocidade de caminhada (padrão 16).", 500, 0, 16, function(value)
-    desiredWalkSpeed = value
-    local h = getHumanoid()
-    if h and not fakeLagActive then h.WalkSpeed = value end
-end)
-
-PlayerSection:NewButton("Redefinir Velocidade", "Volta para 16.", function()
-    desiredWalkSpeed = 16
-    local h = getHumanoid()
-    if h and not fakeLagActive then h.WalkSpeed = 16 end
-    notify("Velocidade", "Redefinida para 16.")
-end)
-
-infiniteJumpToggleControl = PlayerSection:NewToggle(
-    "Pulo Infinito", "Pula no ar. Tecla P.", function(state)
-        infiniteJump = state
-        notify("Pulo Infinito", state and "Ligado." or "Desligado.")
-    end
-)
-
--- BUG CORRIGIDO: JumpRequest dispara bem, mas não estava verificando se
--- o humanoid existia antes de chamar ChangeState
-trackConnection(UserInputService.JumpRequest:Connect(function()
-    if destroyed or not infiniteJump then return end
-    local h = getHumanoid()
-    if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
-end))
-
-local function giveClickTeleportTool()
-    local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
-    if not backpack then return end
-    local character = LocalPlayer.Character
-    if backpack:FindFirstChild("NothriloClickTP")
-        or (character and character:FindFirstChild("NothriloClickTP")) then
-        notify("Teleporte por Clique", "A ferramenta já está na mochila.")
-        return
-    end
-    local tool = Instance.new("Tool")
-    tool.Name            = "NothriloClickTP"
-    tool.RequiresHandle  = false
-    tool:SetAttribute("CafezlOwner", "Nothrilo")
-    tool.Activated:Connect(function()
-        teleportCharacter(CFrame.new(mouse.Hit.Position + Vector3.new(0, 2.5, 0)))
-    end)
-    tool.Parent = backpack
-    table.insert(createdTools, tool)
-    notify("Teleporte por Clique", "Ferramenta criada. Clique no mapa para teleportar.")
-end
-
-PlayerSection:NewButton("Teleporte por Clique", "Cria ferramenta na mochila. Tecla T.", giveClickTeleportTool)
-
-PlayerSection:NewTextBox("Ir até Jogador", "Nome do jogador. Enter.", function(name)
-    local player = findPlayerByPartialName(name)
-    if not player then notify("Ir até Jogador", "Jogador não encontrado.") return end
-    local targetRoot
-    local deadline = os.clock() + 2
-    repeat
-        local char = player.Character
-        targetRoot = char and char:FindFirstChild("HumanoidRootPart")
-        if targetRoot then break end
-        task.wait(0.2)
-    until os.clock() >= deadline
-    if not targetRoot then notify("Ir até Jogador", "Personagem não carregou.") return end
-    teleportCharacter(targetRoot.CFrame * CFrame.new(0, 2, 0))
-    notify("Ir até Jogador", "Teleportado para " .. player.DisplayName .. ".")
-end)
-
-local function setVehicleFlyEnabled(enabled)
-    flyEnabled = enabled
-    if enabled then
-        if killerActive then
-            flyEnabled = false
-            notify("Voo do Veículo", "Indisponível durante o Eliminador.")
-            task.defer(function()
-                if flyToggleControl then flyToggleControl:UpdateToggle(nil, false) end
-            end)
-            return
-        end
-        if panicActive then
-            restorePanicStop()
-            if panicToggleControl then
-                task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
-            end
-        end
-        if stopBoost then stopBoost() end
-        if boostToggleControl then
-            task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-        end
-        if startVehicleFly() then
-            notify("Voo do Veículo", "Ligado.")
-        else
-            flyEnabled = false
-            task.defer(function()
-                if flyToggleControl then flyToggleControl:UpdateToggle(nil, false) end
-            end)
-        end
-    else
-        stopFly()
-        notify("Voo do Veículo", "Desligado.")
-    end
-end
-
-flyToggleControl = PlayerSection:NewToggle(
-    "Voo do Veículo", "Tecla V liga/desliga.", setVehicleFlyEnabled
-)
-
-espToggleControl = PlayerSection:NewToggle(
-    "ESP", "Destaca jogadores. Tecla L.", setESP
-)
-
-PlayerSection:NewTextBox("Velocidade do Voo", "Digite e aperte Enter.", function(value)
-    local n = tonumber(value)
-    if n and n > 0 then vehicleFlySpeed = n; notify("Voo", "Velocidade: " .. n)
-    else notify("Voo", "Digite um número maior que zero.") end
-end)
-
-PlayerSection:NewButton("Redefinir Velocidade do Voo", "Volta para 1.", function()
-    vehicleFlySpeed = 1
-    restoreKavoTextBox("Velocidade do Voo", 1)
-    notify("Voo", "Velocidade redefinida para 1.")
-end)
-
--- Novo: God Mode local (impede a morte localmente via Humanoid.Health)
--- BUG CORRIGIDO: usar HealthChanged em vez de loop — mais limpo e sem
--- lag acumulado quando o personagem respawna
-local godEnabled = false
-local godConn
-local godRespawnConn
-local godHumanoid
-local godOriginalMaxHealth
-local godOriginalHealth
-
-local function restoreGodHumanoid()
-    if godConn then godConn:Disconnect() godConn = nil end
-    local h = godHumanoid
-    if h and h.Parent and godOriginalMaxHealth then
-        h.MaxHealth = godOriginalMaxHealth
-        h.Health = math.clamp(godOriginalHealth or godOriginalMaxHealth, 1, godOriginalMaxHealth)
-    end
-    godHumanoid, godOriginalMaxHealth, godOriginalHealth = nil, nil, nil
-end
-
-local function connectGod()
-    restoreGodHumanoid()
-    local h = getHumanoid()
-    if not h then return end
-    godHumanoid = h
-    godOriginalMaxHealth = h.MaxHealth
-    godOriginalHealth = h.Health
-    h.MaxHealth = math.huge
-    h.Health = math.huge
-    godConn = h.HealthChanged:Connect(function()
-        if godEnabled and h.Parent and h.Health < 1 then h.Health = h.MaxHealth end
-    end)
-end
-
-local function setGodMode(state)
-    godEnabled = state
-    if not state then
-        restoreGodHumanoid()
-        notify("God Mode", "Desligado.")
-        return
-    end
-    connectGod()
-    if not godRespawnConn then
-        godRespawnConn = LocalPlayer.CharacterAdded:Connect(function()
-            task.wait(0.3)
-            if godEnabled then connectGod() end
-        end)
-    end
-    notify("God Mode", "Ligado (só funciona localmente).")
-end
-
-PlayerSection:NewToggle(
-    "God Mode (local)",
-    "Impede que sua vida caia abaixo de 1 localmente.",
-    setGodMode
-)
-
--- Novo: Anti-AFK — previne kick por inatividade
-local antiAfkEnabled = false
-local antiAfkConn
-PlayerSection:NewToggle("Anti-AFK", "Mantém a sessão de teste ativa.", function(enabled)
-    antiAfkEnabled = enabled
-
-    if antiAfkConn then
-        antiAfkConn:Disconnect()
-        antiAfkConn = nil
-    end
-
-    if not enabled then
-        notify("Anti-AFK", "Desligado.")
-        return
-    end
-
-    antiAfkConn = LocalPlayer.Idled:Connect(function()
-        if not antiAfkEnabled then return end
-        pcall(function()
-            local virtualUser = game:GetService("VirtualUser")
-            virtualUser:CaptureController()
-            virtualUser:ClickButton2(Vector2.zero, workspace.CurrentCamera.CFrame)
-        end)
-    end)
-
-    notify("Anti-AFK", "Ligado.")
-end)
-
--- =============================================================================
--- ABA: Teleporte
--- =============================================================================
-local TeleportSection = Window:NewTab("Teleporte"):NewSection("Teleportes")
-
-TeleportSection:NewButton("Início", "Teleporta para o início da trilha.", function()
-    if teleportCharacter(CFrame.new(1, 3.11, 38)) then
-        notify("Teleporte", "Teleportado para o início.")
-    end
-end)
-
-TeleportSection:NewButton("Botão de Carrinho", "Teleporta para o botão do carrinho.", function()
-    if teleportCharacter(CFrame.new(-33, 3.11, 21.5) * CFrame.Angles(0, math.rad(180), 0)) then
-        notify("Teleporte", "Teleportado para o botão.")
-    end
-end)
-
-TeleportSection:NewButton("Equipe Suffering", "Teleporta para a área Suffering.", function()
-    if teleportCharacter(CFrame.new(
-        -416.844727, 163.402969, 171.087555,
-        0.0174489655, 5.45878223e-08, 0.99984777,
-        -4.55684486e-08, 1, -5.38008926e-08,
-        -0.99984777, -4.46227411e-08, 0.0174489655
-    )) then
-        notify("Teleporte", "Teleportado para Suffering.")
-    end
-end)
-
-TeleportSection:NewButton("Insígnia Secreta", "Teleporta para a Secret Badge da referência.", function()
-    if teleportCharacter(CFrame.new(234.500259, 2.28650475, 296.495483)) then
-        notify("Teleporte", "Teleportado para a insígnia secreta.")
-    end
-end)
-
-TeleportSection:NewButton("Sala Secreta", "Procura Workspace.Misc.Giver.", function()
-    local misc  = workspace:FindFirstChild("Misc")
-    local giver = misc and misc:FindFirstChild("Giver")
-    local part  = giver and (giver:IsA("BasePart") and giver or giver:FindFirstChildWhichIsA("BasePart", true))
-    if not part then notify("Teleporte", "Misc.Giver não encontrado.") return end
-    if teleportPlayerOrCart(part.CFrame * CFrame.new(0, 3, 0)) then
-        notify("Teleporte", "Teleportado para a sala secreta.")
-    end
-end)
-
-local CHECKPOINTS = {
-    [1] = CFrame.new(-430.898926, 164.75, 101.645676) * CFrame.Angles(0, math.rad(90),  0),
-    [2] = CFrame.new(511.88,       3.69,  306.59)     * CFrame.Angles(0, math.rad(270), 0),
-    [3] = CFrame.new(171.09,       2.78, -410.31)     * CFrame.Angles(0, math.rad(90),  0),
-}
-
-local function teleportToCheckpoint(number)
-    local dest = CHECKPOINTS[number]
-    if dest then teleportCart(dest) end
-end
-
--- =============================================================================
--- ABA: Carrinho
--- =============================================================================
-local CartTab     = Window:NewTab("Carrinho")
-local CartSection = CartTab:NewSection("Controle do Carrinho")
-
-panicToggleControl = CartSection:NewToggle(
-    "Parada de Emergência",
-    "Para e trava o carrinho.",
-    function(state)
-        local applied = setPanicStop(state)
-        if state and not applied then
-            task.defer(function() panicToggleControl:UpdateToggle(nil, false) end)
-        end
-    end
-)
-
-CartSection:NewButton("Ir ao Checkpoint 1", "NumPad 1.", function() teleportToCheckpoint(1) end)
-CartSection:NewButton("Ir ao Checkpoint 2", "NumPad 2.", function() teleportToCheckpoint(2) end)
-CartSection:NewButton("Ir ao Checkpoint 3", "NumPad 3.", function() teleportToCheckpoint(3) end)
-
--- Novo: Velocidade do carrinho em tempo real
-CartSection:NewButton("Ver Velocidade do Carrinho", "Mostra studs/s na notificação.", function()
-    local cart = getCurrentCart()
-    if not cart then notify("Velocidade", "Sente em um carrinho primeiro.") return end
-    local primary = getCartPrimary(cart)
-    if not primary then notify("Velocidade", "Estrutura não reconhecida.") return end
-    local vel = primary.AssemblyLinearVelocity.Magnitude
-    notify("Velocidade do Cart", string.format("%.1f studs/s", vel))
-end)
-
--- Novo: Ejetar do carrinho
-CartSection:NewButton("Ejetar do Carrinho", "Sai do assento atual.", function()
-    local h = getHumanoid()
-    if h then
-        h.Sit = false
-        notify("Carrinho", "Ejetado.")
-    else
-        notify("Carrinho", "Personagem não encontrado.")
-    end
-end)
-
-local StabilizerSection = CartTab:NewSection("Estabilizador")
-
-StabilizerSection:NewToggle("Estabilizador do Carrinho", "Mantém estável enquanto sentado.", function(state)
-    stabilizer.enabled = state
-    refreshStabilizer()
-    if state and getCurrentCart() then notify("Estabilizador", "Ligado.")
-    elseif not state then notify("Estabilizador", "Desligado.") end
-end)
-
-StabilizerSection:NewTextBox("Força Normal", "Padrão 2500. Enter.", function(value)
-    local n = tonumber(value)
-    if n and n > 0 then
-        STABILIZER_CONFIG.NORMAL_FORCE = n
-        restoreKavoTextBox("Força Normal", n)
-        notify("Estabilizador", "Força normal: " .. n)
-    else
-        notify("Estabilizador", "Digite um número maior que zero.")
-    end
-end)
-
-StabilizerSection:NewTextBox("Força em Descidas", "Padrão 800. Enter.", function(value)
-    local n = tonumber(value)
-    if n and n > 0 then
-        STABILIZER_CONFIG.DOWNHILL_FORCE = n
-        restoreKavoTextBox("Força em Descidas", n)
-        notify("Estabilizador", "Força descida: " .. n)
-    else
-        notify("Estabilizador", "Digite um número maior que zero.")
-    end
-end)
-
-StabilizerSection:NewButton("Redefinir Forças", "Volta para 2500 e 800.", function()
-    STABILIZER_CONFIG.NORMAL_FORCE    = 2500
-    STABILIZER_CONFIG.DOWNHILL_FORCE  = 800
-    restoreKavoTextBox("Força Normal", 2500)
-    restoreKavoTextBox("Força em Descidas", 800)
-    refreshStabilizer()
-    notify("Estabilizador", "Forças redefinidas.")
-end)
-
--- =============================================================================
--- ABA: Cart+ (boost, anti-flip, freio automático)
--- =============================================================================
-local BoostSection  = Window:NewTab("Cart+"):NewSection("Boost e Física")
-
-local boostActive     = false
-local boostForce      = 500
-local boostConnection
-local boostBodyForce  = nil
-local boostAttachment
-local boostAttachmentCreated = false
-local boostCartRoot
-
-stopBoost = function()
-    boostActive = false
-    if boostConnection then boostConnection:Disconnect() boostConnection = nil end
-    if boostBodyForce and boostBodyForce.Parent then
-        boostBodyForce:Destroy()
-    end
-    if boostAttachmentCreated and boostAttachment and boostAttachment.Parent then
-        boostAttachment:Destroy()
-    end
-    boostBodyForce = nil
-    boostAttachment = nil
-    boostAttachmentCreated = false
-    boostCartRoot = nil
-end
-
-local function startBoost()
-    stopBoost()
-    if panicActive or FLYING or killerActive then
-        notify("Boost", "Indisponível durante parada, voo ou Eliminador.")
-        return false
-    end
-    local cart = getCurrentCart()
-    if not cart then notify("Boost", "Sente em um carrinho primeiro.") return false end
-    local primary = getCartPrimary(cart)
-    if not primary then notify("Boost", "Estrutura do carrinho não reconhecida.") return false end
-    boostCartRoot = primary.AssemblyRootPart or primary
-
-    -- VectorForce substitui BodyForce, que é uma API legada do Roblox.
-    local attachment = primary:FindFirstChild("NothriloBoostAttachment")
-    if not attachment then
-        attachment = Instance.new("Attachment")
-        attachment.Name = "NothriloBoostAttachment"
-        attachment.Parent = primary
-        boostAttachmentCreated = true
-    end
-    boostAttachment = attachment
-
-    local bf = Instance.new("VectorForce")
-    bf.Name = "NothriloBoost"
-    bf.Attachment0 = attachment
-    bf.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
-    bf.ApplyAtCenterOfMass = true
-    bf.Force = Vector3.zero
-    bf.Parent = primary
-    boostBodyForce = bf
-
-    boostActive = true
-    boostConnection = RunService.Heartbeat:Connect(function()
-        local currentCart = getCurrentCart()
-        local currentPrimary = currentCart and getCartPrimary(currentCart)
-        local currentRoot = currentPrimary and (currentPrimary.AssemblyRootPart or currentPrimary)
-        if not boostActive or panicActive or FLYING or killerActive
-            or not primary.Parent or not bf.Parent
-            or currentCart ~= cart or currentRoot ~= boostCartRoot
-        then
-            stopBoost()
-            if boostToggleControl then
-                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-            end
-            return
-        end
-        -- No espaço da Attachment0, frente é o eixo Z negativo.
-        bf.Force = Vector3.new(0, 0, -boostForce * primary.AssemblyMass * 60)
-    end)
-    notify("Boost", "Ligado — força " .. boostForce .. ".")
-    return true
-end
-
-boostToggleControl = BoostSection:NewToggle(
-    "Boost do Carrinho", "Empurra pra frente. Tecla B.", function(state)
-        if state then
-            if not startBoost() then
-                task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-            end
-        else
-            stopBoost()
-            notify("Boost", "Desligado.")
-        end
-    end
-)
-
-BoostSection:NewSlider("Força do Boost", "Intensidade (padrão 500).", 3000, 0, 500, function(value)
-    boostForce = value
-    if boostActive and not startBoost() then
-        task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-    end
-end)
-
--- Anti-Flip com cooldown correto
-local antiFlipEnabled  = false
-local antiFlipCooldown = false
-local antiFlipConn
-
-BoostSection:NewToggle("Anti-Flip", "Endireita o carrinho ao tombar automaticamente.", function(state)
-    antiFlipEnabled = state
-    if antiFlipConn then antiFlipConn:Disconnect() antiFlipConn = nil end
-    if not state then
-        notify("Anti-Flip", "Desligado.")
-        return
-    end
-
-    antiFlipConn = RunService.Heartbeat:Connect(function()
-        if not antiFlipEnabled or antiFlipCooldown or panicActive or FLYING or killerActive
-            or os.clock() < cartMotionPauseUntil
-        then return end
-        local cart = getCurrentCart()
-        if not cart then return end
-        local primary = getCartPrimary(cart)
-        if not primary or not primary.Parent then return end
-
-        local dot = primary.CFrame.UpVector:Dot(Vector3.new(0, 1, 0))
-        if dot < 0.5 then
-            antiFlipCooldown = true
-            local pos  = primary.CFrame.Position
-            local look = Vector3.new(primary.CFrame.LookVector.X, 0, primary.CFrame.LookVector.Z)
-            look = look.Magnitude > 0.01 and look.Unit or Vector3.new(1, 0, 0)
-            pivotCartByReference(
-                cart,
-                CFrame.new(pos + Vector3.new(0, 2, 0), pos + Vector3.new(0, 2, 0) + look)
-            )
-            notify("Anti-Flip", "Carrinho endireitado.")
-            task.wait(1.5)
-            antiFlipCooldown = false
-        end
-    end)
-    notify("Anti-Flip", "Ligado.")
-end)
-
--- Freio automático ao detectar queda livre
-local autobrakeEnabled  = false
-local autobrakeCooldown = false
-local autobrakeConn
-
-BoostSection:NewToggle("Freio Automático", "Trava ao detectar queda livre.", function(state)
-    autobrakeEnabled = state
-    if autobrakeConn then autobrakeConn:Disconnect() autobrakeConn = nil end
-    if not state then
-        notify("Freio Automático", "Desligado.")
-        return
-    end
-
-    autobrakeConn = RunService.Heartbeat:Connect(function()
-        if not autobrakeEnabled or autobrakeCooldown or panicActive or FLYING or killerActive
-            or os.clock() < cartMotionPauseUntil
-        then return end
-        local cart = getCurrentCart()
-        if not cart then return end
-        local primary = getCartPrimary(cart)
-        if not primary then return end
-
-        if primary.AssemblyLinearVelocity.Y < -35 then
-            autobrakeCooldown = true
-            if boostActive then
-                stopBoost()
-                if boostToggleControl then
-                    task.defer(function() boostToggleControl:UpdateToggle(nil, false) end)
-                end
-            end
-            for _, part in ipairs(cart:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.AssemblyLinearVelocity  = Vector3.zero
-                    part.AssemblyAngularVelocity = Vector3.zero
-                end
-            end
-            notify("Freio Automático", "Queda detectada — travado.")
-            task.wait(1)
-            autobrakeCooldown = false
-        end
-    end)
-    notify("Freio Automático", "Ligado.")
-end)
-
--- =============================================================================
--- ABA: Extras (jogador)
--- =============================================================================
-local ExtrasSection = Window:NewTab("Extras"):NewSection("Movimento e Física")
-
--- Noclip corrigido: CanCollide precisa ser reposto a cada Stepped
--- porque o motor físico reseta automaticamente
-local noclipEnabled = false
-local noclipOriginal = {}
-
-local function restoreNoclip()
-    for part, canCollide in pairs(noclipOriginal) do
-        if part and part.Parent then
-            part.CanCollide = canCollide
-        end
-    end
-    table.clear(noclipOriginal)
-end
-
-trackConnection(RunService.Stepped:Connect(function()
-    if not noclipEnabled then return end
-    local character = LocalPlayer.Character
-    if not character then return end
-    for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            if noclipOriginal[part] == nil then
-                noclipOriginal[part] = part.CanCollide
-            end
-            part.CanCollide = false
-        end
-    end
-end))
-
-ExtrasSection:NewToggle("Noclip", "Atravessa paredes durante o teste.", function(enabled)
-    noclipEnabled = enabled
-    if not enabled then restoreNoclip() end
-    notify("Noclip", enabled and "Ligado." or "Desligado.")
-end)
-
--- Invisível local: LocalTransparencyModifier só afeta o cliente local
-local invisEnabled = false
-local invisOriginal = {}
-
-local function setLocalInvisible(enabled)
-    local character = LocalPlayer.Character
-    if not character then return end
-
-    for _, object in ipairs(character:GetDescendants()) do
-        if object:IsA("BasePart") or object:IsA("Decal") then
-            if enabled and invisOriginal[object] == nil then
-                invisOriginal[object] = object.LocalTransparencyModifier
-            end
-            object.LocalTransparencyModifier = enabled and 1 or (invisOriginal[object] or 0)
-        end
-    end
-
-    if not enabled then table.clear(invisOriginal) end
-end
-
-ExtrasSection:NewToggle("Invisível (local)", "Só você se vê transparente.", function(enabled)
-    invisEnabled = enabled
-    setLocalInvisible(enabled)
-    notify("Invisível", enabled and "Ligado (só você vê)." or "Desligado.")
-end)
-
-trackConnection(LocalPlayer.CharacterAdded:Connect(function()
-    task.wait(0.25)
-    if invisEnabled and not destroyed then setLocalInvisible(true) end
-end))
-
-ExtrasSection:NewSlider("Jump Power", "Altura do pulo (padrão 50).", 300, 0, 50, function(value)
-    desiredJumpPower = value
-    desiredJumpHeight = 7.2 * (value / 50)
-    local h = getHumanoid()
-    if h and not fakeLagActive then
-        if h.UseJumpPower then h.JumpPower = desiredJumpPower
-        else h.JumpHeight = desiredJumpHeight end
-    end
-end)
-
-ExtrasSection:NewButton("Redefinir Jump Power", "Volta para 50.", function()
-    desiredJumpPower = 50
-    desiredJumpHeight = 7.2
-    local h = getHumanoid()
-    if h and not fakeLagActive then
-        if h.UseJumpPower then h.JumpPower = desiredJumpPower
-        else h.JumpHeight = desiredJumpHeight end
-    end
-    notify("Jump Power", "Redefinido.")
-end)
-
-ExtrasSection:NewSlider("Gravidade", "Gravidade global (padrão 196.2).", 400, 0, originalGravity, function(value)
-    workspace.Gravity = value
-end)
-
-ExtrasSection:NewButton("Redefinir Gravidade", "Volta ao valor original do jogo.", function()
-    workspace.Gravity = originalGravity
-    notify("Gravidade", "Valor original restaurado.")
-end)
-
--- Salvar / restaurar posição (funciona pra jogador e carrinho)
-local savedPosition = nil
-ExtrasSection:NewButton("Salvar Posição Atual", "Salva onde você está.", function()
-    local root = getRoot()
-    if not root then notify("Posição", "Personagem não encontrado.") return end
-    savedPosition = root.CFrame
-    local p = root.Position
-    notify("Posição", string.format("Salva em %.0f, %.0f, %.0f", p.X, p.Y, p.Z))
-end)
-
-ExtrasSection:NewButton("Voltar à Posição Salva", "Teleporta de volta.", function()
-    if not savedPosition then notify("Posição", "Nenhuma posição salva ainda.") return end
-    teleportCharacter(savedPosition)
-    notify("Posição", "Teleportado.")
-end)
-
--- =============================================================================
--- ABA: Mapa
--- =============================================================================
-local MapSection = Window:NewTab("Mapa"):NewSection("Exploração")
-
--- Ir até parte por nome — busca com prioridade (exato > começo > contém)
-MapSection:NewTextBox("Ir até Parte", "Nome da parte no workspace. Enter.", function(value)
-    value = value:match("^%s*(.-)%s*$"):lower()
-    if value == "" then return end
-
-    local best, bestPriority = nil, 0
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            local name = obj.Name:lower()
-            local priority = 0
-            if name == value then priority = 3
-            elseif name:sub(1, #value) == value then priority = 2
-            elseif name:find(value, 1, true) then priority = 1
-            end
-            if priority > bestPriority then best = obj; bestPriority = priority end
-        end
-    end
-
-    if not best then notify("Mapa", "Parte '" .. value .. "' não encontrada.") return end
-    teleportCharacter(best.CFrame * CFrame.new(0, 4, 0))
-    notify("Mapa", "Teleportado para: " .. best.Name)
-end)
-
--- Listar partes no output (F9 pra ver)
-MapSection:NewButton("Listar Partes no Output (F9)", "Imprime 30 BaseParts no console.", function()
-    print("[Nothrilo] === BaseParts no Workspace ===")
-    local count = 0
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and count < 30 then
-            print(("[Nothrilo] %s  pos: %s"):format(obj:GetFullName(), tostring(obj.Position)))
-            count = count + 1
-        end
-    end
-    print(("[Nothrilo] %d partes listadas. Abra F9 para ver."):format(count))
-    notify("Mapa", count .. " partes no output (F9).")
-end)
-
--- Carrinho: encontra pelo assento, não pelo nome do Model nem por SpawnLocation.
-local function findNearestCartSeat()
-    local root = getRoot()
-    if not root then return nil end
-
-    for _, wantedClass in ipairs({ "VehicleSeat", "Seat" }) do
-        local nearest, nearestDistance = nil, math.huge
-        for _, object in ipairs(workspace:GetDescendants()) do
-            if object:IsA(wantedClass) then
-                local distance = (root.Position - object.Position).Magnitude
-                if distance < nearestDistance then
-                    nearest = object
-                    nearestDistance = distance
-                end
-            end
-        end
-        if nearest then return nearest end
-    end
-
-    return nil
-end
-
-MapSection:NewButton("Ir ao Carrinho", "Procura o assento do carrinho mais próximo.", function()
-    local seat = findNearestCartSeat()
-    if not seat then
-        notify("Carrinho", "Nenhum assento de carrinho foi encontrado.")
-        return
-    end
-
-    if teleportCharacter(seat.CFrame * CFrame.new(0, 4, 0)) then
-        notify("Carrinho", "Teleportado para o carrinho.")
-    end
-end)
-
--- Câmera livre — WASD + Q/E, desacoplada do personagem
-local freecamActive = false
-local freecamConn
-local freecamSpeed  = 1
-local freecamToggleControl
-
-local function stopFreecam()
-    freecamActive = false
-    if freecamConn then freecamConn:Disconnect() freecamConn = nil end
-    releaseCameraMode("freecam")
-end
-
-cameraModeStoppers.freecam = function()
-    if freecamToggleControl then
-        freecamToggleControl:UpdateToggle(nil, false)
-    else
-        stopFreecam()
-    end
-end
-
-freecamToggleControl = MapSection:NewToggle("Câmera Livre", "WASD move, Q/E sobe e desce.", function(state)
-    if not state then
-        stopFreecam()
-        notify("Câmera Livre", "Desligada.")
-        return
-    end
-
-    claimCameraMode("freecam")
-    freecamActive = true
-    local camera = workspace.CurrentCamera
-    if not camera then
-        stopFreecam()
-        task.defer(function() freecamToggleControl:UpdateToggle(nil, false) end)
-        return
-    end
-
-    camera.CameraType = Enum.CameraType.Scriptable
-    local cf = camera.CFrame
-
-    freecamConn = RunService.RenderStepped:Connect(function()
-        if not freecamActive then return end
-        local move = Vector3.zero
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + cf.LookVector  end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - cf.LookVector  end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move - cf.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + cf.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.E) then move = move + Vector3.new(0, 1, 0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Q) then move = move - Vector3.new(0, 1, 0) end
-        if move.Magnitude > 0 then
-            cf = CFrame.new(cf.Position + move * freecamSpeed) * (cf - cf.Position)
-        end
-        camera.CFrame = cf
-        camera.Focus = cf * CFrame.new(0, 0, -12)
-    end)
-
-    notify("Câmera Livre", "WASD move, Q/E sobe e desce. Desative para voltar.")
-end)
-
-MapSection:NewSlider("Velocidade da Câmera Livre", "Velocidade de movimento (1–10).", 10, 1, freecamSpeed, function(value)
-    freecamSpeed = value
-end)
-
--- =============================================================================
--- ABA: Eliminador
--- =============================================================================
-local KillerSection = Window:NewTab("Eliminador"):NewSection("Controle de Alvo")
-local targetName    = ""
-
-KillerSection:NewTextBox("Nome do Alvo", "Parte do nome. Enter.", function(value)
-    targetName = value
-end)
-
-KillerSection:NewButton("Alcançar Alvo", "Usa o carrinho livre mais próximo.", function()
-    if not targetName or targetName:match("^%s*$") then
-        notify("Eliminador", "Digite uma parte do nome primeiro.")
-        return
-    end
-    local requested = targetName
-    task.spawn(function()
-        local ok, err = xpcall(function()
-            executeKiller(requested)
-        end, debug.traceback)
-        if not ok then
-            warn(MENU_NAME .. " Killer: " .. err)
-            if killerActive then finishKiller("Erro na tentativa. Tente de novo.") end
-        end
-    end)
-end)
-
--- =============================================================================
--- ABA: Troll
--- =============================================================================
-local TrollSection = Window:NewTab("Troll"):NewSection("Diversão")
-
--- Câmera giratória com duração ajustável
-local spinDuration = 5
-local spinConn
-
-local function stopSpin(silent)
-    if spinConn then spinConn:Disconnect() spinConn = nil end
-    releaseCameraMode("spin")
-    if not silent then notify("Troll", "Câmera voltou ao normal.") end
-end
-
-cameraModeStoppers.spin = function() stopSpin(true) end
-
-TrollSection:NewButton("Câmera Giratória", "Gira a câmera por alguns segundos.", function()
-    stopSpin(true)
-    claimCameraMode("spin")
-    local camera = workspace.CurrentCamera
-    if not camera then releaseCameraMode("spin") return end
-    camera.CameraType = Enum.CameraType.Scriptable
-    local startTime  = os.clock()
-    local origin     = camera.CFrame
-
-    spinConn = RunService.RenderStepped:Connect(function()
-        local elapsed = os.clock() - startTime
-        if elapsed >= spinDuration then
-            stopSpin(false)
-            return
-        end
-        local angle = elapsed * math.pi * 2
-        camera.CFrame = CFrame.new(origin.Position)
-            * CFrame.Angles(0, angle, 0)
-            * CFrame.new(0, 0, -10)
-        camera.Focus = CFrame.new(origin.Position)
-    end)
-    notify("Troll", "Câmera girando por " .. spinDuration .. "s.")
-end)
-
-TrollSection:NewSlider("Duração Câmera (s)", "Segundos de giro.", 30, 1, spinDuration, function(value)
-    spinDuration = value
-end)
-
--- Fake Lag ajustável
-local fakeLagDuration = 2
-
-local function restoreFakeLag()
-    local h = fakeLagHumanoid
-    fakeLagActive = false
-    if h and h.Parent then
-        h.WalkSpeed = desiredWalkSpeed or 16
-        if h.UseJumpPower then h.JumpPower = desiredJumpPower or 50
-        else h.JumpHeight = desiredJumpHeight or 7.2 end
-    end
-    fakeLagHumanoid = nil
-end
-
-TrollSection:NewButton("Fake Lag", "Congela você por alguns segundos.", function()
-    local h = getHumanoid()
-    if not h then return end
-    if not fakeLagActive then
-        desiredWalkSpeed = desiredWalkSpeed or h.WalkSpeed
-        desiredJumpPower = desiredJumpPower or h.JumpPower
-        desiredJumpHeight = desiredJumpHeight or h.JumpHeight
-    elseif fakeLagHumanoid ~= h then
-        restoreFakeLag()
-    end
-    fakeLagSession = fakeLagSession + 1
-    local session = fakeLagSession
-    fakeLagActive = true
-    fakeLagHumanoid = h
-    h.WalkSpeed = 0
-    if h.UseJumpPower then h.JumpPower = 0 else h.JumpHeight = 0 end
-    notify("Troll", "Fake lag por " .. fakeLagDuration .. "s.")
-    task.spawn(function()
-        task.wait(fakeLagDuration)
-        if session ~= fakeLagSession or destroyed then return end
-        restoreFakeLag()
-        notify("Troll", "Fake lag encerrado.")
-    end)
-end)
-
-TrollSection:NewSlider("Duração Fake Lag (s)", "Duração em segundos.", 15, 1, fakeLagDuration, function(value)
-    fakeLagDuration = value
-end)
-
--- Spectate — segue outro jogador com a câmera
-local spectating  = false
-local spectateConn
-
-local function stopSpectate(silent)
-    spectating = false
-    if spectateConn then spectateConn:Disconnect() spectateConn = nil end
-    releaseCameraMode("spectate")
-    if not silent then notify("Spectate", "Parado.") end
-end
-
-cameraModeStoppers.spectate = function() stopSpectate(true) end
-
-TrollSection:NewTextBox("Spectate Jogador", "Nome do jogador. Enter para seguir.", function(value)
-    local player = findPlayerByPartialName(value)
-    if not player or player == LocalPlayer then notify("Spectate", "Escolha outro jogador.") return end
-    stopSpectate(true)
-    claimCameraMode("spectate")
-    spectating = true
-    local camera = workspace.CurrentCamera
-    if not camera then stopSpectate(true) return end
-    camera.CameraType = Enum.CameraType.Scriptable
-
-    spectateConn = RunService.RenderStepped:Connect(function()
-        if not spectating then return end
-        local char = player.Character
-        local root = char and char:FindFirstChild("HumanoidRootPart")
-        if not root then stopSpectate(false) return end
-        camera.CFrame = CFrame.new(root.Position + Vector3.new(0, 8, -14), root.Position)
-        camera.Focus = CFrame.new(root.Position)
-    end)
-    notify("Spectate", "Seguindo " .. player.DisplayName .. ".")
-end)
-
-TrollSection:NewButton("Parar Spectate", "Para de seguir.", function()
-    stopSpectate(false)
-end)
-
--- Teleporte aleatório — filtra partes visíveis e grandes
-TrollSection:NewButton("Teleporte Aleatório", "Te joga em uma parte aleatória.", function()
-    local parts = {}
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart")
-            and obj.Transparency < 0.9
-            and obj.Size.Magnitude > 2
-            and obj ~= workspace.Terrain
-        then
-            table.insert(parts, obj)
-        end
-    end
-    if #parts == 0 then notify("Troll", "Nenhuma parte útil encontrada.") return end
-    local target = parts[math.random(1, #parts)]
-    teleportCharacter(target.CFrame * CFrame.new(0, 5, 0))
-    notify("Troll", "Caiu em: " .. target.Name)
-end)
-
--- =============================================================================
--- Minimizar / reabrir + drag
--- =============================================================================
-local function findMenuGui()
-    local fallback
-    for _, guiRoot in ipairs(guiRoots) do
-        for _, gui in ipairs(guiRoot:GetChildren()) do
-            if gui:IsA("ScreenGui") then
-                local main   = gui:FindFirstChild("Main", true)
-                local header = main and main:FindFirstChild("MainHeader")
-                local title  = header and header:FindFirstChild("title")
-                if title and title:IsA("TextLabel") and title.Text == UI_TITLE then
-                    return gui
-                end
-                if main and header then fallback = gui end
-                for _, descendant in ipairs(gui:GetDescendants()) do
-                    if descendant:IsA("TextLabel") and descendant.Text == UI_TITLE then
-                        return gui
-                    end
-                end
-            end
-        end
-    end
-    return fallback
-end
-
-local menuGui = Window and Window.gui or findMenuGui()
-if not bootstrapAlive() then
-    abortBootstrap()
-    return
-end
-
-local commandsTabButton
-if not menuGui then
-    warn(MENU_NAME .. ": não foi possível localizar a janela clássica local.")
-    menuGui = Instance.new("ScreenGui")
-    menuGui.Name = "NothriloFallbackHost"
-    menuGui.ResetOnSpawn = false
-    menuGui.Parent = CoreGui
-end
-
--- Textbox helper: encontra pela label ao lado
-getKavoTextBoxByLabel = function(labelText)
-    for _, element in ipairs(menuGui:GetDescendants()) do
-        if element:IsA("TextButton") and element.Name == "textboxElement" then
-            local title = element:FindFirstChild("togName")
-            local input = element:FindFirstChildOfClass("TextBox")
-            if title and title.Text == labelText and input then return input end
-        end
-    end
-    return nil
-end
-
-restoreKavoTextBox = function(labelText, value)
-    task.delay(0.22, function()
-        local input = getKavoTextBoxByLabel(labelText)
-        if input and input.Parent then input.Text = tostring(value) end
-    end)
-end
-
-local function configureKavoTextBox(labelText, placeholder, value)
-    local input = getKavoTextBoxByLabel(labelText)
-    if not input then return end
-    input.PlaceholderText = placeholder
-    if value ~= nil then input.Text = tostring(value) end
-end
-
--- Traduz placeholders para PT-BR
-for _, object in ipairs(menuGui:GetDescendants()) do
-    if object:IsA("TextBox") and object.PlaceholderText == "Type here!" then
-        object.PlaceholderText = "Digite aqui..."
-    end
-end
-
-configureKavoTextBox("Ir até Jogador",    "Nome ou começo do nome", nil)
-configureKavoTextBox("Velocidade do Voo", "Digite a velocidade",    nil)
-configureKavoTextBox("Nome do Alvo",      "Nome ou começo do nome", nil)
-configureKavoTextBox("Força Normal",      "2500", 2500)
-configureKavoTextBox("Força em Descidas", "800",  800)
-
--- Badges de atalho (quadrinhos com a tecla no canto direito de cada item)
-local customKeybindIcons = {}
-
-local function addShortcutBadge(labelText, keyText)
-    -- No toque a linha inteira já é o controle; esconder teclas libera espaço
-    -- para nomes maiores e evita colisão com o ícone de informação.
-    if UserInputService.TouchEnabled then return end
-    for _, element in ipairs(menuGui:GetDescendants()) do
-        if element:IsA("TextButton") then
-            local title
-            for _, child in ipairs(element:GetDescendants()) do
-                if child:IsA("TextLabel") and child.Text == labelText then
-                    title = child; break
-                end
-            end
-
-            if title and not element:FindFirstChild("NothriloShortcut_" .. keyText) then
-                local badgeWidth = keyText == "1/2/3" and 42 or 21
-                local badge      = Instance.new("TextButton")
-                badge.Name           = "NothriloShortcut_" .. keyText
-                badge.Size           = UDim2.fromOffset(badgeWidth, 21)
-                badge.Position       = UDim2.new(1, -(badgeWidth + 31), 0, 6)
-                badge.BackgroundColor3 = Color3.fromRGB(30, 30, 37)
-                badge.BorderSizePixel = 0
-                badge.AutoButtonColor = false
-                badge.Font           = Enum.Font.GothamBold
-                badge.Text           = keyText
-                badge.TextColor3     = Theme.SchemeColor
-                badge.TextSize       = keyText == "1/2/3" and 9 or 12
-                badge.ZIndex         = 3
-                badge.Parent         = element
-                Instance.new("UICorner", badge).CornerRadius = UDim.new(0, 5)
-                table.insert(customKeybindIcons, badge)
-
-                -- Reserve espaço real: a Kavo original deixava textos longos
-                -- passarem por baixo do atalho e do ícone de informação.
-                if title.Parent == element then
-                    title.Size = UDim2.new(1, -(badgeWidth + 70), 1, 0)
-                end
-
-                badge.Activated:Connect(function()
-                    if     keyText == "V"     then flyToggleControl:UpdateToggle(nil, not flyEnabled)
-                    elseif keyText == "L"     then espToggleControl:UpdateToggle(nil, not espEnabled)
-                    elseif keyText == "P"     then infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump)
-                    elseif keyText == "T"     then giveClickTeleportTool()
-                    elseif keyText == "1"     then teleportToCheckpoint(1)
-                    elseif keyText == "2"     then teleportToCheckpoint(2)
-                    elseif keyText == "3"     then teleportToCheckpoint(3)
-                    elseif keyText == "1/2/3" then notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
-                    elseif keyText == "B"     then boostToggleControl:UpdateToggle(nil, not boostActive)
-                    elseif keyText == "K"     then setMenuVisible(false)
-                    elseif keyText == "X" and destroyNothrilo then destroyNothrilo()
-                    end
-                end)
-                return
-            end
-        end
-    end
-end
-
--- Badges das abas originais
-addShortcutBadge("Voo do Veículo",      "V")
-addShortcutBadge("ESP",                 "L")
-addShortcutBadge("Pulo Infinito",       "P")
-addShortcutBadge("Teleporte por Clique","T")
-addShortcutBadge("Boost do Carrinho",   "B")
-addShortcutBadge("Ir ao Checkpoint 1",  "1")
-addShortcutBadge("Ir ao Checkpoint 2",  "2")
-addShortcutBadge("Ir ao Checkpoint 3",  "3")
-
--- Sistema de toast
-local toastGui = Instance.new("ScreenGui")
-toastGui.Name           = "NothriloNotifications"
-toastGui.ResetOnSpawn   = false
-toastGui.IgnoreGuiInset = true
-toastGui.DisplayOrder   = 10001
-toastGui.Parent         = menuGui.Parent
-
-toastContainer = Instance.new("Frame")
-toastContainer.Name               = "ToastContainer"
-toastContainer.AnchorPoint        = Vector2.new(1, 0)
-toastContainer.Position           = UDim2.new(1, -18, 0, 20)
-toastContainer.Size               = UDim2.fromOffset(300, 300)
-toastContainer.BackgroundTransparency = 1
-toastContainer.Parent             = toastGui
-
-local toastLayout = Instance.new("UIListLayout")
-toastLayout.Padding    = UDim.new(0, 8)
-toastLayout.SortOrder  = Enum.SortOrder.LayoutOrder
-toastLayout.Parent     = toastContainer
-
--- Drag helper (mouse e touch)
-local function enableDrag(target, handle, onDragEnd)
-    target.Active = true
-    handle.Active = true
-    local dragging, dragInput, dragStart, startPos, wasDragged = false, nil, nil, nil, false
-
-    local function updatePos(input)
-        local delta = input.Position - dragStart
-        if delta.Magnitude > 6 then wasDragged = true end
-        target.Position = UDim2.new(
-            startPos.X.Scale,  startPos.X.Offset + delta.X,
-            startPos.Y.Scale,  startPos.Y.Offset + delta.Y
-        )
-    end
-
-    handle.InputBegan:Connect(function(input)
-        if input.UserInputType ~= Enum.UserInputType.MouseButton1
-        and input.UserInputType ~= Enum.UserInputType.Touch then return end
-        dragging   = true
-        wasDragged = false
-        dragStart  = input.Position
-        startPos   = target.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                if onDragEnd then onDragEnd(wasDragged) end
-            end
-        end)
-    end)
-
-    handle.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-
-    trackConnection(UserInputService.InputChanged:Connect(function(input)
-        if dragging and input == dragInput then updatePos(input) end
-    end))
-end
-
--- Launcher (botão para reabrir quando minimizado)
-local launcherGui = Instance.new("ScreenGui")
-launcherGui.Name           = "NothriloLauncher"
-launcherGui.ResetOnSpawn   = false
-launcherGui.IgnoreGuiInset = true
-launcherGui.DisplayOrder   = 10000
-launcherGui.Parent         = menuGui.Parent
-
-local launcher = Instance.new("TextButton")
-launcher.Name             = "OpenNothriloMenu"
-launcher.Size             = UDim2.fromOffset(178, 50)
-launcher.Position         = UDim2.new(0, 16, 0.5, -25)
-launcher.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
-launcher.BorderSizePixel  = 0
-launcher.AutoButtonColor  = false
-launcher.Font             = Enum.Font.GothamBold
-launcher.Text             = "    " .. string.upper(MENU_NAME)
-launcher.TextColor3       = Color3.fromRGB(255, 255, 255)
-launcher.TextSize         = 16
-launcher.TextXAlignment   = Enum.TextXAlignment.Left
-launcher.Visible          = false
-launcher.Parent           = launcherGui
-Instance.new("UICorner", launcher).CornerRadius = UDim.new(0, 8)
-
-local launcherStroke = Instance.new("UIStroke")
-launcherStroke.Thickness = 2
-launcherStroke.Parent    = launcher
-
-local launcherIcon = Instance.new("TextLabel")
-launcherIcon.BackgroundTransparency = 1
-launcherIcon.Size     = UDim2.fromOffset(38, 50)
-launcherIcon.Position = UDim2.fromOffset(6, 0)
-launcherIcon.Font     = Enum.Font.GothamBold
-launcherIcon.Text     = "N"
-launcherIcon.TextSize = 20
-launcherIcon.Parent   = launcher
-
-setMenuVisible = function(visible)
-    if destroyed then return end
-    menuGui.Enabled    = visible
-    launcher.Visible   = not visible
-end
-
-local main   = menuGui:FindFirstChild("Main")
-local header = main and main:FindFirstChild("MainHeader")
-local originalClose = header and header:FindFirstChild("close")
-if originalClose then
-    originalClose.Visible = false
-    originalClose.Active  = false
-end
-
-    if header then
-        local minimize = Instance.new("TextButton")
-        minimize.Name             = "Minimize"
-        minimize.Size             = UDim2.fromOffset(34, 34)
-        minimize.Position         = UDim2.new(1, -34, 0, 0)
-        minimize.BackgroundTransparency = 1
-        minimize.AutoButtonColor  = false
-        minimize.Font             = Enum.Font.GothamBold
-        minimize.Text             = "—"
-        minimize.TextColor3       = Color3.fromRGB(255, 255, 255)
-        minimize.TextSize         = 18
-    minimize.Parent           = header
-    minimize.MouseButton1Click:Connect(function() setMenuVisible(false) end)
-    enableDrag(main, header)
-end
-
-local launcherLastDrag = 0
-enableDrag(launcher, launcher, function(wasDragged)
-    if wasDragged then launcherLastDrag = os.clock() end
-end)
-launcher.Activated:Connect(function()
-    if os.clock() - launcherLastDrag < 0.25 then return end
-    setMenuVisible(true)
-end)
-
--- =============================================================================
--- Atalhos de teclado globais
--- =============================================================================
-trackConnection(UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if destroyed or gameProcessed or UserInputService:GetFocusedTextBox() then return end
-
-    if input.KeyCode == Enum.KeyCode.V then
-        flyToggleControl:UpdateToggle(nil, not flyEnabled)
-    elseif input.KeyCode == Enum.KeyCode.L then
-        espToggleControl:UpdateToggle(nil, not espEnabled)
-    elseif input.KeyCode == Enum.KeyCode.P then
-        infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump)
-    elseif input.KeyCode == Enum.KeyCode.T then
-        giveClickTeleportTool()
-    elseif input.KeyCode == Enum.KeyCode.B then
-        boostToggleControl:UpdateToggle(nil, not boostActive)
-    elseif input.KeyCode == Enum.KeyCode.KeypadOne then
-        teleportToCheckpoint(1)
-    elseif input.KeyCode == Enum.KeyCode.KeypadTwo then
-        teleportToCheckpoint(2)
-    elseif input.KeyCode == Enum.KeyCode.KeypadThree then
-        teleportToCheckpoint(3)
-    elseif input.KeyCode == Enum.KeyCode.K then
-        setMenuVisible(not menuGui.Enabled)
-    elseif input.KeyCode == Enum.KeyCode.X then
-        destroyNothrilo()
-    end
-end))
-
--- =============================================================================
--- Destruição limpa
--- =============================================================================
-local running = true
-destroyNothrilo = function()
-    if destroyed then return end
-    destroyed    = true
-    running      = false
-    killerActive = false
-    killerSession = killerSession + 1
-    infiniteJump = false
-
-    fakeLagSession = fakeLagSession + 1
-    restoreFakeLag()
-    stopSpin(true)
-    stopSpectate(true)
-    stopFreecam()
-
-    noclipEnabled = false
-    restoreNoclip()
-    invisEnabled = false
-    setLocalInvisible(false)
-
-    godEnabled = false
-    if godRespawnConn then godRespawnConn:Disconnect(); godRespawnConn = nil end
-    restoreGodHumanoid()
-
-    antiAfkEnabled = false
-    if antiAfkConn then antiAfkConn:Disconnect(); antiAfkConn = nil end
-
-    stopFly()
-    stopBoost()
-    espEnabled   = false
-    espSession   = espSession + 1
-    clearESP()
-    stabilizer.enabled = false
-    cleanupStabilizer()
-    restorePanicStop()
-    workspace.Gravity = originalGravity
-
-    if antiFlipConn    then antiFlipConn:Disconnect()    antiFlipConn    = nil end
-    if autobrakeConn   then autobrakeConn:Disconnect()   autobrakeConn   = nil end
-    activeCameraMode = nil
-    restoreDefaultCamera()
-
-    for index = #runtimeConnections, 1, -1 do
-        local connection = runtimeConnections[index]
-        pcall(function() connection:Disconnect() end)
-        runtimeConnections[index] = nil
-    end
-
-    for index = #createdTools, 1, -1 do
-        local tool = createdTools[index]
-        if tool and tool.Parent then tool:Destroy() end
-        createdTools[index] = nil
-    end
-
-    if flyMobileGui and flyMobileGui.Parent then flyMobileGui:Destroy() end
-    if toastGui     and toastGui.Parent     then toastGui:Destroy()     end
-    if launcherGui  and launcherGui.Parent  then launcherGui:Destroy()  end
-    if menuGui      and menuGui.Parent      then menuGui:Destroy()      end
-    if runtime      and runtime.Parent      then runtime:Destroy()      end
-end
-
--- =============================================================================
--- ABA: Comandos (atalhos listados)
--- =============================================================================
-local CommandsSection = Window:NewTab("Comandos"):NewSection("Atalhos")
-commandsTabButton     = menuGui:FindFirstChild("ComandosTabButton", true)
-
-CommandsSection:NewButton("V  •  Voo do Veículo",       "Tecla V", function() flyToggleControl:UpdateToggle(nil, not flyEnabled) end)
-CommandsSection:NewButton("L  •  ESP",                  "Tecla L", function() espToggleControl:UpdateToggle(nil, not espEnabled) end)
-CommandsSection:NewButton("P  •  Pulo Infinito",        "Tecla P", function() infiniteJumpToggleControl:UpdateToggle(nil, not infiniteJump) end)
-CommandsSection:NewButton("T  •  Teleporte por Clique", "Tecla T", giveClickTeleportTool)
-CommandsSection:NewButton("B  •  Boost do Carrinho",    "Tecla B", function() boostToggleControl:UpdateToggle(nil, not boostActive) end)
-CommandsSection:NewButton("NumPad 1/2/3  •  Checkpoints","Teclado numérico", function()
-    notify("Checkpoints", "Use NumPad 1, 2 ou 3.")
-end)
-CommandsSection:NewButton("K  •  Minimizar / Abrir",    "Tecla K", function() setMenuVisible(false) end)
-CommandsSection:NewButton("X  •  Fechar o Nothrilo",    "Tecla X", destroyNothrilo)
-
-addShortcutBadge("V  •  Voo do Veículo",        "V")
-addShortcutBadge("L  •  ESP",                   "L")
-addShortcutBadge("P  •  Pulo Infinito",         "P")
-addShortcutBadge("T  •  Teleporte por Clique",  "T")
-addShortcutBadge("B  •  Boost do Carrinho",     "B")
-addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
-addShortcutBadge("K  •  Minimizar / Abrir",     "K")
-addShortcutBadge("X  •  Fechar o Nothrilo",     "X")
-
-task.delay(0.3, function()
-    if not menuGui or not menuGui.Parent then return end
-    addShortcutBadge("V  •  Voo do Veículo",        "V")
-    addShortcutBadge("L  •  ESP",                   "L")
-    addShortcutBadge("P  •  Pulo Infinito",         "P")
-    addShortcutBadge("T  •  Teleporte por Clique",  "T")
-    addShortcutBadge("B  •  Boost do Carrinho",     "B")
-    addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
-    addShortcutBadge("K  •  Minimizar / Abrir",     "K")
-    addShortcutBadge("X  •  Fechar o Nothrilo",     "X")
-end)
-
--- =============================================================================
--- ABA: Interface
--- =============================================================================
-local GuiSection = Window:NewTab("Interface"):NewSection("Interface")
-
-GuiSection:NewButton("Fechar Menu", "Fecha agora; a tecla X também funciona.", destroyNothrilo)
-addShortcutBadge("Fechar Menu", "X")
-
--- Publicação atômica: a janela só aparece depois que todas as abas, comandos e
--- listeners pertencentes a esta geração terminaram de ser montados.
-if not bootstrapAlive() then
-    abortBootstrap()
-    return
-end
-menuGui.Enabled = false
-if os.clock() < startup.beganAt + startup.seconds then
-    if startup.status then startup.status.Text = "Funções prontas • terminando carregamento seguro..." end
-    repeat
-        RunService.RenderStepped:Wait()
-        if not bootstrapAlive() then
-            abortBootstrap()
-            return
-        end
-    until os.clock() >= startup.beganAt + startup.seconds
-end
-if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
-menuGui.Enabled = true
-
--- =============================================================================
--- Loop RGB
--- =============================================================================
-task.spawn(function()
-    while running and not destroyed and menuGui.Parent and launcherGui.Parent do
-        local rgb = Color3.fromHSV((os.clock() * 0.12) % 1, 0.85, 1)
-        ClassicUI:ChangeColor("SchemeColor", rgb)
-        if commandsTabButton and commandsTabButton.Parent then
-            commandsTabButton.BackgroundColor3 = rgb
-        end
-        launcherStroke.Color = rgb
-        launcherIcon.TextColor3 = rgb
-        for i = #customKeybindIcons, 1, -1 do
-            local icon = customKeybindIcons[i]
-            if icon and icon.Parent then icon.TextColor3 = rgb
-            else table.remove(customKeybindIcons, i) end
-        end
-        for i = #toastStrokes, 1, -1 do
-            local stroke = toastStrokes[i]
-            if stroke and stroke.Parent then stroke.Color = rgb
-            else table.remove(toastStrokes, i) end
-        end
-        task.wait(0.30)
-    end
-end)
-
-notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")

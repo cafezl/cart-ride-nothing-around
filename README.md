@@ -42,11 +42,15 @@ Na tela inicial do Nothrilo, escolha um dos provedores disponíveis, conclua as 
 - `key-server/`: servidor responsável pelo fluxo de keys.
 - `assets/`: arquivos visuais usados pelo carregamento.
 
+## Privacidade do sistema de key
+
+A versão atual envia ao servidor do Nothrilo o `UserId`, o `PlaceId` e a key ou autorização temporária necessária para validar o acesso. Quando o ambiente permite salvar arquivos, a autorização válida pode ficar armazenada localmente em `Nothrilo/key-cache-v1.json`. Os provedores de key abrem páginas externas e possuem suas próprias políticas.
+
 ## Observações
 
 - Atualizações do Roblox ou do jogo podem exigir ajustes no script.
 - O projeto é independente e não possui afiliação com Roblox ou com os criadores do jogo.
-- Nunca informe sua senha do Roblox em páginas de key ou executores. Use por sua conta e risco e respeite as regras da plataforma.
+- Nunca informe sua senha do Roblox em páginas de key ou executores. Use apenas em ambientes autorizados, por sua conta e risco, e respeite as regras da plataforma.
 
 ---
 

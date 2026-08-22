@@ -2,7 +2,7 @@
 -- Nothrilo 🇧🇷 — Menu completo por Cafezl
 -- Versão auditada: bugs corrigidos + novas funções
 -- =============================================================================
--- Nothrilo / Cafezl | build protegido O2 | Darklua AST v0.19.0 (rename_variables + dense) | fonte sha256 8ba066d10db28185a32363842a70795efe0cbbbbcb6fb0f70a33d36ee10fe03d
+-- Nothrilo / Cafezl | build protegido O2 | Darklua AST v0.19.0 (rename_variables + dense) | fonte sha256 3e83910817414bfbd1049296fa6873b3223c31c13b52d91fa5c85830dd2ddc8d
 local a=game:GetService('Players')local b=game:GetService('RunService')local c=game:GetService('UserInputService')local d=game:GetService('TweenService')local e=game:GetService('StarterGui')local f=a.
 LocalPlayer if not f then return end local g='Nothrilo \u{1f1e7}\u{1f1f7}'local h=g..' | Feito por Cafezl'local i=_G if type(getgenv)=='function'then local j,k=pcall(getgenv)if j and type(k)=='table'
 then i=k end end local j=(tonumber(i.__CafezlSuiteGeneration)or 0)+1 do local k=pcall(function()i.__CafezlSuiteGeneration=j end)if not k then i=_G j=(tonumber(i.__CafezlSuiteGeneration)or 0)+1 i.
@@ -45,15 +45,15 @@ BackgroundColor3=r.Background H.BorderSizePixel=0 H.ClipsDescendants=true H.Pare
 AnchorPoint=Vector2.new(0,0.5)L.Position=UDim2.new(0,18,0.5,0)L.Size=UDim2.fromOffset(13,13)L.BackgroundColor3=r.SchemeColor L.BorderSizePixel=0 L.Parent=K Instance.new('UICorner',L).CornerRadius=UDim
 .new(1,0)local M=Instance.new('TextLabel')M.Position=UDim2.new(0,42,0,8)M.Size=UDim2.new(1,-96,0,27)M.BackgroundTransparency=1 M.Font=Enum.Font.GothamBold M.Text='Nothrilo \u{2022} Key gr\u{e1}tis'M.
 TextColor3=r.TextColor M.TextSize=19 M.TextXAlignment=Enum.TextXAlignment.Left M.Parent=K local N=Instance.new('TextLabel')N.Position=UDim2.new(0,42,0,36)N.Size=UDim2.new(1,-96,0,20)N.
-BackgroundTransparency=1 N.Font=Enum.Font.Gotham N.Text='1 an\u{fa}ncio \u{2022} menu completo por 24 horas'N.TextColor3=Color3.fromRGB(214,214,224)N.TextSize=13 N.TextXAlignment=Enum.TextXAlignment.
-Left N.Parent=K local O=Instance.new('TextButton')O.Name='Close'O.AnchorPoint=Vector2.new(1,0.5)O.Position=UDim2.new(1,-10,0.5,0)O.Size=UDim2.fromOffset(46,46)O.BackgroundColor3=Color3.fromRGB(24,24,
-30)O.BorderSizePixel=0 O.AutoButtonColor=true O.Font=Enum.Font.GothamBold O.Text='\u{d7}'O.TextColor3=r.TextColor O.TextSize=23 O.Parent=K Instance.new('UICorner',O).CornerRadius=UDim.new(0,13)local P
-=Instance.new('ScrollingFrame')P.Name='Content'P.Position=UDim2.fromOffset(0,68)P.Size=UDim2.new(1,0,1,-68)P.BackgroundTransparency=1 P.BorderSizePixel=0 P.ScrollBarThickness=5 P.ScrollBarImageColor3=
-r.SchemeColor P.ScrollingDirection=Enum.ScrollingDirection.Y P.AutomaticCanvasSize=Enum.AutomaticSize.Y P.CanvasSize=UDim2.new()P.Parent=H local Q=Instance.new('UIPadding')Q.PaddingLeft=UDim.new(0,18)
-Q.PaddingRight=UDim.new(0,18)Q.PaddingTop=UDim.new(0,14)Q.PaddingBottom=UDim.new(0,16)Q.Parent=P local R=Instance.new('UIListLayout')R.FillDirection=Enum.FillDirection.Vertical R.HorizontalAlignment=
-Enum.HorizontalAlignment.Center R.SortOrder=Enum.SortOrder.LayoutOrder R.Padding=UDim.new(0,10)R.Parent=P local function label(S,T,U,V,W)local X=Instance.new('TextLabel')X.Size=UDim2.new(1,0,0,T)X.
-BackgroundTransparency=1 X.Font=U or Enum.Font.Gotham X.Text=S X.TextColor3=W or r.TextColor X.TextSize=V or 13 X.TextWrapped=true X.TextXAlignment=Enum.TextXAlignment.Left X.TextYAlignment=Enum.
-TextYAlignment.Center X.Parent=P return X end local S=label(
+BackgroundTransparency=1 N.Font=Enum.Font.Gotham N.Text='3 etapas de an\u{fa}ncio \u{2022} menu completo por 24 horas'N.TextColor3=Color3.fromRGB(214,214,224)N.TextSize=13 N.TextXAlignment=Enum.
+TextXAlignment.Left N.Parent=K local O=Instance.new('TextButton')O.Name='Close'O.AnchorPoint=Vector2.new(1,0.5)O.Position=UDim2.new(1,-10,0.5,0)O.Size=UDim2.fromOffset(46,46)O.BackgroundColor3=Color3.
+fromRGB(24,24,30)O.BorderSizePixel=0 O.AutoButtonColor=true O.Font=Enum.Font.GothamBold O.Text='\u{d7}'O.TextColor3=r.TextColor O.TextSize=23 O.Parent=K Instance.new('UICorner',O).CornerRadius=UDim.
+new(0,13)local P=Instance.new('ScrollingFrame')P.Name='Content'P.Position=UDim2.fromOffset(0,68)P.Size=UDim2.new(1,0,1,-68)P.BackgroundTransparency=1 P.BorderSizePixel=0 P.ScrollBarThickness=5 P.
+ScrollBarImageColor3=r.SchemeColor P.ScrollingDirection=Enum.ScrollingDirection.Y P.AutomaticCanvasSize=Enum.AutomaticSize.Y P.CanvasSize=UDim2.new()P.Parent=H local Q=Instance.new('UIPadding')Q.
+PaddingLeft=UDim.new(0,18)Q.PaddingRight=UDim.new(0,18)Q.PaddingTop=UDim.new(0,14)Q.PaddingBottom=UDim.new(0,16)Q.Parent=P local R=Instance.new('UIListLayout')R.FillDirection=Enum.FillDirection.
+Vertical R.HorizontalAlignment=Enum.HorizontalAlignment.Center R.SortOrder=Enum.SortOrder.LayoutOrder R.Padding=UDim.new(0,10)R.Parent=P local function label(S,T,U,V,W)local X=Instance.new('TextLabel'
+)X.Size=UDim2.new(1,0,0,T)X.BackgroundTransparency=1 X.Font=U or Enum.Font.Gotham X.Text=S X.TextColor3=W or r.TextColor X.TextSize=V or 13 X.TextWrapped=true X.TextXAlignment=Enum.TextXAlignment.Left
+X.TextYAlignment=Enum.TextYAlignment.Center X.Parent=P return X end local S=label(
 'Escolha uma op\u{e7}\u{e3}o, conclua as etapas no navegador e cole a key aqui. Work.ink, LootLabs e Linkvertise liberam exatamente as mesmas fun\u{e7}\u{f5}es.',58,Enum.Font.GothamMedium,15,Color3.
 fromRGB(238,238,244))S.LayoutOrder=1 local T=label('ESCOLHA ONDE PEGAR A KEY',22,Enum.Font.GothamBold,13,Color3.fromRGB(218,218,228))T.LayoutOrder=2 local U=Instance.new('Frame')U.Size=UDim2.new(1,0,0
 ,54)U.BackgroundTransparency=1 U.LayoutOrder=3 U.Parent=P local V=Instance.new('UIListLayout')V.FillDirection=Enum.FillDirection.Horizontal V.HorizontalAlignment=Enum.HorizontalAlignment.Center V.
@@ -72,62 +72,63 @@ SchemeColor ad.BorderSizePixel=0 ad.Parent=ac Instance.new('UICorner',ad).Corner
 BackgroundTransparency=1 ae.Font=Enum.Font.Gotham ae.Text=v and'Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis.'or'O servidor de keys ainda n\u{e3}o foi conectado nesta build.'ae.
 TextColor3=Color3.fromRGB(232,232,240)ae.TextSize=14 ae.TextWrapped=true ae.TextXAlignment=Enum.TextXAlignment.Left ae.TextYAlignment=Enum.TextYAlignment.Center ae.Parent=ac local af=label(
 '\u{1f510} Todas as fun\u{e7}\u{f5}es s\u{e3}o gr\u{e1}tis ap\u{f3}s a key. Nenhuma senha \u{e9} pedida.',42,Enum.Font.GothamMedium,13,Color3.fromRGB(205,205,216))af.LayoutOrder=8 local ag={}local ah=
-{{id='workink',text='Work.ink'},{id='lootlabs',text='LootLabs'},{id='linkvertise',text='Linkvertise'}}local function setStatus(ai,aj)ae.Text=ai if aj=='good'then ae.TextColor3=Color3.fromRGB(116,255,
-158)elseif aj=='bad'then ae.TextColor3=Color3.fromRGB(255,116,148)else ae.TextColor3=Color3.fromRGB(232,232,240)end end local function copyText(ai)for aj,ak in ipairs({'setclipboard','toclipboard'})do
-local al=environmentFunction(ak)if al then local am=pcall(al,ai)if am then return true end end end return false end for ai,aj in ipairs(ah)do local ak=Instance.new('TextButton')ak.Name=aj.id ak.Size=
-UDim2.new(1/3,-6,1,0)ak.BackgroundColor3=Color3.fromRGB(24,24,31)ak.BorderSizePixel=0 ak.AutoButtonColor=true ak.Font=Enum.Font.GothamBold ak.Text=aj.text ak.TextColor3=r.TextColor ak.TextSize=14 ak.
-Parent=U Instance.new('UICorner',ak).CornerRadius=UDim.new(0,12)local al=Instance.new('UIStroke')al.Color=r.SchemeColor al.Transparency=0.18 al.Thickness=1 al.Parent=ak table.insert(ag,al)connect(ak.
-Activated,function()if not gateAlive()then return end if not v then setStatus('O servidor ainda n\u{e3}o foi publicado. Esta build \u{e9} apenas de prepara\u{e7}\u{e3}o.','bad')return end local am=u..
-'/v1/nothrilo/key/start?provider='..s:UrlEncode(aj.id)..'&userId='..s:UrlEncode(tostring(f.UserId))W.Text=am if copyText(am)then setStatus('Link do '..aj.text..
-' copiado. Cole no navegador, conclua e volte com a key.','good')else setStatus([[Copie o link do campo acima, abra no navegador, conclua e volte com a key.]],nil)pcall(function()W:CaptureFocus()W.
-CursorPosition=#W.Text+1 W.SelectionStart=1 end)end end)end local function setBusy(ai)ab.Active=not ai ab.AutoButtonColor=not ai ab.Text=ai and'VERIFICANDO...'or'VALIDAR E ABRIR O NOTHRILO'ab.
-BackgroundTransparency=ai and 0.35 or 0 pcall(function()Z.TextEditable=not ai end)end local function friendlyError(ai,aj)if ai=='server_not_configured'then return
-'O servidor de keys ainda n\u{e3}o foi conectado nesta build.'end if ai=='network_error'then return'N\u{e3}o consegui falar com o servidor. Confira a internet e tente novamente.'end if ai==
-'invalid_key'or ai=='invalid_lease'or aj==401 or aj==403 then return'Key inv\u{e1}lida, expirada ou criada para outro usu\u{e1}rio.'end if aj==429 then return
-'Muitas tentativas. Aguarde um pouco e tente novamente.'end return[[O servidor respondeu de um jeito inesperado. Tente novamente em instantes.]]end local function beginVerification(ai,aj,ak)if not
-gateAlive()then return end aj=tostring(aj or''):match('^%s*(.-)%s*$')if ai=='key'then aj=aj:upper()end if(ai=='key'and not aj:match('^NOTH%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w$'))or(ai==
-'lease'and not validLease(aj))then if ak then clearKeyCache()else setStatus('Cole uma key Nothrilo completa antes de validar.','bad')end return end D+=1 local al=D setBusy(true)setStatus(ak and
-'Verificando seu acesso salvo...'or'Validando sua key com seguran\u{e7}a...',nil)task.delay(20,function()if gateAlive()and D==al and not A then D+=1 setBusy(false)setStatus(
-'A verifica\u{e7}\u{e3}o demorou demais. Tente novamente.','bad')end end)task.spawn(function()local am=tostring(os.clock())pcall(function()am=s:GenerateGUID(false)end)local an={product='nothrilo',
-clientVersion='free-key-v1',userId=tostring(f.UserId),placeId=tostring(game.PlaceId),nonce=am}an[ai]=aj local ao,ap,aq,ar=postKeyServer(an)if not gateAlive()or D~=al or A then return end if ao and
-type(aq)=='table'and aq.ok==true and validLease(aq.lease)and tonumber(aq.ttlSeconds)and tonumber(aq.ttlSeconds)>5 then local as=math.floor(math.clamp(tonumber(aq.ttlSeconds),1,z))saveKeyCache(aq.lease
-,as)local at=os.clock()+as task.spawn(function()while not n and isCurrentSuiteGeneration()do local au=at-os.clock()if au<=0 then break end task.wait(math.max(0.25,math.min(30,au)))end if n or not
-isCurrentSuiteGeneration()or os.clock()<at then return end clearKeyCache()if m then m()else n=true if q and q.Parent then q:Destroy()end end end)setStatus(
-'Acesso liberado! Abrindo o Nothrilo completo...','good')task.wait(0.45)if gateAlive()and D==al then B=true A=true end return end if ak then clearKeyCache()end setBusy(false)setStatus(friendlyError(ar
-or(aq and aq.error),ap),'bad')end)end connect(ab.Activated,function()beginVerification('key',Z.Text,false)end)connect(Z.FocusLost,function(ai)if ai then beginVerification('key',Z.Text,false)end end)
-connect(O.Activated,function()D+=1 A=true B=false end)local ai=Vector2.new()local function resizeGate()local aj=workspace.CurrentCamera local ak=aj and aj.ViewportSize or Vector2.new(800,600)if ak==ai
-then return end ai=ak local al=math.max(284,math.min(600,ak.X-16))local am=math.max(350,math.min(550,ak.Y-16))H.Size=UDim2.fromOffset(al,am)local an=al<390 M.TextSize=an and 17 or 19 N.TextSize=an and
-12 or 13 S.TextSize=an and 14 or 15 T.TextSize=an and 12 or 13 W.TextSize=an and 12 or 13 Z.TextSize=an and 13 or 15 ab.TextSize=an and 13 or 14 ae.TextSize=an and 13 or 14 af.TextSize=an and 12 or 13
-for ao,ap in ipairs(ag)do ap.Parent.TextSize=an and 12 or 14 end end resizeGate()task.spawn(function()while gateAlive()and not A do resizeGate()local aj=Color3.fromHSV((os.clock()*0.075)%1,0.86,1)J.
-Color=aj L.BackgroundColor3=aj ab.BackgroundColor3=aj P.ScrollBarImageColor3=aj ad.BackgroundColor3=aj for ak,al in ipairs(ag)do al.Color=aj end task.wait(0.08)end end)local aj=readKeyCache()if aj
-then beginVerification('lease',aj.lease,true)elseif v then setStatus('Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis.',nil)end repeat task.wait(0.05)until A or not gateAlive()D+=1 E=nil
-for ak=#C,1,-1 do pcall(function()C[ak]:Disconnect()end)C[ak]=nil end if t and t.Parent then pcall(function()t:Destroy()end)end t=nil return B and not n and isCurrentSuiteGeneration()end if not
-runFreeKeyGate()then n=true for aa=#o,1,-1 do pcall(function()o[aa]:Disconnect()end)o[aa]=nil end if q and q.Parent then q:Destroy()end return end end local aa={seconds=5,beganAt=os.clock()}aa.gui,aa.
-status,aa.progress=(function()local ab=Instance.new('ScreenGui')ab.Name='NothriloLoading'ab.ResetOnSpawn=false ab.IgnoreGuiInset=true ab.DisplayOrder=10050 ab.ZIndexBehavior=Enum.ZIndexBehavior.
-Sibling ab.Parent=k local ac=Instance.new('Frame')ac.Name='Shade'ac.Size=UDim2.fromScale(1,1)ac.BackgroundColor3=Color3.fromRGB(3,3,5)ac.BackgroundTransparency=0.08 ac.BorderSizePixel=0 ac.Parent=ab
-local ad=Instance.new('Frame')ad.Name='Shadow'ad.AnchorPoint=Vector2.new(0.5,0.5)ad.Position=UDim2.new(0.5,0,0.5,6)ad.Size=UDim2.fromOffset(344,500)ad.BackgroundColor3=Color3.fromRGB(0,0,0)ad.
-BackgroundTransparency=0.38 ad.BorderSizePixel=0 ad.Parent=ac Instance.new('UICorner',ad).CornerRadius=UDim.new(0,24)local ae=Instance.new('Frame')ae.Name='Card'ae.AnchorPoint=Vector2.new(0.5,0.5)ae.
-Position=UDim2.fromScale(0.5,0.5)ae.Size=UDim2.fromOffset(344,500)ae.BackgroundColor3=Color3.fromRGB(10,10,14)ae.BorderSizePixel=0 ae.ClipsDescendants=true ae.Parent=ac local af=Instance.new(
-'UICorner')af.CornerRadius=UDim.new(0,24)af.Parent=ae local ag=Instance.new('UIStroke')ag.Thickness=2 ag.Color=r.SchemeColor ag.Parent=ae ag.Transparency=0.06 local ah=Instance.new('Frame')ah.Name=
-'MediaPanel'ah.Position=UDim2.fromOffset(14,14)ah.Size=UDim2.new(1,-28,1,-142)ah.BackgroundColor3=Color3.fromRGB(17,17,23)ah.BorderSizePixel=0 ah.ClipsDescendants=true ah.Parent=ae Instance.new(
-'UICorner',ah).CornerRadius=UDim.new(0,18)local ai=Instance.new('UIStroke')ai.Thickness=1 ai.Transparency=0.55 ai.Color=r.SchemeColor ai.Parent=ah local aj=Instance.new('VideoFrame')aj.Name='CatVideo'
-aj.Size=UDim2.fromScale(1,1)aj.BackgroundColor3=Color3.fromRGB(12,12,17)aj.BorderSizePixel=0 aj.Looped=true aj.Volume=0 aj.Visible=false aj.ZIndex=1 aj.Parent=ah local ak=Instance.new('Frame')ak.Name=
-'EmojiFallback'ak.Size=UDim2.fromScale(1,1)ak.BackgroundColor3=Color3.fromRGB(17,17,23)ak.BorderSizePixel=0 ak.ZIndex=2 ak.Parent=ah local al=Instance.new('TextLabel')al.AnchorPoint=Vector2.new(0.5,
-0.5)al.Position=UDim2.fromScale(0.5,0.42)al.Size=UDim2.new(1,-30,0,44)al.BackgroundTransparency=1 al.Font=Enum.Font.GothamBold al.Text='preparando a bagun\u{e7}a...'al.TextColor3=Color3.fromRGB(244,
-244,248)al.TextSize=17 al.TextWrapped=true al.ZIndex=3 al.Parent=ak local am=Instance.new('Frame')am.Name='BrandDot'am.Position=UDim2.new(0,18,1,-110)am.Size=UDim2.fromOffset(18,18)am.BackgroundColor3
-=r.SchemeColor am.BorderSizePixel=0 am.Parent=ae Instance.new('UICorner',am).CornerRadius=UDim.new(1,0)local an=Instance.new('TextLabel')an.BackgroundTransparency=1 an.Position=UDim2.new(0,46,1,-122)
-an.Size=UDim2.new(1,-64,0,26)an.Font=Enum.Font.GothamBold an.Text=g an.TextColor3=Color3.fromRGB(248,248,250)an.TextSize=18 an.TextXAlignment=Enum.TextXAlignment.Left an.Parent=ae local ao=Instance.
-new('TextLabel')ao.BackgroundTransparency=1 ao.Position=UDim2.new(0,18,1,-90)ao.Size=UDim2.new(1,-36,0,17)ao.Font=Enum.Font.Gotham ao.Text='Feito por Cafezl  \u{2022}  preparando tudo'ao.TextColor3=
-Color3.fromRGB(205,205,214)ao.TextSize=12 ao.TextXAlignment=Enum.TextXAlignment.Left ao.Parent=ae local ap={}local aq={'\u{1f431}','\u{1f638}','\u{2728}','\u{2615}','\u{26a1}','\u{1f3ae}'}for ar,as in
-ipairs(aq)do local at=Instance.new('TextLabel')at.Name='Emoji'..ar at.AnchorPoint=Vector2.new(0.5,0.5)local au=(ar-1)%3 local s=math.floor((ar-1)/3)at.Position=UDim2.new(0.23+au*0.27,0,0.58+s*0.15,0)
-at.Size=UDim2.fromOffset(52,52)at.BackgroundTransparency=1 at.Font=Enum.Font.GothamBold at.Text=as at.TextColor3=Color3.fromRGB(255,255,255)at.TextSize=30 at.ZIndex=3 at.Parent=ak table.insert(ap,at)
-end local ar=Instance.new('Frame')ar.Name='StatusDot'ar.AnchorPoint=Vector2.new(0.5,0.5)ar.Position=UDim2.new(0,22,1,-52)ar.Size=UDim2.fromOffset(8,8)ar.BackgroundColor3=r.SchemeColor ar.
-BorderSizePixel=0 ar.Parent=ae Instance.new('UICorner',ar).CornerRadius=UDim.new(1,0)local as=Instance.new('TextLabel')as.BackgroundTransparency=1 as.Position=UDim2.new(0,34,1,-63)as.Size=UDim2.new(1,
--100,0,22)as.Font=Enum.Font.Gotham as.Text='Preparando interface...'as.TextColor3=r.SchemeColor as.TextSize=12 as.TextXAlignment=Enum.TextXAlignment.Left as.Parent=ae local at=Instance.new('TextLabel'
-)at.Name='Percent'at.BackgroundTransparency=1 at.Position=UDim2.new(1,-68,1,-63)at.Size=UDim2.fromOffset(50,22)at.Font=Enum.Font.GothamSemibold at.Text='0%'at.TextColor3=r.SchemeColor at.TextSize=12
-at.TextXAlignment=Enum.TextXAlignment.Right at.Parent=ae local au=Instance.new('Frame')au.Name='ProgressTrack'au.Position=UDim2.new(0,18,1,-24)au.Size=UDim2.new(1,-36,0,8)au.BackgroundColor3=Color3.
-fromRGB(34,34,42)au.BorderSizePixel=0 au.Parent=ae Instance.new('UICorner',au).CornerRadius=UDim.new(1,0)local s=Instance.new('Frame')s.Name='Progress's.Size=UDim2.fromScale(0,1)s.BackgroundColor3=r.
-SchemeColor s.BorderSizePixel=0 s.Parent=au Instance.new('UICorner',s).CornerRadius=UDim.new(1,0)local t='Nothrilo/loader-cat-v1.mp4'local u=tostring(i.NothriloLoaderVideoUrl or
+{{id='workink',text='Work.ink \u{1f7e2}'},{id='lootlabs',text='LootLabs \u{1f48e}'},{id='linkvertise',text='Linkvertise \u{1f517}'}}local function setStatus(ai,aj)ae.Text=ai if aj=='good'then ae.
+TextColor3=Color3.fromRGB(116,255,158)elseif aj=='bad'then ae.TextColor3=Color3.fromRGB(255,116,148)else ae.TextColor3=Color3.fromRGB(232,232,240)end end local function copyText(ai)for aj,ak in
+ipairs({'setclipboard','toclipboard'})do local al=environmentFunction(ak)if al then local am=pcall(al,ai)if am then return true end end end return false end for ai,aj in ipairs(ah)do local ak=Instance
+.new('TextButton')ak.Name=aj.id ak.Size=UDim2.new(1/3,-6,1,0)ak.BackgroundColor3=Color3.fromRGB(24,24,31)ak.BorderSizePixel=0 ak.AutoButtonColor=true ak.Font=Enum.Font.GothamBold ak.Text=aj.text ak.
+TextColor3=r.TextColor ak.TextSize=14 ak.Parent=U Instance.new('UICorner',ak).CornerRadius=UDim.new(0,12)local al=Instance.new('UIStroke')al.Color=r.SchemeColor al.Transparency=0.18 al.Thickness=1 al.
+Parent=ak table.insert(ag,al)connect(ak.Activated,function()if not gateAlive()then return end if not v then setStatus(
+'O servidor ainda n\u{e3}o foi publicado. Esta build \u{e9} apenas de prepara\u{e7}\u{e3}o.','bad')return end local am=u..'/v1/nothrilo/key/start?provider='..s:UrlEncode(aj.id)..'&userId='..s:
+UrlEncode(tostring(f.UserId))W.Text=am if copyText(am)then setStatus('Link do '..aj.text..' copiado. Cole no navegador, conclua e volte com a key.','good')else setStatus(
+[[Copie o link do campo acima, abra no navegador, conclua e volte com a key.]],nil)pcall(function()W:CaptureFocus()W.CursorPosition=#W.Text+1 W.SelectionStart=1 end)end end)end local function setBusy(
+ai)ab.Active=not ai ab.AutoButtonColor=not ai ab.Text=ai and'VERIFICANDO...'or'VALIDAR E ABRIR O NOTHRILO'ab.BackgroundTransparency=ai and 0.35 or 0 pcall(function()Z.TextEditable=not ai end)end local 
+function friendlyError(ai,aj)if ai=='server_not_configured'then return'O servidor de keys ainda n\u{e3}o foi conectado nesta build.'end if ai=='network_error'then return
+'N\u{e3}o consegui falar com o servidor. Confira a internet e tente novamente.'end if ai=='invalid_key'or ai=='invalid_lease'or aj==401 or aj==403 then return
+'Key inv\u{e1}lida, expirada ou criada para outro usu\u{e1}rio.'end if aj==429 then return'Muitas tentativas. Aguarde um pouco e tente novamente.'end return
+[[O servidor respondeu de um jeito inesperado. Tente novamente em instantes.]]end local function beginVerification(ai,aj,ak)if not gateAlive()then return end aj=tostring(aj or''):match('^%s*(.-)%s*$')
+if ai=='key'then aj=aj:upper()end if(ai=='key'and not aj:match('^NOTH%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w$'))or(ai=='lease'and not validLease(aj))then if ak then clearKeyCache()else
+setStatus('Cole uma key Nothrilo completa antes de validar.','bad')end return end D+=1 local al=D setBusy(true)setStatus(ak and'Verificando seu acesso salvo...'or
+'Validando sua key com seguran\u{e7}a...',nil)task.delay(20,function()if gateAlive()and D==al and not A then D+=1 setBusy(false)setStatus('A verifica\u{e7}\u{e3}o demorou demais. Tente novamente.',
+'bad')end end)task.spawn(function()local am=tostring(os.clock())pcall(function()am=s:GenerateGUID(false)end)local an={product='nothrilo',clientVersion='free-key-v1',userId=tostring(f.UserId),placeId=
+tostring(game.PlaceId),nonce=am}an[ai]=aj local ao,ap,aq,ar=postKeyServer(an)if not gateAlive()or D~=al or A then return end if ao and type(aq)=='table'and aq.ok==true and validLease(aq.lease)and
+tonumber(aq.ttlSeconds)and tonumber(aq.ttlSeconds)>5 then local as=math.floor(math.clamp(tonumber(aq.ttlSeconds),1,z))saveKeyCache(aq.lease,as)local at=os.clock()+as task.spawn(function()while not n
+and isCurrentSuiteGeneration()do local au=at-os.clock()if au<=0 then break end task.wait(math.max(0.25,math.min(30,au)))end if n or not isCurrentSuiteGeneration()or os.clock()<at then return end
+clearKeyCache()if m then m()else n=true if q and q.Parent then q:Destroy()end end end)setStatus('Acesso liberado! Abrindo o Nothrilo completo...','good')task.wait(0.45)if gateAlive()and D==al then B=
+true A=true end return end if ak then clearKeyCache()end setBusy(false)setStatus(friendlyError(ar or(aq and aq.error),ap),'bad')end)end connect(ab.Activated,function()beginVerification('key',Z.Text,
+false)end)connect(Z.FocusLost,function(ai)if ai then beginVerification('key',Z.Text,false)end end)connect(O.Activated,function()D+=1 A=true B=false end)local ai=Vector2.new()local function resizeGate(
+)local aj=workspace.CurrentCamera local ak=aj and aj.ViewportSize or Vector2.new(800,600)if ak==ai then return end ai=ak local al=math.max(284,math.min(600,ak.X-16))local am=math.max(350,math.min(550,
+ak.Y-16))H.Size=UDim2.fromOffset(al,am)local an=al<390 M.TextSize=an and 17 or 19 N.TextSize=an and 12 or 13 S.TextSize=an and 14 or 15 T.TextSize=an and 12 or 13 W.TextSize=an and 12 or 13 Z.TextSize
+=an and 13 or 15 ab.TextSize=an and 13 or 14 ae.TextSize=an and 13 or 14 af.TextSize=an and 12 or 13 for ao,ap in ipairs(ag)do ap.Parent.TextSize=an and 12 or 14 end end resizeGate()task.spawn(
+function()while gateAlive()and not A do resizeGate()local aj=Color3.fromHSV((os.clock()*0.075)%1,0.86,1)J.Color=aj L.BackgroundColor3=aj ab.BackgroundColor3=aj P.ScrollBarImageColor3=aj ad.
+BackgroundColor3=aj for ak,al in ipairs(ag)do al.Color=aj end task.wait(0.08)end end)local aj=readKeyCache()if aj then beginVerification('lease',aj.lease,true)elseif v then setStatus(
+'Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis.',nil)end repeat task.wait(0.05)until A or not gateAlive()D+=1 E=nil for ak=#C,1,-1 do pcall(function()C[ak]:Disconnect()end)C[ak]=nil end
+if t and t.Parent then pcall(function()t:Destroy()end)end t=nil return B and not n and isCurrentSuiteGeneration()end if not runFreeKeyGate()then n=true for aa=#o,1,-1 do pcall(function()o[aa]:
+Disconnect()end)o[aa]=nil end if q and q.Parent then q:Destroy()end return end end local aa={seconds=5,beganAt=os.clock()}aa.gui,aa.status,aa.progress=(function()local ab=Instance.new('ScreenGui')ab.
+Name='NothriloLoading'ab.ResetOnSpawn=false ab.IgnoreGuiInset=true ab.DisplayOrder=10050 ab.ZIndexBehavior=Enum.ZIndexBehavior.Sibling ab.Parent=k local ac=Instance.new('Frame')ac.Name='Shade'ac.Size=
+UDim2.fromScale(1,1)ac.BackgroundColor3=Color3.fromRGB(3,3,5)ac.BackgroundTransparency=0.08 ac.BorderSizePixel=0 ac.Parent=ab local ad=Instance.new('Frame')ad.Name='Shadow'ad.AnchorPoint=Vector2.new(
+0.5,0.5)ad.Position=UDim2.new(0.5,0,0.5,6)ad.Size=UDim2.fromOffset(344,500)ad.BackgroundColor3=Color3.fromRGB(0,0,0)ad.BackgroundTransparency=0.38 ad.BorderSizePixel=0 ad.Parent=ac Instance.new(
+'UICorner',ad).CornerRadius=UDim.new(0,24)local ae=Instance.new('Frame')ae.Name='Card'ae.AnchorPoint=Vector2.new(0.5,0.5)ae.Position=UDim2.fromScale(0.5,0.5)ae.Size=UDim2.fromOffset(344,500)ae.
+BackgroundColor3=Color3.fromRGB(10,10,14)ae.BorderSizePixel=0 ae.ClipsDescendants=true ae.Parent=ac local af=Instance.new('UICorner')af.CornerRadius=UDim.new(0,24)af.Parent=ae local ag=Instance.new(
+'UIStroke')ag.Thickness=2 ag.Color=r.SchemeColor ag.Parent=ae ag.Transparency=0.06 local ah=Instance.new('Frame')ah.Name='MediaPanel'ah.Position=UDim2.fromOffset(14,14)ah.Size=UDim2.new(1,-28,1,-142)
+ah.BackgroundColor3=Color3.fromRGB(17,17,23)ah.BorderSizePixel=0 ah.ClipsDescendants=true ah.Parent=ae Instance.new('UICorner',ah).CornerRadius=UDim.new(0,18)local ai=Instance.new('UIStroke')ai.
+Thickness=1 ai.Transparency=0.55 ai.Color=r.SchemeColor ai.Parent=ah local aj=Instance.new('VideoFrame')aj.Name='CatVideo'aj.Size=UDim2.fromScale(1,1)aj.BackgroundColor3=Color3.fromRGB(12,12,17)aj.
+BorderSizePixel=0 aj.Looped=true aj.Volume=0 aj.Visible=false aj.ZIndex=1 aj.Parent=ah local ak=Instance.new('Frame')ak.Name='EmojiFallback'ak.Size=UDim2.fromScale(1,1)ak.BackgroundColor3=Color3.
+fromRGB(17,17,23)ak.BorderSizePixel=0 ak.ZIndex=2 ak.Parent=ah local al=Instance.new('TextLabel')al.AnchorPoint=Vector2.new(0.5,0.5)al.Position=UDim2.fromScale(0.5,0.42)al.Size=UDim2.new(1,-30,0,44)al
+.BackgroundTransparency=1 al.Font=Enum.Font.GothamBold al.Text='preparando a bagun\u{e7}a...'al.TextColor3=Color3.fromRGB(244,244,248)al.TextSize=17 al.TextWrapped=true al.ZIndex=3 al.Parent=ak local
+am=Instance.new('Frame')am.Name='BrandDot'am.Position=UDim2.new(0,18,1,-110)am.Size=UDim2.fromOffset(18,18)am.BackgroundColor3=r.SchemeColor am.BorderSizePixel=0 am.Parent=ae Instance.new('UICorner',
+am).CornerRadius=UDim.new(1,0)local an=Instance.new('TextLabel')an.BackgroundTransparency=1 an.Position=UDim2.new(0,46,1,-122)an.Size=UDim2.new(1,-64,0,26)an.Font=Enum.Font.GothamBold an.Text=g an.
+TextColor3=Color3.fromRGB(248,248,250)an.TextSize=18 an.TextXAlignment=Enum.TextXAlignment.Left an.Parent=ae local ao=Instance.new('TextLabel')ao.BackgroundTransparency=1 ao.Position=UDim2.new(0,18,1,
+-90)ao.Size=UDim2.new(1,-36,0,17)ao.Font=Enum.Font.Gotham ao.Text='Feito por Cafezl  \u{2022}  preparando tudo'ao.TextColor3=Color3.fromRGB(205,205,214)ao.TextSize=12 ao.TextXAlignment=Enum.
+TextXAlignment.Left ao.Parent=ae local ap={}local aq={'\u{1f431}','\u{1f638}','\u{2728}','\u{2615}','\u{26a1}','\u{1f3ae}'}for ar,as in ipairs(aq)do local at=Instance.new('TextLabel')at.Name='Emoji'..
+ar at.AnchorPoint=Vector2.new(0.5,0.5)local au=(ar-1)%3 local s=math.floor((ar-1)/3)at.Position=UDim2.new(0.23+au*0.27,0,0.58+s*0.15,0)at.Size=UDim2.fromOffset(52,52)at.BackgroundTransparency=1 at.
+Font=Enum.Font.GothamBold at.Text=as at.TextColor3=Color3.fromRGB(255,255,255)at.TextSize=30 at.ZIndex=3 at.Parent=ak table.insert(ap,at)end local ar=Instance.new('Frame')ar.Name='StatusDot'ar.
+AnchorPoint=Vector2.new(0.5,0.5)ar.Position=UDim2.new(0,22,1,-52)ar.Size=UDim2.fromOffset(8,8)ar.BackgroundColor3=r.SchemeColor ar.BorderSizePixel=0 ar.Parent=ae Instance.new('UICorner',ar).
+CornerRadius=UDim.new(1,0)local as=Instance.new('TextLabel')as.BackgroundTransparency=1 as.Position=UDim2.new(0,34,1,-63)as.Size=UDim2.new(1,-100,0,22)as.Font=Enum.Font.Gotham as.Text=
+'Preparando interface...'as.TextColor3=r.SchemeColor as.TextSize=12 as.TextXAlignment=Enum.TextXAlignment.Left as.Parent=ae local at=Instance.new('TextLabel')at.Name='Percent'at.BackgroundTransparency
+=1 at.Position=UDim2.new(1,-68,1,-63)at.Size=UDim2.fromOffset(50,22)at.Font=Enum.Font.GothamSemibold at.Text='0%'at.TextColor3=r.SchemeColor at.TextSize=12 at.TextXAlignment=Enum.TextXAlignment.Right
+at.Parent=ae local au=Instance.new('Frame')au.Name='ProgressTrack'au.Position=UDim2.new(0,18,1,-24)au.Size=UDim2.new(1,-36,0,8)au.BackgroundColor3=Color3.fromRGB(34,34,42)au.BorderSizePixel=0 au.
+Parent=ae Instance.new('UICorner',au).CornerRadius=UDim.new(1,0)local s=Instance.new('Frame')s.Name='Progress's.Size=UDim2.fromScale(0,1)s.BackgroundColor3=r.SchemeColor s.BorderSizePixel=0 s.Parent=
+au Instance.new('UICorner',s).CornerRadius=UDim.new(1,0)local t='Nothrilo/loader-cat-v1.mp4'local u=tostring(i.NothriloLoaderVideoUrl or
 [[https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/assets/nothrilo-loader.mp4]])local function loaderFunction(v)local w pcall(function()w=rawget(i,v)end)if type(w)=='function'
 then return w end pcall(function()w=rawget(_G,v)end)return type(w)=='function'and w or nil end local function nestedLoaderFunction(v,w)local x pcall(function()x=rawget(i,v)end)if type(x)~='table'then
 pcall(function()x=rawget(_G,v)end)end local y=type(x)=='table'and rawget(x,w)or nil return type(y)=='function'and y or nil end local function loaderAlive()return ab.Parent~=nil and not n and

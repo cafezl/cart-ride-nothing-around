@@ -1,0 +1,49 @@
+name: Validate menus and API
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out project
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Test API and published sources
+        run: node --test tests/source.test.mjs key-server/test/key-store.test.mjs
+      - name: Check JavaScript syntax and aliases
+        run: |
+          node --check key-server/src/index.js
+          node scripts/sync-aliases.mjs
+      - name: Check out pinned Luau source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: luau-lang/luau
+          ref: c2ec0d4e5ca50796ba174a7565298f59aa572268 # 0.736
+          path: tools/luau
+          persist-credentials: false
+      - name: Build compiler and interpreter
+        working-directory: tools/luau
+        run: make config=release MAKEFLAGS='-r -j1' -j1 luau luau-compile
+      - name: Compile all entrypoints and test mocked startup
+        env:
+          LUAU_BIN: ${{ github.workspace }}/tools/luau/build/release/luau
+          LUAU_COMPILE_BIN: ${{ github.workspace }}/tools/luau/build/release/luau-compile
+        run: node --test tests/client.test.mjs

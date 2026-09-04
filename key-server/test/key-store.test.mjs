@@ -8,6 +8,7 @@ class MemoryStorage {
     this.values = new Map();
     this.alarm = null;
     this.listLimits = [];
+    this.putKeys = [];
   }
 
   async get(key) {
@@ -16,6 +17,7 @@ class MemoryStorage {
   }
 
   async put(key, value) {
+    this.putKeys.push(key);
     this.values.set(key, structuredClone(value));
   }
 
@@ -43,6 +45,7 @@ class MemoryStorage {
 }
 
 async function call(store, path, body) {
+  if (path === "/verify" && body) body = { clientKey: "c".repeat(64), ...body };
   const response = await store.fetch(new Request(`https://key-store.internal${path}`, {
     method: body ? "POST" : "GET",
     headers: body ? { "Content-Type": "application/json" } : undefined,
@@ -329,7 +332,8 @@ test("expires both key and lease and requires a fresh completion", async () => {
 
 test("serializes concurrent lease creation for one key", async () => {
   const storage = new MemoryStorage();
-  const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  // This test isolates lease idempotency; abuse limits are covered separately.
+  const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400", VERIFY_PAIR_LIMIT: "30" });
   const created = await call(store, "/session", sessionRequest("workink", "123456"));
   const completed = await call(store, "/complete", {
     sessionId: created.body.sessionId,
@@ -426,7 +430,7 @@ test("handles malformed session cookies without throwing", async () => {
 test("stops LootLabs pending polling after about 60 seconds", async () => {
   const response = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/callback/lootlabs"), {});
   const page = await response.text();
-  const script = page.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  const script = page.match(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script);
 
   const scheduled = [];
@@ -615,4 +619,164 @@ test("cleans expired records in bounded pages and reschedules remaining work", a
   assert.equal([...storage.values.keys()].filter((key) => key.startsWith("expired:")).length, 0);
   assert.equal(storage.values.has("live:record"), true);
   assert.equal(storage.listLimits.every((limit) => Number.isInteger(limit) && limit <= 8), true);
+});
+
+function publicVerify(body, ip = "203.0.113.50") {
+  return new Request("https://nothrilo.test/v1/nothrilo/key/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "CF-Connecting-IP": ip },
+    body: JSON.stringify(body),
+  });
+}
+
+const unknownKey = "NOTH-AAAA-AAAA-AAAA-AAAA-AAAA";
+
+test("rejects oversized verification JSON before accessing storage", async () => {
+  let bindingCalls = 0;
+  const env = { KEY_STORE: { idFromName() { bindingCalls += 1; throw new Error("unexpected storage access"); } } };
+  const request = publicVerify({ key: unknownKey, userId: "123", padding: "x".repeat(4096) });
+  request.headers.delete("Content-Length");
+  const response = await worker.fetch(request, env);
+  assert.equal(response.status, 413);
+  assert.equal((await response.json()).error, "request_too_large");
+  assert.equal(bindingCalls, 0);
+});
+
+test("cancels an oversized stream without trusting Content-Length or buffering the tail", async () => {
+  let pulls = 0;
+  let cancelled = false;
+  const body = new ReadableStream({
+    pull(controller) {
+      pulls += 1;
+      if (pulls > 20) controller.close();
+      else controller.enqueue(new TextEncoder().encode("x".repeat(1024)));
+    },
+    cancel() { cancelled = true; },
+  });
+  const response = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Content-Length": "1" },
+    body,
+    duplex: "half",
+  }), {});
+  assert.equal(response.status, 413);
+  assert.equal(cancelled, true);
+  assert.ok(pulls < 6, `read ${pulls} chunks instead of stopping at the byte budget`);
+});
+
+test("applies the administrative body limit in UTF-8 bytes, not characters", async () => {
+  const storage = new MemoryStorage();
+  const secret = "a".repeat(64);
+  const response = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/admin/issue", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${secret}` },
+    body: JSON.stringify({ userId: "123", padding: "á".repeat(600) }),
+  }), { ADMIN_ISSUE_SECRET: secret, KEY_STORE: bindingFor(new KeyStore({ storage }, {})) });
+  assert.equal(response.status, 413);
+  assert.equal(storage.values.size, 0);
+});
+
+test("requires a JSON object, a scalar UserId and exactly one credential", async () => {
+  const storage = new MemoryStorage();
+  const env = { KEY_STORE: bindingFor(new KeyStore({ storage }, {})) };
+  const wrongType = publicVerify({ key: unknownKey, userId: "123" });
+  wrongType.headers.set("Content-Type", "text/plain");
+  assert.equal((await worker.fetch(wrongType, env)).status, 415);
+  assert.equal((await worker.fetch(publicVerify([]), env)).status, 400);
+  const badId = await worker.fetch(publicVerify({ key: unknownKey, userId: ["123"] }), env);
+  assert.equal(badId.status, 401);
+  const ambiguous = await worker.fetch(publicVerify({
+    key: unknownKey, lease: `NLEASE-${"a".repeat(64)}`, userId: "123",
+  }), env);
+  assert.equal(ambiguous.status, 401);
+  assert.equal(storage.values.size, 0);
+});
+
+test("rate limits verification by IP and IP/UserId without globally locking the claimed user", async () => {
+  const storage = new MemoryStorage();
+  const env = { KEY_STORE: bindingFor(new KeyStore({ storage }, {
+    VERIFY_PAIR_LIMIT: "2", VERIFY_IP_LIMIT: "20", VERIFY_WINDOW_SECONDS: "60",
+  })) };
+  const body = { key: unknownKey, userId: "123" };
+  assert.equal((await worker.fetch(publicVerify(body), env)).status, 401);
+  assert.equal((await worker.fetch(publicVerify(body), env)).status, 401);
+  const limited = await worker.fetch(publicVerify(body), env);
+  assert.equal(limited.status, 429);
+  assert.equal((await limited.json()).error, "rate_limited");
+  assert.ok(Number(limited.headers.get("Retry-After")) > 0);
+  assert.equal((await worker.fetch(publicVerify(body, "203.0.113.51"), env)).status, 401);
+});
+
+test("serializes concurrent verification rate-limit consumption", async () => {
+  const storage = new MemoryStorage();
+  const env = { KEY_STORE: bindingFor(new KeyStore({ storage }, { VERIFY_PAIR_LIMIT: "2" })) };
+  const responses = await Promise.all(Array.from({ length: 6 }, () => (
+    worker.fetch(publicVerify({ key: unknownKey, userId: "123" }), env)
+  )));
+  assert.equal(responses.filter((response) => response.status === 401).length, 2);
+  assert.equal(responses.filter((response) => response.status === 429).length, 4);
+});
+
+test("permits same-origin polling with unique CSP nonces instead of unsafe-inline", async () => {
+  const url = "https://nothrilo.test/v1/nothrilo/key/callback/lootlabs";
+  const response = await worker.fetch(new Request(url), {});
+  const markup = await response.text();
+  const csp = response.headers.get("Content-Security-Policy");
+  assert.match(csp, /connect-src 'self'/);
+  assert.doesNotMatch(csp, /unsafe-inline/);
+  const nonce = markup.match(/<script nonce="([a-f0-9]{32})">/)?.[1];
+  assert.ok(nonce);
+  assert.ok(csp.includes(`script-src 'nonce-${nonce}'`));
+  assert.ok(markup.includes(`<style nonce="${nonce}">`));
+  const next = await worker.fetch(new Request(url), {});
+  assert.notEqual(next.headers.get("Content-Security-Policy"), csp);
+});
+
+test("resumes cleanup past live pages after recreating the Durable Object", async () => {
+  const storage = new MemoryStorage();
+  for (let index = 0; index < 20; index += 1) {
+    await storage.put(`a-live:${String(index).padStart(2, "0")}`, { expiresAt: Date.now() + 86400000 });
+  }
+  await storage.put("z-expired:record", { expiresAt: Date.now() - 1000 });
+  const env = { CLEANUP_PAGE_SIZE: "8", CLEANUP_MAX_PAGES: "1" };
+  for (let pass = 0; pass < 4; pass += 1) {
+    await new KeyStore({ storage }, env).alarm();
+  }
+  assert.equal(storage.values.has("z-expired:record"), false);
+  assert.equal((await storage.list({ prefix: "a-live:" })).size, 20);
+});
+
+test("returns a controlled error when storage is unavailable without exposing internals", async () => {
+  const response = await worker.fetch(publicVerify({ key: unknownKey, userId: "123" }), {
+    KEY_STORE: { idFromName() { throw new Error("private infrastructure details"); } },
+  });
+  assert.equal(response.status, 503);
+  const text = await response.text();
+  assert.equal(JSON.parse(text).error, "service_unavailable");
+  assert.doesNotMatch(text, /private infrastructure|stack|TypeError/);
+});
+
+test("restricts HTTP methods and never gives administrative routes a CORS preflight", async () => {
+  const health = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/health", { method: "POST" }), {});
+  assert.equal(health.status, 405);
+  assert.equal(health.headers.get("Allow"), "GET");
+  const admin = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/admin/issue", { method: "OPTIONS" }), {});
+  assert.equal(admin.status, 405);
+  assert.equal(admin.headers.get("Access-Control-Allow-Origin"), null);
+});
+
+test("reuses an existing lease without rewriting credential records", async () => {
+  const storage = new MemoryStorage();
+  const store = new KeyStore({ storage }, {});
+  const created = await call(store, "/session", sessionRequest("workink", "123"));
+  const completed = await call(store, "/complete", {
+    sessionId: created.body.sessionId, provider: "workink", proofId: "lease-reuse-fixture",
+  });
+  const body = { key: completed.body.key, userId: "123" };
+  const first = await call(store, "/verify", body);
+  storage.putKeys = [];
+  const second = await call(store, "/verify", body);
+  assert.equal(second.status, 200);
+  assert.equal(second.body.lease, first.body.lease);
+  assert.deepEqual(storage.putKeys.filter((key) => /^(?:key|lease):/.test(key)), []);
 });

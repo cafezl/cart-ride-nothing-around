@@ -31,8 +31,16 @@ local function isCurrentSuiteGeneration()
 end
 
 local LocalPlayer  = Players.LocalPlayer
-if not LocalPlayer then
-    error("Cafezitos: Players.LocalPlayer não está disponível; execute no cliente.")
+do
+    local deadline = os.clock() + 10
+    while not LocalPlayer and os.clock() < deadline do
+        if not isCurrentSuiteGeneration() then return end
+        task.wait(0.05)
+        LocalPlayer = Players.LocalPlayer
+    end
+    if not LocalPlayer then
+        error("Cafezitos: jogador local indisponível após 10 segundos; execute no cliente do Roblox.")
+    end
 end
 local MENU_NAME    = "Cafezitos V2 ☕"
 local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
@@ -40,24 +48,34 @@ local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
 -- Alguns ambientes bloqueiam GUI direto em CoreGui e outros usam gethui().
 -- Escolher o pai aqui evita o menu morrer antes mesmo de aparecer.
 local function getGuiParent()
+    local function usable(root)
+        if typeof(root) ~= "Instance" then return nil end
+        local probe = Instance.new("ScreenGui")
+        local ok = pcall(function() probe.Parent = root end)
+        local accepted = ok and probe.Parent == root
+        probe:Destroy()
+        return accepted and root or nil
+    end
     if type(gethui) == "function" then
         local ok, parent = pcall(gethui)
-        if ok and parent then return parent end
+        if ok then
+            local ready = usable(parent)
+            if ready then return ready end
+        end
     end
 
     local ok, coreGui = pcall(function()
         return game:GetService("CoreGui")
     end)
     if ok and coreGui then
-        local probe = Instance.new("ScreenGui")
-        local accepted = pcall(function() probe.Parent = coreGui end)
-        if probe.Parent then probe:Destroy() end
-        if accepted then return coreGui end
+        local ready = usable(coreGui)
+        if ready then return ready end
     end
 
     local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-        or LocalPlayer:WaitForChild("PlayerGui", 5)
-    if playerGui then return playerGui end
+        or LocalPlayer:WaitForChild("PlayerGui", 10)
+    local ready = usable(playerGui)
+    if ready then return ready end
     error("Cafezitos: não foi possível encontrar um local permitido para a interface.")
 end
 
@@ -3563,4 +3581,3 @@ if Window.gui and Window.gui.Parent then Window.gui.Enabled = true end
 if startup.status and startup.status.Parent then startup.status.Text = "Pronto!" end
 if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
 notify(MENU_NAME, "Feito por Cafezl  •  K minimiza e reabre o menu.")
-

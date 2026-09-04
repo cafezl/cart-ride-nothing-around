@@ -2,14 +2,48 @@
 -- Nothrilo 🇧🇷 — Menu completo por Cafezl
 -- Versão auditada: bugs corrigidos + novas funções
 -- =============================================================================
--- Nothrilo / Cafezl | build protegido O2 | Darklua AST v0.19.0 (rename_variables + dense) | fonte sha256 3e83910817414bfbd1049296fa6873b3223c31c13b52d91fa5c85830dd2ddc8d
-local a=game:GetService('Players')local b=game:GetService('RunService')local c=game:GetService('UserInputService')local d=game:GetService('TweenService')local e=game:GetService('StarterGui')local f=a.
-LocalPlayer if not f then return end local g='Nothrilo \u{1f1e7}\u{1f1f7}'local h=g..' | Feito por Cafezl'local i=_G if type(getgenv)=='function'then local j,k=pcall(getgenv)if j and type(k)=='table'
+-- Nothrilo / Cafezl | corpo legado Darklua; inicialização legível nesta revisão.
+local a=game:GetService('Players')local b=game:GetService('RunService')local c=game:GetService('UserInputService')local d=game:GetService('TweenService')local e=game:GetService('StarterGui')
+local f=a.LocalPlayer
+do
+    local deadline = os.clock() + 10
+    while not f and os.clock() < deadline do
+        task.wait(0.05)
+        f = a.LocalPlayer
+    end
+    if not f then error('Nothrilo: jogador local indisponível após 10 segundos; execute no cliente do Roblox.') end
+end
+local g='Nothrilo \u{1f1e7}\u{1f1f7}'local h=g..' | Feito por Cafezl'local i=_G if type(getgenv)=='function'then local j,k=pcall(getgenv)if j and type(k)=='table'
 then i=k end end local j=(tonumber(i.__CafezlSuiteGeneration)or 0)+1 do local k=pcall(function()i.__CafezlSuiteGeneration=j end)if not k then i=_G j=(tonumber(i.__CafezlSuiteGeneration)or 0)+1 i.
-__CafezlSuiteGeneration=j end end local function isCurrentSuiteGeneration()return i.__CafezlSuiteGeneration==j end local k=(function()if type(gethui)=='function'then local k,l=pcall(gethui)if k and l
-then return l end end local k,l=pcall(function()return game:GetService('CoreGui')end)if k and l then local m=Instance.new('ScreenGui')local n=pcall(function()m.Parent=l end)if m.Parent then m:Destroy(
-)end if n then return l end end return f:FindFirstChildOfClass('PlayerGui')or f:FindFirstChild('PlayerGui')end)()if not isCurrentSuiteGeneration()then return end if not k then warn(g..
-': PlayerGui/CoreGui ainda n\u{e3}o est\u{e1} dispon\u{ed}vel.')return end local l={}do local m={}local function addGuiRoot(n)if n and not m[n]then m[n]=true table.insert(l,n)end end addGuiRoot(k)
+__CafezlSuiteGeneration=j end end local function isCurrentSuiteGeneration()return i.__CafezlSuiteGeneration==j end
+local k=(function()
+    local function usable(root)
+        if typeof(root) ~= 'Instance' then return nil end
+        local probe = Instance.new('ScreenGui')
+        local ok = pcall(function() probe.Parent = root end)
+        local accepted = ok and probe.Parent == root
+        probe:Destroy()
+        return accepted and root or nil
+    end
+    if type(gethui) == 'function' then
+        local ok, root = pcall(gethui)
+        if ok then
+            local ready = usable(root)
+            if ready then return ready end
+        end
+    end
+    local ok, root = pcall(function() return game:GetService('CoreGui') end)
+    if ok then
+        local ready = usable(root)
+        if ready then return ready end
+    end
+    local playerGui = f:FindFirstChildOfClass('PlayerGui') or f:FindFirstChild('PlayerGui')
+        or f:WaitForChild('PlayerGui', 10)
+    return usable(playerGui)
+end)()
+if not isCurrentSuiteGeneration() then return end
+if not k then error('Nothrilo: não foi possível encontrar um local permitido para a interface.') end
+local l={}do local m={}local function addGuiRoot(n)if n and not m[n]then m[n]=true table.insert(l,n)end end addGuiRoot(k)
 pcall(function()addGuiRoot(game:GetService('CoreGui'))end)addGuiRoot(f:FindFirstChild('PlayerGui'))end local m local n=false local o={}local function trackConnection(p)table.insert(o,p)return p end
 for p,q in ipairs(l)do for r,s in ipairs({'NothriloRuntime','CafezitosRuntime'})do local t=q:FindFirstChild(s)if t then local u=t:FindFirstChild('Cleanup')if u and u:IsA('BindableEvent')then u:Fire()
 end t:Destroy()end end end local p=workspace.Gravity local q=Instance.new('Folder')q.Name='NothriloRuntime'q.Parent=k do local r=Instance.new('BindableEvent')r.Name='Cleanup'r.Parent=q
@@ -19,9 +53,24 @@ u.Name=='NothriloLauncher'or u.Name=='NothriloNotifications'or u.Name=='Nothrilo
 local w=v and v:FindFirstChild('MainHeader')local x=w and w:FindFirstChild('title')if x and x:IsA('TextLabel')and x.Text:find('Nothrilo',1,true)then u:Destroy()end end end end end local r={SchemeColor
 =Color3.fromRGB(255,0,170),Background=Color3.fromRGB(8,8,10),Header=Color3.fromRGB(15,15,18),TextColor=Color3.fromRGB(245,245,245),ElementColor=Color3.fromRGB(22,22,27)}do local s=game:GetService(
 'HttpService')local t local function runFreeKeyGate()local u='https://nothrilo-key.urielcafe01.workers.dev'local v=u:match('^https://')~=nil and not u:find('__NOTHRILO_',1,true)local w=
-'Nothrilo/key-cache-v1.json'local x='Nothrilo'local y='__NothriloFreeKeyCacheV1'local z=24*60*60 local function environmentFunction(A)local B pcall(function()B=rawget(i,A)end)if type(B)=='function'
-then return B end pcall(function()B=rawget(_G,A)end)if type(B)=='function'then return B end return nil end local function nestedEnvironmentFunction(A,B)local C pcall(function()C=rawget(i,A)end)if
-type(C)~='table'then pcall(function()C=rawget(_G,A)end)end local D=type(C)=='table'and rawget(C,B)or nil return type(D)=='function'and D or nil end local function getRequestFunction()return
+'Nothrilo/key-cache-v1.json'local x='Nothrilo'local y='__NothriloFreeKeyCacheV1'local z=24*60*60
+local function environmentFunction(name)
+    local ok, value = pcall(function() return i[name] end)
+    if ok and type(value) == 'function' then return value end
+    ok, value = pcall(function() return _G[name] end)
+    return ok and type(value) == 'function' and value or nil
+end
+local function nestedEnvironmentFunction(name, member)
+    local function lookup(environment)
+        local ok, value = pcall(function()
+            local container = environment[name]
+            return type(container) == 'table' and container[member] or nil
+        end)
+        return ok and type(value) == 'function' and value or nil
+    end
+    return lookup(i) or lookup(_G)
+end
+local function getRequestFunction()return
 environmentFunction('request')or environmentFunction('http_request')or nestedEnvironmentFunction('syn','request')or nestedEnvironmentFunction('fluxus','request')or nestedEnvironmentFunction('http',
 'request')end local function postKeyServer(A)if not v then return false,0,nil,'server_not_configured'end local B,C=pcall(function()return s:JSONEncode(A)end)if not B then return false,0,nil,
 'invalid_request'end local D={Url=u..'/v1/nothrilo/key/verify',Method='POST',Headers={['Content-Type']='application/json',['Accept']='application/json'},Body=C}local E=getRequestFunction()local F,G if
@@ -583,4 +632,3 @@ bootstrapAlive()then abortBootstrap()return end until os.clock()>=aa.beganAt+aa.
 and a9.Parent and bd.Parent do local bj=Color3.fromHSV((os.clock()*0.12)%1,0.85,1)ab:ChangeColor('SchemeColor',bj)if ba and ba.Parent then ba.BackgroundColor3=bj end bf.Color=bj bg.TextColor3=bj for
 bk=#bb,1,-1 do local bl=bb[bk]if bl and bl.Parent then bl.TextColor3=bj else table.remove(bb,bk)end end for bk=#ae,1,-1 do local bl=ae[bk]if bl and bl.Parent then bl.Color=bj else table.remove(ae,bk)
 end end task.wait(0.3)end end)notify(g,'Feito por Cafezl  \u{2022}  K minimiza e reabre o menu.')
-

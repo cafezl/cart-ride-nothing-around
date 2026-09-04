@@ -1,0 +1,4 @@
+# Legacy Lua sources contain CRLF and LF. Keep semantic diffs readable while
+# still checking spaces/tabs and accidental blank lines at EOF.
+*.lua whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.mp4 binary

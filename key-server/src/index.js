@@ -16,6 +16,10 @@ const DEFAULT_PROVIDER_TIMEOUT_MS = 10 * 1000;
 const DEFAULT_ADMIN_ISSUE_WINDOW = 15 * 60;
 const DEFAULT_ADMIN_ISSUE_IP_LIMIT = 6;
 const DEFAULT_ADMIN_ISSUE_USER_LIMIT = 3;
+const DEFAULT_VERIFY_WINDOW = 60;
+const DEFAULT_VERIFY_IP_LIMIT = 60;
+const DEFAULT_VERIFY_PAIR_LIMIT = 12;
+const CLEANUP_CURSOR_KEY = "metadata:cleanup-cursor";
 
 const encoder = new TextEncoder();
 
@@ -33,6 +37,8 @@ function json(data, status = 200, headers = {}) {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
       ...corsHeaders(),
       ...headers,
     },
@@ -56,8 +62,8 @@ function privateJson(data, status = 200, headers = {}) {
   });
 }
 
-function html(content, status = 200, headers = {}) {
-  return new Response(content, {
+function html(page, status = 200, headers = {}) {
+  return new Response(page.markup, {
     status,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
@@ -65,7 +71,7 @@ function html(content, status = 200, headers = {}) {
       "Referrer-Policy": "no-referrer",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
-      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "Content-Security-Policy": `default-src 'none'; connect-src 'self'; style-src 'nonce-${page.nonce}'; script-src 'nonce-${page.nonce}'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
       ...headers,
     },
   });
@@ -87,8 +93,54 @@ function asPositiveInt(value, fallback, min = 1, max = Number.MAX_SAFE_INTEGER) 
 }
 
 function normalizeUserId(value) {
-  const text = String(value ?? "").trim();
-  return /^\d{1,20}$/.test(text) && text !== "0" ? text : null;
+  if (typeof value !== "string" && typeof value !== "number") return null;
+  if (typeof value === "number" && (!Number.isSafeInteger(value) || value <= 0)) return null;
+  const text = String(value).trim();
+  if (!/^\d{1,20}$/.test(text)) return null;
+  return text.replace(/^0+/, "") || null;
+}
+
+// Bound the actual stream, not just Content-Length or the decoded character
+// count. Reading request.text()/json() first would already allocate the body.
+async function readJsonBody(request, maxBytes) {
+  const type = (request.headers.get("Content-Type") || "").split(";", 1)[0].trim().toLowerCase();
+  if (type !== "application/json") return { error: "unsupported_media_type", status: 415 };
+  const declared = Number(request.headers.get("Content-Length"));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    void request.body?.cancel().catch(() => {});
+    return { error: "request_too_large", status: 413 };
+  }
+  if (!request.body) return { error: "invalid_json", status: 400 };
+  const reader = request.body.getReader();
+  const chunks = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        void reader.cancel().catch(() => {});
+        return { error: "request_too_large", status: 413 };
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    const body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return { error: "invalid_json", status: 400 };
+    }
+    return { body };
+  } catch {
+    return { error: "invalid_json", status: 400 };
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 function normalizeProvider(value) {
@@ -112,6 +164,7 @@ async function sha256Hex(value) {
 async function secretsEqual(provided, configured) {
   const left = String(provided ?? "");
   const right = String(configured ?? "");
+  if (left.length < 32 || left.length > 512 || right.length < 32 || right.length > 512) return false;
   const [leftDigest, rightDigest] = await Promise.all([
     crypto.subtle.digest("SHA-256", encoder.encode(left)),
     crypto.subtle.digest("SHA-256", encoder.encode(right)),
@@ -122,9 +175,7 @@ async function secretsEqual(provided, configured) {
   for (let index = 0; index < leftBytes.length; index += 1) {
     difference |= leftBytes[index] ^ rightBytes[index];
   }
-  const configuredLengthIsSafe = right.length >= 32 && right.length <= 512;
-  const providedLengthIsSafe = left.length >= 32 && left.length <= 512;
-  return configuredLengthIsSafe && providedLengthIsSafe && difference === 0;
+  return difference === 0;
 }
 
 function readCookie(request, name) {
@@ -189,13 +240,14 @@ async function providerFetch(env, input, init = {}, responseType = "json") {
 }
 
 function pageShell(title, body, script = "") {
-  return `<!doctype html>
+  const nonce = randomHex(16);
+  const markup = `<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(title)}</title>
-  <style>
+  <style nonce="${nonce}">
     :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#07070a;color:#f8f8fb;padding:20px;overflow-x:hidden}
     body:before{content:"";position:fixed;inset:-35%;background:conic-gradient(from 90deg,#ff159d,#7048ff,#00d8ff,#35ef86,#ffe047,#ff159d);filter:blur(110px);opacity:.16;animation:spin 12s linear infinite;pointer-events:none}
@@ -204,8 +256,9 @@ function pageShell(title, body, script = "") {
     .brand{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#ff4fb1;font-weight:800}.title{font-size:clamp(27px,7vw,40px);line-height:1.05;margin:9px 0 10px}.muted{color:#b8b8c4;line-height:1.55}.providers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.provider{border:1px solid #30303b;border-radius:15px;background:#19191f;color:#fff;padding:14px 10px;font-weight:800;text-align:center}.key{width:100%;padding:15px;border-radius:14px;border:1px solid #343440;background:#09090c;color:#fff;font:700 15px ui-monospace,SFMono-Regular,Consolas,monospace;text-align:center}.copy{width:100%;margin-top:10px;border:0;border-radius:14px;padding:14px;background:linear-gradient(90deg,#ff159d,#8c4fff);color:#fff;font-weight:900;cursor:pointer}.status{margin-top:14px;padding:12px 14px;border-radius:13px;background:#18181e;color:#cfcfd8}.ok{color:#6dff99}.bad{color:#ff7698}.small{font-size:12px;color:#8e8e9b;margin-top:17px}@media(max-width:520px){.card{padding:22px}.providers{grid-template-columns:1fr}.provider{padding:12px}}
   </style>
 </head>
-<body><main class="card">${body}</main>${script ? `<script>${script}</script>` : ""}</body>
+<body><main class="card">${body}</main>${script ? `<script nonce="${nonce}">${script}</script>` : ""}</body>
 </html>`;
+  return { markup, nonce };
 }
 
 function landingPage(origin) {
@@ -314,11 +367,11 @@ async function getSessionStatus(env, sessionId) {
   return { status: response.status, data: await response.json() };
 }
 
-async function verifyIssuedKey(env, credential, userId) {
+async function verifyIssuedKey(env, credential, userId, clientKey) {
   const response = await internalRequest(env, "/verify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...credential, userId }),
+    body: JSON.stringify({ ...credential, userId, clientKey }),
   });
   return { status: response.status, data: await response.json() };
 }
@@ -468,7 +521,7 @@ async function linkvertiseCallback(request, env, url) {
 async function lootlabsPostback(env, url) {
   const configuredSecret = String(env.LOOTLABS_POSTBACK_SECRET || "");
   const providedSecret = String(url.searchParams.get("secret") || "");
-  if (configuredSecret.length < 32 || providedSecret !== configuredSecret) return json({ ok: false }, 403);
+  if (!await secretsEqual(providedSecret, configuredSecret)) return privateJson({ ok: false }, 403);
   const sessionId = String(url.searchParams.get("click_id") || url.searchParams.get("puid") || "");
   const uniqueId = String(url.searchParams.get("unique_id") || "");
   if (!/^[a-f0-9]{32}$/i.test(sessionId) || uniqueId.length < 6 || uniqueId.length > 256) {
@@ -479,22 +532,23 @@ async function lootlabsPostback(env, url) {
 }
 
 async function verifyKeyRequest(request, env) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ ok: false, error: "invalid_json" }, 400);
-  }
-  const key = String(body?.key || "").trim().toUpperCase();
-  const lease = String(body?.lease || "").trim();
+  const parsed = await readJsonBody(request, 2048);
+  if (parsed.error) return json({ ok: false, error: parsed.error }, parsed.status);
+  const { body } = parsed;
+  const key = typeof body.key === "string" ? body.key.trim().toUpperCase() : "";
+  const lease = typeof body.lease === "string" ? body.lease.trim() : "";
   const userId = normalizeUserId(body?.userId);
   const hasKey = /^NOTH-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){4}$/.test(key);
   const hasLease = /^NLEASE-[a-f0-9]{64}$/i.test(lease);
-  if ((!hasKey && !hasLease) || !userId) {
+  if ((body.key !== undefined) === (body.lease !== undefined) || (!hasKey && !hasLease) || !userId) {
     return json({ ok: false, error: "invalid_key" }, 401);
   }
-  const verified = await verifyIssuedKey(env, hasKey ? { key } : { lease }, userId);
-  return json(verified.data, verified.status);
+  const clientKey = await sha256Hex(`verify-ip:${clientAddress(request)}`);
+  const verified = await verifyIssuedKey(env, hasKey ? { key } : { lease }, userId, clientKey);
+  const headers = verified.status === 429
+    ? { "Retry-After": String(asPositiveInt(verified.data.retryAfter, 60, 1, 3600)) }
+    : {};
+  return json(verified.data, verified.status, headers);
 }
 
 async function manualOwnerIssueRequest(request, env) {
@@ -512,19 +566,9 @@ async function manualOwnerIssueRequest(request, env) {
     });
   }
 
-  let rawBody;
-  try {
-    rawBody = await request.text();
-  } catch {
-    return privateJson({ ok: false, error: "invalid_json" }, 400);
-  }
-  if (rawBody.length > 1024) return privateJson({ ok: false, error: "request_too_large" }, 413);
-  let body;
-  try {
-    body = JSON.parse(rawBody);
-  } catch {
-    return privateJson({ ok: false, error: "invalid_json" }, 400);
-  }
+  const parsed = await readJsonBody(request, 1024);
+  if (parsed.error) return privateJson({ ok: false, error: parsed.error }, parsed.status);
+  const { body } = parsed;
   const userId = normalizeUserId(body?.userId);
   if (!userId) return privateJson({ ok: false, error: "invalid_user_id" }, 400);
 
@@ -585,6 +629,37 @@ export class KeyStore {
         });
       }
     }
+  }
+
+  async consumeVerificationBudget(userId, clientKey) {
+    return this.withMutationLock(async () => {
+      const now = Date.now();
+      const windowSeconds = asPositiveInt(this.env.VERIFY_WINDOW_SECONDS, DEFAULT_VERIFY_WINDOW, 10, 3600);
+      const pairKey = await sha256Hex(`verify-pair:${clientKey}:${userId}`);
+      // Do not rate-limit a claimed UserId globally: it is public, so another
+      // IP must not be able to lock the legitimate user out by naming them.
+      const specs = [
+        ["ip", clientKey, asPositiveInt(this.env.VERIFY_IP_LIMIT, DEFAULT_VERIFY_IP_LIMIT, 1, 600)],
+        ["pair", pairKey, asPositiveInt(this.env.VERIFY_PAIR_LIMIT, DEFAULT_VERIFY_PAIR_LIMIT, 1, 120)],
+      ];
+      const records = [];
+      for (const [kind, key, limit] of specs) {
+        const storageKey = `verify-rate:${kind}:${key}`;
+        const stored = await this.storage.get(storageKey);
+        const record = stored && Number(stored.expiresAt) > now
+          ? { count: Number(stored.count) || 0, expiresAt: Number(stored.expiresAt) }
+          : { count: 0, expiresAt: now + windowSeconds * 1000 };
+        if (record.count >= limit) {
+          return json({ ok: false, error: "rate_limited", retryAfter: Math.max(1, Math.ceil((record.expiresAt - now) / 1000)) }, 429);
+        }
+        records.push({ storageKey, record });
+      }
+      for (const { storageKey, record } of records) {
+        await this.storage.put(storageKey, { count: record.count + 1, expiresAt: record.expiresAt });
+      }
+      await this.ensureAlarm(windowSeconds * 1000);
+      return null;
+    });
   }
 
   async createRateLimitedSession(provider, userId, clientKey) {
@@ -801,6 +876,10 @@ export class KeyStore {
       const lease = String(body?.lease || "").trim();
       const userId = normalizeUserId(body?.userId);
       if (!userId) return json({ ok: false, error: "invalid_key" }, 401);
+      const clientKey = String(body?.clientKey || "");
+      if (!/^[a-f0-9]{64}$/.test(clientKey)) return json({ ok: false, error: "invalid_client" }, 400);
+      const limited = await this.consumeVerificationBudget(userId, clientKey);
+      if (limited) return limited;
 
       if (/^NLEASE-[a-f0-9]{64}$/i.test(lease)) {
         const leaseHash = await sha256Hex(lease);
@@ -830,9 +909,14 @@ export class KeyStore {
           ? record.lease
           : `NLEASE-${randomHex(32)}`;
         const leaseHash = await sha256Hex(issuedLease);
-        record.lease = issuedLease;
-        await this.storage.put(keyRecordKey, record);
-        await this.storage.put(`lease:${leaseHash}`, { ...record, expiresAt: record.expiresAt });
+        const leaseKey = `lease:${leaseHash}`;
+        const savedLease = record.lease ? await this.storage.get(leaseKey) : null;
+        if (record.lease !== issuedLease || !savedLease || savedLease.product !== PRODUCT
+            || savedLease.userId !== userId || savedLease.expiresAt !== record.expiresAt) {
+          record.lease = issuedLease;
+          await this.storage.put(keyRecordKey, record);
+          await this.storage.put(leaseKey, { ...record, expiresAt: record.expiresAt });
+        }
         await this.ensureAlarm();
         return json({
           ok: true,
@@ -854,7 +938,8 @@ export class KeyStore {
       const pageSize = asPositiveInt(this.env.CLEANUP_PAGE_SIZE, DEFAULT_CLEANUP_PAGE_SIZE, 8, 512);
       const maxPages = asPositiveInt(this.env.CLEANUP_MAX_PAGES, DEFAULT_CLEANUP_MAX_PAGES, 1, 64);
       const interval = asPositiveInt(this.env.CLEANUP_INTERVAL_SECONDS, DEFAULT_CLEANUP_INTERVAL, 60, 6 * 60 * 60) * 1000;
-      let startAfter;
+      const savedCursor = await this.storage.get(CLEANUP_CURSOR_KEY);
+      let startAfter = typeof savedCursor?.cursor === "string" ? savedCursor.cursor : undefined;
       let pageCount = 0;
       let hasMore = false;
       let nextExpiry = Number.POSITIVE_INFINITY;
@@ -868,6 +953,7 @@ export class KeyStore {
         const expired = [];
         for (const [key, value] of records) {
           startAfter = key;
+          if (key === CLEANUP_CURSOR_KEY) continue;
           const expiresAt = Number(value?.expiresAt || 0);
           if (expiresAt <= now) expired.push(key);
           else nextExpiry = Math.min(nextExpiry, expiresAt);
@@ -879,6 +965,10 @@ export class KeyStore {
       if (startAfter && pageCount >= maxPages) {
         hasMore = (await this.storage.list({ startAfter, limit: 1 })).size > 0;
       }
+      // Persist progress. Restarting at the first live page on every alarm
+      // starves expired records that sort beyond the per-invocation budget.
+      if (hasMore) await this.storage.put(CLEANUP_CURSOR_KEY, { cursor: startAfter });
+      else await this.storage.delete(CLEANUP_CURSOR_KEY);
       if ((await this.storage.list({ limit: 1 })).size > 0) {
         const delay = hasMore
           ? 60 * 1000
@@ -889,10 +979,30 @@ export class KeyStore {
   }
 }
 
-export default {
-  async fetch(request, env) {
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders() });
+const routeMethods = new Map([
+  ["/", "GET"],
+  ["/v1/nothrilo/key/health", "GET"],
+  ["/v1/nothrilo/key/admin/issue", "POST"],
+  ["/v1/nothrilo/key/start", "GET"],
+  ["/v1/nothrilo/key/callback/workink", "GET"],
+  ["/v1/nothrilo/key/callback/linkvertise", "GET"],
+  ["/v1/nothrilo/key/callback/lootlabs", "GET"],
+  ["/v1/nothrilo/key/postback/lootlabs", "GET"],
+  ["/v1/nothrilo/key/status", "GET"],
+  ["/v1/nothrilo/key/verify", "POST"],
+]);
+
+async function dispatchRequest(request, env) {
     const url = new URL(request.url);
+    const administrative = url.pathname === "/v1/nothrilo/key/admin/issue";
+    const method = routeMethods.get(url.pathname);
+    if (!method) return json({ ok: false, error: "not_found" }, 404);
+    if (request.method === "OPTIONS" && !administrative) {
+      return new Response(null, { status: 204, headers: { ...corsHeaders(), "Access-Control-Allow-Methods": method } });
+    }
+    if (request.method !== method) {
+      return (administrative ? privateJson : json)({ ok: false, error: "method_not_allowed" }, 405, { Allow: method });
+    }
 
     if (url.pathname === "/" && request.method === "GET") return html(landingPage(url.origin));
     if (url.pathname === "/v1/nothrilo/key/health") return json({ ok: true, product: PRODUCT });
@@ -906,11 +1016,23 @@ export default {
     if (url.pathname === "/v1/nothrilo/key/postback/lootlabs" && request.method === "GET") return lootlabsPostback(env, url);
     if (url.pathname === "/v1/nothrilo/key/status" && request.method === "GET") {
       const sessionId = readCookie(request, SESSION_COOKIE);
-      if (!sessionId) return json({ ok: false, error: "missing_session" }, 401);
+      if (!sessionId) return privateJson({ ok: false, error: "missing_session" }, 401);
       const result = await getSessionStatus(env, sessionId);
-      return json(result.data, result.status);
+      return privateJson(result.data, result.status, { Vary: "Cookie" });
     }
     if (url.pathname === "/v1/nothrilo/key/verify" && request.method === "POST") return verifyKeyRequest(request, env);
     return json({ ok: false, error: "not_found" }, 404);
+}
+
+export default {
+  async fetch(request, env) {
+    try {
+      return await dispatchRequest(request, env);
+    } catch {
+      // Do not reflect exception messages or log token-bearing URLs/bodies.
+      // Clients get a stable JSON error rather than a platform HTML traceback.
+      const respond = new URL(request.url).pathname === "/v1/nothrilo/key/admin/issue" ? privateJson : json;
+      return respond({ ok: false, error: "service_unavailable" }, 503, { "Retry-After": "30" });
+    }
   },
 };

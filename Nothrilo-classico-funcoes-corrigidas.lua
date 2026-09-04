@@ -10,7 +10,14 @@ local TweenService   = game:GetService("TweenService")
 local StarterGui     = game:GetService("StarterGui")
 
 local LocalPlayer  = Players.LocalPlayer
-if not LocalPlayer then return end
+do
+    local deadline = os.clock() + 10
+    while not LocalPlayer and os.clock() < deadline do
+        task.wait(0.05)
+        LocalPlayer = Players.LocalPlayer
+    end
+    if not LocalPlayer then error("Nothrilo: jogador local indisponível; execute no cliente do Roblox.") end
+end
 local MENU_NAME    = "Nothrilo 🇧🇷"
 local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
 
@@ -40,23 +47,34 @@ end
 -- Alguns ambientes bloqueiam GUI direto em CoreGui e outros usam gethui().
 -- Escolher o pai aqui evita o menu morrer antes mesmo de aparecer.
 local CoreGui = (function()
+    local function usable(root)
+        if typeof(root) ~= "Instance" then return nil end
+        local probe = Instance.new("ScreenGui")
+        local ok = pcall(function() probe.Parent = root end)
+        local accepted = ok and probe.Parent == root
+        probe:Destroy()
+        return accepted and root or nil
+    end
     if type(gethui) == "function" then
         local ok, parent = pcall(gethui)
-        if ok and parent then return parent end
+        if ok then
+            local ready = usable(parent)
+            if ready then return ready end
+        end
     end
 
     local ok, coreGui = pcall(function()
         return game:GetService("CoreGui")
     end)
     if ok and coreGui then
-        local probe = Instance.new("ScreenGui")
-        local accepted = pcall(function() probe.Parent = coreGui end)
-        if probe.Parent then probe:Destroy() end
-        if accepted then return coreGui end
+        local ready = usable(coreGui)
+        if ready then return ready end
     end
 
-    return LocalPlayer:FindFirstChildOfClass("PlayerGui")
+    local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
         or LocalPlayer:FindFirstChild("PlayerGui")
+        or LocalPlayer:WaitForChild("PlayerGui", 10)
+    return usable(playerGui)
 end)()
 if not isCurrentSuiteGeneration() then return end
 if not CoreGui then
@@ -3674,6 +3692,7 @@ end
 -- =============================================================================
 -- ABA: Comandos (atalhos listados)
 -- =============================================================================
+do
 local CommandsSection = Window:NewTab("Comandos"):NewSection("Atalhos")
 commandsTabButton     = menuGui:FindFirstChild("ComandosTabButton", true)
 
@@ -3696,6 +3715,7 @@ addShortcutBadge("B  •  Boost do Carrinho",     "B")
 addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
 addShortcutBadge("K  •  Minimizar / Abrir",     "K")
 addShortcutBadge("X  •  Fechar o Nothrilo",     "X")
+end
 
 task.delay(0.3, function()
     if not menuGui or not menuGui.Parent then return end
@@ -3712,10 +3732,12 @@ end)
 -- =============================================================================
 -- ABA: Interface
 -- =============================================================================
+do
 local GuiSection = Window:NewTab("Interface"):NewSection("Interface")
 
 GuiSection:NewButton("Fechar Menu", "Fecha agora; a tecla X também funciona.", destroyNothrilo)
 addShortcutBadge("Fechar Menu", "X")
+end
 
 -- Publicação atômica: a janela só aparece depois que todas as abas, comandos e
 -- listeners pertencentes a esta geração terminaram de ser montados.

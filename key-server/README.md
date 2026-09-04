@@ -20,11 +20,31 @@ Todas as keys dão o mesmo acesso por 24 horas. Não existe Premium e nenhuma fu
 - O início de key valida o provedor antes de gravar e limita tentativas por IP,
   usuário e combinação dos dois. Também limita sessões simultâneas pendentes.
 - A limpeza do Durable Object é paginada e reagendada, evitando carregar todo o
-  armazenamento de uma vez.
+  armazenamento de uma vez. Um cursor persistente evita que páginas iniciais
+  ainda válidas impeçam a limpeza das páginas seguintes.
 - As chamadas às APIs dos provedores têm timeout de 10 segundos para uma falha
   externa não prender o Worker.
+- Os corpos JSON de validação e emissão administrativa têm limites de 2.048 e
+  1.024 bytes, respectivamente, conferidos durante a leitura do fluxo. Um
+  `Content-Length` ausente ou incorreto não remove esse limite.
+- A validação exige `Content-Type: application/json`, um objeto JSON, `UserId`
+  numérico positivo e exatamente uma credencial (`key` ou `lease`).
+- A verificação tem limites por IP e combinação IP/usuário, inclusive sob
+  concorrência. O IP vem de `CF-Connecting-IP`, não de `X-Forwarded-For`.
+- As páginas usam nonces individuais de CSP, sem `unsafe-inline`. A diretiva
+  `connect-src 'self'` permite a consulta de status na própria origem.
+- As rotas administrativas e o status vinculado a cookie não permitem leitura
+  via CORS. Erros inesperados retornam uma resposta genérica, sem expor exceções,
+  URLs com tokens ou corpos de requisições.
+- Validar repetidamente uma key com lease ainda válida não regrava os mesmos
+  registros de credenciais. Os contadores de limite continuam sendo atualizados.
 
 Isto é uma barreira prática, não DRM absoluto: qualquer código entregue a um executor pode ser analisado ou alterado.
+
+O vínculo ao `UserId` compara o identificador informado; ele não prova, sozinho,
+que o solicitante controla aquela conta Roblox. O servidor não recebe uma prova
+de identidade Roblox autenticada. Keys e leases continuam sendo credenciais
+sensíveis. Hashes de IP usados nos contadores também não são anonimização forte.
 
 ## Configuração depois do primeiro deploy
 
@@ -93,6 +113,24 @@ ajustados com `START_RATE_WINDOW_SECONDS`, `START_RATE_IP_LIMIT`,
 `START_RATE_USER_LIMIT`, `START_RATE_PAIR_LIMIT`, `MAX_PENDING_IP`,
 `MAX_PENDING_USER` e `MAX_PENDING_PAIR`.
 
+Na validação, a janela padrão é de 60 segundos, com até 60 requisições por IP e
+12 pela mesma combinação IP/usuário. Não há bloqueio global baseado apenas no
+`UserId` declarado nessa rota, para que alguém em outro IP não possa bloquear o
+titular simplesmente usando seu identificador público. Respostas `429` incluem
+`Retry-After`; aguarde antes de tentar novamente.
+
+| Variável opcional | Padrão | Intervalo aceito |
+|---|---:|---:|
+| `VERIFY_WINDOW_SECONDS` | 60 | 10–3.600 |
+| `VERIFY_IP_LIMIT` | 60 | 1–600 |
+| `VERIFY_PAIR_LIMIT` | 12 | 1–120 |
+
+Os limites são compartilhados por pessoas que saem pelo mesmo IP público.
+Fora da borda Cloudflare, a ausência de `CF-Connecting-IP` usa o mesmo grupo
+`unknown`; não exponha uma adaptação do Worker que confie nesse cabeçalho enviado
+diretamente pelo cliente. Os limites desta aplicação não substituem controles
+de abuso e tráfego na infraestrutura.
+
 ## Rotas usadas pelo Lua
 
 - Obter link: `GET /v1/nothrilo/key/start?provider=PROVEDOR&userId=USER_ID`
@@ -104,6 +142,9 @@ deve ser chamada pelo Lua distribuído nem receber o segredo por query string.
 
 Corpo de validação:
 
+Envie com o cabeçalho `Content-Type: application/json`. Para uma lease, substitua
+o campo `key` por `lease`; não envie os dois no mesmo corpo.
+
 ```json
 {
   "key": "NOTH-XXXX-XXXX-XXXX-XXXX-XXXX",
@@ -114,3 +155,15 @@ Corpo de validação:
 ## Publicação
 
 O projeto exige Wrangler 4.102.0 ou superior. Também pode ser publicado temporariamente com `wrangler deploy --temporary` e depois reivindicado na conta Cloudflare dentro do prazo mostrado pela ferramenta.
+
+### Validação desta revisão
+
+Na raiz do repositório, execute
+`node --test tests/source.test.mjs key-server/test/key-store.test.mjs`.
+Os testes da API usam armazenamento em memória e respostas de provedores
+simuladas; não emitem keys reais nem acessam contas dos provedores.
+
+A revisão de 03/09/2026 altera código e testes, mas não publica o Worker nem
+muda segredos ou links dos provedores. O `LOOTLABS_URL` versionado ainda é um
+placeholder; confirme a configuração efetiva de cada provedor em um ambiente
+de homologação antes de uma publicação separada. Não foi feita migração de dados.

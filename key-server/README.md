@@ -156,6 +156,30 @@ o campo `key` por `lease`; não envie os dois no mesmo corpo.
 
 O projeto exige Wrangler 4.102.0 ou superior. Também pode ser publicado temporariamente com `wrangler deploy --temporary` e depois reivindicado na conta Cloudflare dentro do prazo mostrado pela ferramenta.
 
+### Publicação manual pelo GitHub
+
+A arquitetura escolhida para esta camada é JavaScript puro. React não é uma
+linguagem e não foi adicionado: as poucas páginas atuais são geradas pelo Worker,
+então uma aplicação React acrescentaria dependências e compilação sem simplificar
+o fluxo. Se no futuro existir um painel grande e interativo, essa decisão pode
+ser reavaliada separadamente.
+
+O workflow `Deploy key server` publica somente quando iniciado manualmente. Antes
+de usá-lo, cadastre em **Settings → Secrets and variables → Actions**:
+
+- `CLOUDFLARE_API_TOKEN`: token restrito à conta e com permissão para editar
+  Workers;
+- `CLOUDFLARE_ACCOUNT_ID`: ID da conta que possui o Worker.
+
+Nunca coloque esses valores em commits, issues, logs ou mensagens. Depois, abra
+**Actions → Deploy key server → Run workflow** e informe apenas a URL pública
+HTTPS do LootLabs. O workflow valida os testes e a URL antes do job de produção,
+e injeta `LOOTLABS_URL` como variável comum do Worker. Os outros segredos do
+Worker já existentes na Cloudflare não são apagados pelo deploy.
+
+O deploy usa versões fixadas do Wrangler e das Actions. O ambiente GitHub
+`production` pode receber regras de aprovação nas configurações do repositório.
+
 ### Validação desta revisão
 
 Na raiz do repositório, execute

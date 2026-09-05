@@ -31,3 +31,28 @@ test("the diagnostic loader targets maintained sources and bounds its error outp
   assert.match(source, /pcall\(loadstring/);
   assert.match(source, /:sub\(1, 1600\)/);
 });
+
+test("production deploy keeps all provider links configured and runs a smoke test", async () => {
+  const config = JSON.parse(await readFile(new URL("key-server/wrangler.jsonc", root), "utf8"));
+  const expectedHosts = {
+    WORKINK_URL: "work.ink",
+    LOOTLABS_URL: "loot-link.com",
+    LINKVERTISE_URL: "direct-link.net",
+  };
+
+  for (const [name, expectedHost] of Object.entries(expectedHosts)) {
+    const value = config.vars?.[name];
+    assert.equal(typeof value, "string", `${name} is missing`);
+    assert.doesNotMatch(value, /REPLACE/i, `${name} still contains a placeholder`);
+    const url = new URL(value);
+    assert.equal(url.protocol, "https:", `${name} must use HTTPS`);
+    assert.equal(url.hostname, expectedHost, `${name} uses an unexpected host`);
+    assert.equal(url.username, "", `${name} must not contain credentials`);
+    assert.equal(url.password, "", `${name} must not contain credentials`);
+  }
+
+  const workflow = await readFile(new URL(".github/workflows/deploy-key-server.yml", root), "utf8");
+  assert.match(workflow, /push:\s*\n\s+branches:\s*\n\s+- main/);
+  assert.match(workflow, /pnpm run smoke:production/);
+  assert.doesNotMatch(workflow, /inputs\.lootlabs_url/);
+});

@@ -1,12 +1,13 @@
 name: Deploy key server
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/deploy-key-server.yml
+      - key-server/**
   workflow_dispatch:
-    inputs:
-      lootlabs_url:
-        description: URL publica HTTPS do link LootLabs
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -34,21 +35,11 @@ jobs:
       - name: Install key server dependencies
         working-directory: key-server
         run: pnpm install --frozen-lockfile
-      - name: Validate API and deployment input
-        env:
-          LOOTLABS_URL: ${{ inputs.lootlabs_url }}
+      - name: Validate API and production bundle
         run: |
           node --test key-server/test/*.test.mjs
           pnpm --dir key-server run check
-          node --input-type=module -e '
-            const value = process.env.LOOTLABS_URL || "";
-            let url;
-            try { url = new URL(value); } catch {}
-            if (!url || url.protocol !== "https:" || url.username || url.password || /REPLACE/i.test(value)) {
-              console.error("Informe uma URL publica HTTPS valida do LootLabs.");
-              process.exit(1);
-            }
-          '
+          pnpm --dir key-server exec wrangler deploy --dry-run
 
   deploy:
     needs: validate
@@ -72,8 +63,6 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        env:
-          LOOTLABS_URL: ${{ inputs.lootlabs_url }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -81,4 +70,8 @@ jobs:
           packageManager: pnpm
           wranglerVersion: 4.123.0
           command: deploy
-          vars: LOOTLABS_URL
+      - name: Verify production health and provider sessions
+        working-directory: key-server
+        env:
+          KEY_SERVER_ORIGIN: https://nothrilo-key.urielcafe01.workers.dev
+        run: pnpm run smoke:production

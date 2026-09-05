@@ -9,9 +9,12 @@ dos menus e reforça a API existente. As URLs antigas continuam existindo. O
 [relatório de recuperação](docs/recuperacao-2026-09-03.md) registra o que foi
 corrigido, os testes e as verificações que ainda dependem do ambiente real.
 
-Os menus continuam em Lua/Luau, e o backend em JavaScript para Cloudflare Workers.
-React não foi acrescentado: é uma biblioteca para interfaces web, não substitui
-a interface nativa desses scripts. Não houve migração para C, C++, C# ou Java.
+Os menus continuam em Lua/Luau. A camada externa do sistema de key usa componentes
+React escritos em JavaScript e renderizados com segurança pelo backend JavaScript
+no Cloudflare Workers. React não substitui nem modifica a interface nativa dos
+scripts. Não houve migração para C, C++, C# ou Java.
+O [relatório de React, segurança e otimização](docs/react-seguranca-2026-09-05.md)
+documenta a revisão atual e confirma a preservação dos arquivos Lua/Luau.
 
 ## Principais recursos
 
@@ -61,6 +64,7 @@ Na tela inicial do Nothrilo, escolha um dos provedores disponíveis, conclua as 
 | `Nothrilo-classico-funcoes-corrigidas.lua` | Versão clássica legível, mantida separadamente |
 | `Cafezitos-teste.lua` | Diagnóstico de download, compilação e execução, com mensagem de erro |
 | `key-server/` | API JavaScript e testes do fluxo de keys |
+| `key-server/src/ui.js` | Interface externa em React + JavaScript |
 | `assets/` | Arquivos visuais usados pelo carregamento |
 
 Não edite as cópias separadamente. Após mudar uma fonte principal, execute
@@ -81,10 +85,18 @@ Anote a mensagem apresentada, sem compartilhar keys, leases, senhas ou tokens.
 
 ## Testes de desenvolvimento
 
-Com Node.js 22 ou superior, na raiz do repositório, sem instalar dependências:
+Com Node.js 22 ou superior, instale primeiro as dependências fixadas do backend:
+
+```sh
+corepack enable
+pnpm --dir key-server install --frozen-lockfile
+```
+
+Depois, na raiz do repositório:
 
 ```sh
 node --test tests/source.test.mjs key-server/test/key-store.test.mjs
+pnpm --dir key-server run check
 node scripts/sync-aliases.mjs
 ```
 

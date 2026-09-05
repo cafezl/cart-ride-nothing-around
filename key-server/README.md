@@ -24,6 +24,8 @@ Todas as keys dão o mesmo acesso por 24 horas. Não existe Premium e nenhuma fu
   ainda válidas impeçam a limpeza das páginas seguintes.
 - As chamadas às APIs dos provedores têm timeout de 10 segundos para uma falha
   externa não prender o Worker.
+- As respostas dos provedores são limitadas durante a leitura a 64 KiB por
+  padrão, mesmo se `Content-Length` estiver ausente ou incorreto.
 - Os corpos JSON de validação e emissão administrativa têm limites de 2.048 e
   1.024 bytes, respectivamente, conferidos durante a leitura do fluxo. Um
   `Content-Length` ausente ou incorreto não remove esse limite.
@@ -33,6 +35,12 @@ Todas as keys dão o mesmo acesso por 24 horas. Não existe Premium e nenhuma fu
   concorrência. O IP vem de `CF-Connecting-IP`, não de `X-Forwarded-For`.
 - As páginas usam nonces individuais de CSP, sem `unsafe-inline`. A diretiva
   `connect-src 'self'` permite a consulta de status na própria origem.
+- A interface externa é composta em React e os dados dinâmicos são escapados
+  pelo renderizador, sem concatenar valores de usuário ao HTML. A tela de espera
+  atualiza elementos já renderizados em vez de montar HTML com `innerHTML`.
+- As respostas HTML também bloqueiam enquadramento, objetos, manifesto, câmera,
+  microfone, localização, pagamentos e acesso USB. Recursos e janelas ficam
+  isolados na mesma origem, e redirecionamentos não enviam `Referer`.
 - As rotas administrativas e o status vinculado a cookie não permitem leitura
   via CORS. Erros inesperados retornam uma resposta genérica, sem expor exceções,
   URLs com tokens ou corpos de requisições.
@@ -158,11 +166,11 @@ O projeto exige Wrangler 4.102.0 ou superior. Também pode ser publicado tempora
 
 ### Publicação manual pelo GitHub
 
-A arquitetura escolhida para esta camada é JavaScript puro. React não é uma
-linguagem e não foi adicionado: as poucas páginas atuais são geradas pelo Worker,
-então uma aplicação React acrescentaria dependências e compilação sem simplificar
-o fluxo. Se no futuro existir um painel grande e interativo, essa decisão pode
-ser reavaliada separadamente.
+A arquitetura desta camada usa React com JavaScript. O Worker renderiza os
+componentes no servidor e mantém apenas as interações pequenas de copiar e
+consultar status no navegador. Assim, o projeto ganha componentes reutilizáveis
+sem transformar o fluxo de keys em uma aplicação pesada nem alterar os scripts
+Lua/Luau.
 
 O workflow `Deploy key server` publica somente quando iniciado manualmente. Antes
 de usá-lo, cadastre em **Settings → Secrets and variables → Actions**:
@@ -182,8 +190,15 @@ O deploy usa versões fixadas do Wrangler e das Actions. O ambiente GitHub
 
 ### Validação desta revisão
 
-Na raiz do repositório, execute
-`node --test tests/source.test.mjs key-server/test/key-store.test.mjs`.
+Na raiz do repositório, execute:
+
+```sh
+corepack enable
+pnpm --dir key-server install --frozen-lockfile
+pnpm --dir key-server run check
+node --test tests/source.test.mjs key-server/test/key-store.test.mjs
+pnpm --dir key-server exec wrangler deploy --dry-run
+```
 Os testes da API usam armazenamento em memória e respostas de provedores
 simuladas; não emitem keys reais nem acessam contas dos provedores.
 

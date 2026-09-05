@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nothrilo-key",
   "main": "src/index.js",
+  "minify": true,
   "compatibility_date": "2026-08-15",
   "vars": {
     "SESSION_TTL_SECONDS": "900",

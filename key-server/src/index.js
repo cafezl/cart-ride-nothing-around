@@ -1,3 +1,10 @@
+import {
+  renderErrorPage,
+  renderKeyPage,
+  renderLandingPage,
+  renderPendingPage,
+} from "./ui.js";
+
 const PRODUCT = "nothrilo";
 const SESSION_COOKIE = "nothrilo_key_session";
 const DEFAULT_SESSION_TTL = 15 * 60;
@@ -13,6 +20,7 @@ const DEFAULT_CLEANUP_INTERVAL = 15 * 60;
 const DEFAULT_CLEANUP_PAGE_SIZE = 128;
 const DEFAULT_CLEANUP_MAX_PAGES = 16;
 const DEFAULT_PROVIDER_TIMEOUT_MS = 10 * 1000;
+const DEFAULT_PROVIDER_RESPONSE_MAX_BYTES = 64 * 1024;
 const DEFAULT_ADMIN_ISSUE_WINDOW = 15 * 60;
 const DEFAULT_ADMIN_ISSUE_IP_LIMIT = 6;
 const DEFAULT_ADMIN_ISSUE_USER_LIMIT = 3;
@@ -68,22 +76,32 @@ function html(page, status = 200, headers = {}) {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "no-store",
+      "Content-Language": "pt-BR",
       "Referrer-Policy": "no-referrer",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
-      "Content-Security-Policy": `default-src 'none'; connect-src 'self'; style-src 'nonce-${page.nonce}'; script-src 'nonce-${page.nonce}'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
+      "X-Permitted-Cross-Domain-Policies": "none",
+      "X-Robots-Tag": "noindex, nofollow, noarchive",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Resource-Policy": "same-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+      "Content-Security-Policy": `default-src 'none'; connect-src 'self'; style-src 'nonce-${page.nonce}'; script-src 'nonce-${page.nonce}'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; manifest-src 'none'`,
       ...headers,
     },
   });
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function redirect(location, headers = {}) {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: location,
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+      ...headers,
+    },
+  });
 }
 
 function asPositiveInt(value, fallback, min = 1, max = Number.MAX_SAFE_INTEGER) {
@@ -204,8 +222,9 @@ function clientAddress(request) {
 }
 
 function appendQuery(urlString, name, value) {
-  const separator = urlString.includes("?") ? "&" : "?";
-  return `${urlString}${separator}${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
+  const url = new URL(urlString);
+  url.searchParams.set(name, value);
+  return url.href;
 }
 
 function providerLabel(provider) {
@@ -218,18 +237,59 @@ function providerLabel(provider) {
 
 async function providerFetch(env, input, init = {}, responseType = "json") {
   const timeoutMs = asPositiveInt(env.PROVIDER_TIMEOUT_MS, DEFAULT_PROVIDER_TIMEOUT_MS, 100, 30 * 1000);
+  const maxBytes = asPositiveInt(
+    env.PROVIDER_RESPONSE_MAX_BYTES,
+    DEFAULT_PROVIDER_RESPONSE_MAX_BYTES,
+    256,
+    256 * 1024,
+  );
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(input, { ...init, signal: controller.signal });
+    const declared = Number(response.headers.get("Content-Length"));
+    if (Number.isFinite(declared) && declared > maxBytes) {
+      void response.body?.cancel().catch(() => {});
+      throw new Error("provider_response_too_large");
+    }
+    const reader = response.body?.getReader();
+    const chunks = [];
+    let size = 0;
+    if (reader) {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          size += value.byteLength;
+          if (size > maxBytes) {
+            void reader.cancel().catch(() => {});
+            throw new Error("provider_response_too_large");
+          }
+          chunks.push(value);
+        }
+      } finally {
+        reader.releaseLock();
+      }
+    }
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    let text;
+    try {
+      text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch {
+      text = "";
+    }
     let body;
     if (responseType === "text") {
-      body = await response.text();
+      body = text;
     } else {
       try {
-        body = await response.json();
-      } catch (error) {
-        if (controller.signal.aborted) throw error;
+        body = JSON.parse(text);
+      } catch {
         body = null;
       }
     }
@@ -239,94 +299,47 @@ async function providerFetch(env, input, init = {}, responseType = "json") {
   }
 }
 
-function pageShell(title, body, script = "") {
-  const nonce = randomHex(16);
-  const markup = `<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${escapeHtml(title)}</title>
-  <style nonce="${nonce}">
-    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#07070a;color:#f8f8fb;padding:20px;overflow-x:hidden}
-    body:before{content:"";position:fixed;inset:-35%;background:conic-gradient(from 90deg,#ff159d,#7048ff,#00d8ff,#35ef86,#ffe047,#ff159d);filter:blur(110px);opacity:.16;animation:spin 12s linear infinite;pointer-events:none}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .card{position:relative;width:min(520px,100%);border:1px solid transparent;border-radius:26px;padding:28px;background:linear-gradient(#101015,#101015) padding-box,linear-gradient(120deg,#ff159d,#7159ff,#00dbff,#6dff73) border-box;box-shadow:0 22px 80px #000b}
-    .brand{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#ff4fb1;font-weight:800}.title{font-size:clamp(27px,7vw,40px);line-height:1.05;margin:9px 0 10px}.muted{color:#b8b8c4;line-height:1.55}.providers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.provider{border:1px solid #30303b;border-radius:15px;background:#19191f;color:#fff;padding:14px 10px;font-weight:800;text-align:center}.key{width:100%;padding:15px;border-radius:14px;border:1px solid #343440;background:#09090c;color:#fff;font:700 15px ui-monospace,SFMono-Regular,Consolas,monospace;text-align:center}.copy{width:100%;margin-top:10px;border:0;border-radius:14px;padding:14px;background:linear-gradient(90deg,#ff159d,#8c4fff);color:#fff;font-weight:900;cursor:pointer}.status{margin-top:14px;padding:12px 14px;border-radius:13px;background:#18181e;color:#cfcfd8}.ok{color:#6dff99}.bad{color:#ff7698}.small{font-size:12px;color:#8e8e9b;margin-top:17px}@media(max-width:520px){.card{padding:22px}.providers{grid-template-columns:1fr}.provider{padding:12px}}
-  </style>
-</head>
-<body><main class="card">${body}</main>${script ? `<script nonce="${nonce}">${script}</script>` : ""}</body>
-</html>`;
-  return { markup, nonce };
+function configuredHttpsUrl(value, allowedHostnames) {
+  const text = String(value || "").trim();
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    return null;
+  }
+  if (
+    url.protocol !== "https:"
+    || url.username
+    || url.password
+    || url.port
+    || url.hash
+    || !allowedHostnames.includes(url.hostname.toLowerCase())
+  ) {
+    return null;
+  }
+  return url.href;
 }
 
 function landingPage(origin) {
-  const body = `
-    <div class="brand">Nothrilo 🇧🇷</div>
-    <h1 class="title">Key grátis</h1>
-    <p class="muted">Abra o Nothrilo, escolha Work.ink, LootLabs ou Linkvertise e conclua uma das opções. Todas liberam o menu inteiro por 24 horas.</p>
-    <div class="providers"><div class="provider">Work.ink</div><div class="provider">LootLabs</div><div class="provider">Linkvertise</div></div>
-    <div class="status">Servidor online em <strong>${escapeHtml(origin)}</strong>.</div>
-    <p class="small">Nenhuma função é Premium. A key serve somente para liberar o menu completo.</p>`;
-  return pageShell("Nothrilo Key", body);
+  return renderLandingPage(origin, randomHex(16));
 }
 
 function errorPage(message, status = 400, headers = {}) {
-  const body = `
-    <div class="brand">Nothrilo 🇧🇷</div>
-    <h1 class="title">Não deu certo</h1>
-    <p class="muted">${escapeHtml(message)}</p>
-    <div class="status bad">Volte ao menu e tente novamente.</div>`;
-  return html(pageShell("Erro — Nothrilo Key", body), status, headers);
+  return html(renderErrorPage(message, randomHex(16)), status, headers);
 }
 
 function keyPage(key, expiresAt, provider) {
   const expiry = new Date(expiresAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
-  const body = `
-    <div class="brand">Nothrilo 🇧🇷</div>
-    <h1 class="title">Key liberada ✨</h1>
-    <p class="muted">Você concluiu pela opção ${escapeHtml(providerLabel(provider))}. Copie a key e cole no Nothrilo.</p>
-    <input id="key" class="key" readonly value="${escapeHtml(key)}" aria-label="Sua key">
-    <button id="copy" class="copy" type="button">Copiar key</button>
-    <div id="status" class="status ok">Válida até ${escapeHtml(expiry)}.</div>
-    <p class="small">A key é vinculada ao seu usuário do Roblox e libera todas as funções.</p>`;
-  const script = `
-    const button=document.getElementById('copy');
-    button.addEventListener('click',async()=>{const field=document.getElementById('key');field.select();try{await navigator.clipboard.writeText(field.value);button.textContent='Copiada ✓'}catch{document.execCommand('copy');button.textContent='Copiada ✓'}});`;
-  return html(pageShell("Key liberada — Nothrilo", body, script));
+  return html(renderKeyPage({
+    key,
+    expiry,
+    provider: providerLabel(provider),
+    nonce: randomHex(16),
+  }));
 }
 
 function pendingLootlabsPage() {
-  const body = `
-    <div class="brand">Nothrilo 🇧🇷</div>
-    <h1 class="title">Confirmando…</h1>
-    <p class="muted">Aguardando o postback do LootLabs. Normalmente leva poucos segundos.</p>
-    <div id="status" class="status">Verificando conclusão…</div>
-    <div id="result"></div>`;
-  const script = `
-    const status=document.getElementById('status');
-    const result=document.getElementById('result');
-    let attempts=0;
-    async function poll(){
-      attempts++;
-      try{
-        const response=await fetch('/v1/nothrilo/key/status',{cache:'no-store'});
-        const data=await response.json();
-        if(data.ok&&data.status==='complete'){
-          status.className='status ok';status.textContent='Key liberada!';
-          result.innerHTML='<input id="key" class="key" readonly><button id="copy" class="copy" type="button">Copiar key</button>';
-          document.getElementById('key').value=data.key;
-          document.getElementById('copy').onclick=async()=>{const key=document.getElementById('key').value;try{await navigator.clipboard.writeText(key)}catch{};document.getElementById('copy').textContent='Copiada ✓'};
-          return;
-        }
-        if(!data.ok&&data.error!=='pending') throw new Error(data.error||'invalid');
-      }catch(error){}
-      if(attempts>=40){status.className='status bad';status.textContent='A confirmação demorou demais. Volte ao menu e tente novamente.';return}
-      setTimeout(poll,1500);
-    }
-    poll();`;
-  return html(pageShell("Confirmando — Nothrilo Key", body, script));
+  return html(renderPendingPage(randomHex(16)));
 }
 
 async function internalRequest(env, path, init = {}) {
@@ -387,20 +400,20 @@ async function issueManualOwnerKey(env, userId, clientKey) {
 
 function providerConfiguration(env, provider) {
   if (provider === "workink") {
-    const baseLink = String(env.WORKINK_URL || "").trim();
+    const baseLink = configuredHttpsUrl(env.WORKINK_URL, ["work.ink"]);
     const expectedLinkId = String(env.WORKINK_LINK_ID || "").trim();
-    return /^https:\/\/work\.ink\//i.test(baseLink) && expectedLinkId
+    return baseLink && /^\d{1,20}$/.test(expectedLinkId)
       ? { ok: true, baseLink }
       : { ok: false, message: "A opção Work.ink ainda não foi configurada." };
   }
   if (provider === "linkvertise") {
-    const link = String(env.LINKVERTISE_URL || "").trim();
-    return /^https:\/\/(?:linkvertise\.com|link-to\.net|direct-link\.net)\//i.test(link)
+    const link = configuredHttpsUrl(env.LINKVERTISE_URL, ["linkvertise.com", "link-to.net", "direct-link.net"]);
+    return link
       ? { ok: true, link }
       : { ok: false, message: "A opção Linkvertise ainda não foi configurada." };
   }
-  const link = String(env.LOOTLABS_URL || "").trim();
-  return /^https:\/\/loot-link\.com\//i.test(link)
+  const link = configuredHttpsUrl(env.LOOTLABS_URL, ["loot-link.com"]);
+  return link
     ? { ok: true, link }
     : { ok: false, message: "A opção LootLabs ainda não foi configurada." };
 }
@@ -446,24 +459,18 @@ async function startProvider(request, env, url) {
       await cancelSession(env, sessionId).catch(() => null);
       return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
     }
-    if (!override || typeof override.sr !== "string" || !override.sr) {
+    if (!override || typeof override.sr !== "string" || override.sr.length < 1 || override.sr.length > 2048) {
       await cancelSession(env, sessionId).catch(() => null);
       return errorPage("Work.ink retornou uma sessão inválida.", 502);
     }
-    return new Response(null, {
-      status: 302,
-      headers: { Location: appendQuery(configuration.baseLink, "sr", override.sr), ...headers },
-    });
+    return redirect(appendQuery(configuration.baseLink, "sr", override.sr), headers);
   }
 
   if (provider === "linkvertise") {
-    return new Response(null, { status: 302, headers: { Location: configuration.link, ...headers } });
+    return redirect(configuration.link, headers);
   }
 
-  return new Response(null, {
-    status: 302,
-    headers: { Location: appendQuery(configuration.link, "puid", sessionId), ...headers },
-  });
+  return redirect(appendQuery(configuration.link, "puid", sessionId), headers);
 }
 
 async function workinkCallback(env, url) {
@@ -497,7 +504,7 @@ async function linkvertiseCallback(request, env, url) {
   const sessionId = readCookie(request, SESSION_COOKIE);
   const hash = String(url.searchParams.get("hash") || "");
   const secret = String(env.LINKVERTISE_ANTI_BYPASS_TOKEN || "");
-  if (!sessionId || !/^[a-f0-9]{64}$/i.test(hash) || secret.length !== 64) {
+  if (!/^[a-f0-9]{32}$/i.test(sessionId || "") || !/^[a-f0-9]{64}$/i.test(hash) || secret.length !== 64) {
     return errorPage("Sessão ou hash Linkvertise inválido.");
   }
   const endpoint = new URL("https://publisher.linkvertise.com/api/v1/anti_bypassing");
@@ -1016,7 +1023,9 @@ async function dispatchRequest(request, env) {
     if (url.pathname === "/v1/nothrilo/key/postback/lootlabs" && request.method === "GET") return lootlabsPostback(env, url);
     if (url.pathname === "/v1/nothrilo/key/status" && request.method === "GET") {
       const sessionId = readCookie(request, SESSION_COOKIE);
-      if (!sessionId) return privateJson({ ok: false, error: "missing_session" }, 401);
+      if (!sessionId || !/^[a-f0-9]{32}$/i.test(sessionId)) {
+        return privateJson({ ok: false, error: "missing_session" }, 401);
+      }
       const result = await getSessionStatus(env, sessionId);
       return privateJson(result.data, result.status, { Vary: "Cookie" });
     }

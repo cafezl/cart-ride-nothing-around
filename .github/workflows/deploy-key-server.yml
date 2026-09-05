@@ -29,12 +29,17 @@ jobs:
         with:
           node-version: '22'
           package-manager-cache: false
+      - name: Enable pinned pnpm
+        run: corepack enable
+      - name: Install key server dependencies
+        working-directory: key-server
+        run: pnpm install --frozen-lockfile
       - name: Validate API and deployment input
         env:
           LOOTLABS_URL: ${{ inputs.lootlabs_url }}
         run: |
           node --test key-server/test/*.test.mjs
-          node --check key-server/src/index.js
+          pnpm --dir key-server run check
           node --input-type=module -e '
             const value = process.env.LOOTLABS_URL || "";
             let url;
@@ -55,6 +60,16 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Enable pinned pnpm
+        run: corepack enable
+      - name: Install key server dependencies
+        working-directory: key-server
+        run: pnpm install --frozen-lockfile
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         env:

@@ -164,7 +164,7 @@ o campo `key` por `lease`; não envie os dois no mesmo corpo.
 
 O projeto exige Wrangler 4.102.0 ou superior. Também pode ser publicado temporariamente com `wrangler deploy --temporary` e depois reivindicado na conta Cloudflare dentro do prazo mostrado pela ferramenta.
 
-### Publicação manual pelo GitHub
+### Publicação pelo GitHub
 
 A arquitetura desta camada usa React com JavaScript. O Worker renderiza os
 componentes no servidor e mantém apenas as interações pequenas de copiar e
@@ -172,18 +172,21 @@ consultar status no navegador. Assim, o projeto ganha componentes reutilizáveis
 sem transformar o fluxo de keys em uma aplicação pesada nem alterar os scripts
 Lua/Luau.
 
-O workflow `Deploy key server` publica somente quando iniciado manualmente. Antes
-de usá-lo, cadastre em **Settings → Secrets and variables → Actions**:
+O workflow `Deploy key server` valida e publica automaticamente quando arquivos
+de `key-server/` chegam à branch `main`. Ele também pode ser iniciado manualmente.
+Antes de usá-lo, cadastre em **Settings → Secrets and variables → Actions**:
 
 - `CLOUDFLARE_API_TOKEN`: token restrito à conta e com permissão para editar
   Workers;
 - `CLOUDFLARE_ACCOUNT_ID`: ID da conta que possui o Worker.
 
-Nunca coloque esses valores em commits, issues, logs ou mensagens. Depois, abra
-**Actions → Deploy key server → Run workflow** e informe apenas a URL pública
-HTTPS do LootLabs. O workflow valida os testes e a URL antes do job de produção,
-e injeta `LOOTLABS_URL` como variável comum do Worker. Os outros segredos do
-Worker já existentes na Cloudflare não são apagados pelo deploy.
+Nunca coloque esses valores em commits, issues, logs ou mensagens. A URL pública
+do LootLabs fica na configuração versionada porque já é revelada ao usuário pelo
+próprio redirecionamento; o segredo do postback continua apenas na Cloudflare.
+Depois do deploy, o workflow confirma a interface React, a rota de saúde e a
+criação de sessões pendentes para Work.ink, LootLabs e Linkvertise sem concluir
+anúncios nem registrar keys de teste. Os outros segredos do Worker já existentes
+na Cloudflare não são apagados pelo deploy.
 
 O deploy usa versões fixadas do Wrangler e das Actions. O ambiente GitHub
 `production` pode receber regras de aprovação nas configurações do repositório.
@@ -198,11 +201,11 @@ pnpm --dir key-server install --frozen-lockfile
 pnpm --dir key-server run check
 node --test tests/source.test.mjs key-server/test/key-store.test.mjs
 pnpm --dir key-server exec wrangler deploy --dry-run
+KEY_SERVER_ORIGIN=https://nothrilo-key.urielcafe01.workers.dev pnpm --dir key-server run smoke:production
 ```
 Os testes da API usam armazenamento em memória e respostas de provedores
 simuladas; não emitem keys reais nem acessam contas dos provedores.
 
-A revisão de 03/09/2026 altera código e testes, mas não publica o Worker nem
-muda segredos ou links dos provedores. O `LOOTLABS_URL` versionado ainda é um
-placeholder; confirme a configuração efetiva de cada provedor em um ambiente
-de homologação antes de uma publicação separada. Não foi feita migração de dados.
+O smoke test de produção cria somente sessões temporárias que expiram sozinhas.
+Ele não segue anúncios, não recebe provas dos provedores e não emite keys. Não há
+migração de dados durante a publicação.

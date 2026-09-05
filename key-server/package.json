@@ -10,6 +10,7 @@
   "scripts": {
     "check": "node --check src/index.js && node --check src/ui.js",
     "test": "node --test test/*.test.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs",
     "predeploy": "pnpm run check && pnpm test",
     "deploy": "wrangler deploy"
   },

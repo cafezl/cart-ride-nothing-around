@@ -2,6 +2,7 @@
   "name": "cafezl-suite",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.19.0",
   "scripts": {
     "test": "node --test tests/source.test.mjs key-server/test/*.test.mjs",
     "test:luau": "node --test tests/client.test.mjs",

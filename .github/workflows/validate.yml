@@ -54,4 +54,4 @@ jobs:
         env:
           LUAU_BIN: ${{ github.workspace }}/tools/luau/build/release/luau
           LUAU_COMPILE_BIN: ${{ github.workspace }}/tools/luau/build/release/luau-compile
-        run: node --test tests/client.test.mjs
+        run: node --test tests/client.test.mjs tests/nothrilo-v2-key.test.mjs

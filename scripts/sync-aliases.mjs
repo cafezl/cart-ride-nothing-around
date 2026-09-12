@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 export const aliases = [
+  { source: "nothrilov2/nothrilov2", targets: ["Nothrilo-V2.lua", "nothrilo/v2/Nothrilo-V2.lua"] },
   { source: "Cafezitos.lua", targets: ["Cafezitos-V2.lua", "Cafezitos-completo.lua"] },
   { source: "Nothrilo.lua", targets: ["Nothrilo-key-gratis.lua", "Nothrilo-classico-funcoes-corrigidas.lua"] },
 ];

@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Nothrilo 🇧🇷 — Menu completo por Cafezl
--- Versão V2: Clássico com todas as funções corrigidas e key JNKIE
+-- Versão principal: Clássico com funções corrigidas e sistema de key
 -- =============================================================================
 
 local Players        = game:GetService("Players")
@@ -18,7 +18,7 @@ do
     end
     if not LocalPlayer then error("Nothrilo: jogador local indisponível; execute no cliente do Roblox.") end
 end
-local MENU_NAME    = "Nothrilo V2 🇧🇷"
+local MENU_NAME    = "Nothrilo 🇧🇷"
 local UI_TITLE     = MENU_NAME .. " | Feito por Cafezl"
 
 -- Token compartilhado entre as skins. Uma execução nova invalida imediatamente
@@ -171,8 +171,7 @@ for _, guiRoot in ipairs(guiRoots) do
                 local main   = gui:FindFirstChild("Main")
                 local header = main and main:FindFirstChild("MainHeader")
                 local title  = header and header:FindFirstChild("title")
-                if title and title:IsA("TextLabel") and (title.Text:find("Nothrilo", 1, true)
-                    or title.Text:find("Gatitoz", 1, true)) then
+                if title and title:IsA("TextLabel") and title.Text:find("Nothrilo", 1, true) then
                     gui:Destroy()
                 end
             end
@@ -188,6 +187,743 @@ local Theme = {
     TextColor    = Color3.fromRGB(245, 245, 245),
     ElementColor = Color3.fromRGB(22, 22, 27),
 }
+
+-- Validação de key, cache e expiração do acesso.
+do
+    local HttpService = game:GetService("HttpService")
+    local keyGateGui
+    local function runFreeKeyGate()
+        local apiOrigin = "https://nothrilo-key.urielcafe01.workers.dev"
+        local serverConfigured = apiOrigin:match("^https://") ~= nil and not apiOrigin:find("__NOTHRILO_", 1, true)
+        local cachePath = "Nothrilo/key-cache-v1.json"
+        local cacheFolder = "Nothrilo"
+        local cacheSlot = "__NothriloFreeKeyCacheV1"
+        local maxKeyTtl = 24 * 60 * 60
+        local function environmentFunction(name)
+            local ok, value = pcall(function()
+                return suiteEnvironment[name]
+            end)
+            if ok and type(value) == "function" then
+                return value
+            end
+            ok, value = pcall(function()
+                return _G[name]
+            end)
+            return ok and type(value) == "function" and value or nil
+        end
+        local function nestedEnvironmentFunction(name, member)
+            local function lookup(environment)
+                local ok, value = pcall(function()
+                    local container = environment[name]
+                    return type(container) == "table" and container[member] or nil
+                end)
+                return ok and type(value) == "function" and value or nil
+            end
+            return lookup(suiteEnvironment) or lookup(_G)
+        end
+        local function getRequestFunction()
+            return environmentFunction("request")
+                or environmentFunction("http_request")
+                or nestedEnvironmentFunction("syn", "request")
+                or nestedEnvironmentFunction("fluxus", "request")
+                or nestedEnvironmentFunction("http", "request")
+        end
+        local function postKeyServer(A)
+            if not serverConfigured then
+                return false, 0, nil, "server_not_configured"
+            end
+            local B, C = pcall(function()
+                return HttpService:JSONEncode(A)
+            end)
+            if not B then
+                return false, 0, nil, "invalid_request"
+            end
+            local D = {
+                Url = apiOrigin .. "/v1/nothrilo/key/verify",
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
+                Body = C,
+            }
+            local E = getRequestFunction()
+            local F, G
+            if E then
+                F, G = pcall(E, D)
+            else
+                F, G = pcall(function()
+                    return HttpService:RequestAsync(D)
+                end)
+            end
+            if not F then
+                return false, 0, nil, "network_error"
+            end
+            local H = 0
+            local I
+            if type(G) == "table" then
+                H = tonumber(G.StatusCode or G.Status or G.status_code) or 0
+                I = G.Body or G.body
+                if H == 0 and G.Success == true then
+                    H = 200
+                end
+            elseif type(G) == "string" then
+                H = 200
+                I = G
+            end
+            if type(I) ~= "string" or I == "" then
+                return false, H, nil, "invalid_response"
+            end
+            local J, K = pcall(function()
+                return HttpService:JSONDecode(I)
+            end)
+            if not J or type(K) ~= "table" then
+                return false, H, nil, "invalid_response"
+            end
+            return H >= 200 and H < 300, H, K, K.error
+        end
+        local function validLease(A)
+            return type(A) == "string" and #A == 71 and A:match("^NLEASE%-%x+$") ~= nil
+        end
+        local function clearKeyCache()
+            pcall(function()
+                suiteEnvironment[cacheSlot] = nil
+            end)
+            local A = environmentFunction("delfile")
+            if A then
+                pcall(A, cachePath)
+            end
+        end
+        local function decodeCache(A)
+            if type(A) == "table" then
+                return A
+            end
+            if type(A) ~= "string" or A == "" then
+                return nil
+            end
+            local B, C = pcall(function()
+                return HttpService:JSONDecode(A)
+            end)
+            return B and type(C) == "table" and C or nil
+        end
+        local function validateCachedRecord(A)
+            if type(A) ~= "table" then
+                return nil
+            end
+            local B = os.time()
+            local C = tonumber(A.savedAt)
+            local D = tonumber(A.expiresAt)
+            if
+                A.version ~= 1
+                or A.product ~= "nothrilo"
+                or tostring(A.userId or "") ~= tostring(LocalPlayer.UserId)
+                or not validLease(A.lease)
+                or not C
+                or not D
+                or C > B + 300
+                or D <= B + 5
+                or D - C > maxKeyTtl + 60
+            then
+                return nil
+            end
+            return A
+        end
+        local function readKeyCache()
+            local A = environmentFunction("isfile")
+            local B = environmentFunction("readfile")
+            if B then
+                local C = true
+                if A then
+                    local D, E = pcall(A, cachePath)
+                    C = D and E == true
+                end
+                if C then
+                    local D, E = pcall(B, cachePath)
+                    if D then
+                        local F = validateCachedRecord(decodeCache(E))
+                        if F then
+                            return F
+                        end
+                    end
+                end
+            end
+            local C
+            pcall(function()
+                C = suiteEnvironment[cacheSlot]
+            end)
+            return validateCachedRecord(decodeCache(C))
+        end
+        local function saveKeyCache(A, B)
+            if not validLease(A) then
+                return
+            end
+            local C = math.floor(math.clamp(tonumber(B) or 0, 1, maxKeyTtl))
+            if C <= 5 then
+                return
+            end
+            local D = os.time()
+            local E = {
+                version = 1,
+                product = "nothrilo",
+                userId = tostring(LocalPlayer.UserId),
+                lease = A,
+                savedAt = D,
+                expiresAt = D + C,
+            }
+            pcall(function()
+                suiteEnvironment[cacheSlot] = E
+            end)
+            local F = environmentFunction("writefile")
+            if not F then
+                return
+            end
+            local G, H = pcall(function()
+                return HttpService:JSONEncode(E)
+            end)
+            if not G then
+                return
+            end
+            local I = environmentFunction("makefolder")
+            if I then
+                pcall(I, cacheFolder)
+            end
+            pcall(F, cachePath, H)
+        end
+        local A = false
+        local B = false
+        local C = {}
+        local D = 0
+        local E = {}
+        local function gateAlive()
+            return not destroyed and isCurrentSuiteGeneration() and keyGateGui and keyGateGui.Parent ~= nil and E ~= nil
+        end
+        local function connect(F, G)
+            local H = F:Connect(G)
+            table.insert(C, H)
+            return H
+        end
+        local F = Instance.new("ScreenGui")
+        F.Name = "NothriloKeyGate"
+        F.ResetOnSpawn = false
+        F.IgnoreGuiInset = true
+        F.DisplayOrder = 10100
+        F.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        F.Parent = CoreGui
+        keyGateGui = F
+        local G = Instance.new("Frame")
+        G.Name = "Shade"
+        G.Size = UDim2.fromScale(1, 1)
+        G.BackgroundColor3 = Color3.fromRGB(3, 3, 5)
+        G.BackgroundTransparency = 0.06
+        G.BorderSizePixel = 0
+        G.Parent = F
+        local H = Instance.new("Frame")
+        H.Name = "Card"
+        H.AnchorPoint = Vector2.new(0.5, 0.5)
+        H.Position = UDim2.fromScale(0.5, 0.5)
+        H.BackgroundColor3 = Theme.Background
+        H.BorderSizePixel = 0
+        H.ClipsDescendants = true
+        H.Parent = G
+        local I = Instance.new("UICorner")
+        I.CornerRadius = UDim.new(0, 22)
+        I.Parent = H
+        local J = Instance.new("UIStroke")
+        J.Thickness = 2
+        J.Color = Theme.SchemeColor
+        J.Parent = H
+        local K = Instance.new("Frame")
+        K.Name = "Header"
+        K.Size = UDim2.new(1, 0, 0, 68)
+        K.BackgroundColor3 = Theme.Header
+        K.BorderSizePixel = 0
+        K.Parent = H
+        local L = Instance.new("Frame")
+        L.AnchorPoint = Vector2.new(0, 0.5)
+        L.Position = UDim2.new(0, 18, 0.5, 0)
+        L.Size = UDim2.fromOffset(13, 13)
+        L.BackgroundColor3 = Theme.SchemeColor
+        L.BorderSizePixel = 0
+        L.Parent = K
+        Instance.new("UICorner", L).CornerRadius = UDim.new(1, 0)
+        local M = Instance.new("TextLabel")
+        M.Position = UDim2.new(0, 42, 0, 8)
+        M.Size = UDim2.new(1, -96, 0, 27)
+        M.BackgroundTransparency = 1
+        M.Font = Enum.Font.GothamBold
+        M.Text = "Nothrilo \u{2022} Key gr\u{e1}tis"
+        M.TextColor3 = Theme.TextColor
+        M.TextSize = 19
+        M.TextXAlignment = Enum.TextXAlignment.Left
+        M.Parent = K
+        local N = Instance.new("TextLabel")
+        N.Position = UDim2.new(0, 42, 0, 36)
+        N.Size = UDim2.new(1, -96, 0, 20)
+        N.BackgroundTransparency = 1
+        N.Font = Enum.Font.Gotham
+        N.Text = "Key gratuita \u{2022} menu completo por at\u{e9} 24 horas"
+        N.TextColor3 = Color3.fromRGB(214, 214, 224)
+        N.TextSize = 13
+        N.TextXAlignment = Enum.TextXAlignment.Left
+        N.Parent = K
+        local O = Instance.new("TextButton")
+        O.Name = "Close"
+        O.AnchorPoint = Vector2.new(1, 0.5)
+        O.Position = UDim2.new(1, -10, 0.5, 0)
+        O.Size = UDim2.fromOffset(46, 46)
+        O.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
+        O.BorderSizePixel = 0
+        O.AutoButtonColor = true
+        O.Font = Enum.Font.GothamBold
+        O.Text = "\u{d7}"
+        O.TextColor3 = Theme.TextColor
+        O.TextSize = 23
+        O.Parent = K
+        Instance.new("UICorner", O).CornerRadius = UDim.new(0, 13)
+        local P = Instance.new("ScrollingFrame")
+        P.Name = "Content"
+        P.Position = UDim2.fromOffset(0, 68)
+        P.Size = UDim2.new(1, 0, 1, -68)
+        P.BackgroundTransparency = 1
+        P.BorderSizePixel = 0
+        P.ScrollBarThickness = 5
+        P.ScrollBarImageColor3 = Theme.SchemeColor
+        P.ScrollingDirection = Enum.ScrollingDirection.Y
+        P.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        P.CanvasSize = UDim2.new()
+        P.Parent = H
+        local Q = Instance.new("UIPadding")
+        Q.PaddingLeft = UDim.new(0, 18)
+        Q.PaddingRight = UDim.new(0, 18)
+        Q.PaddingTop = UDim.new(0, 14)
+        Q.PaddingBottom = UDim.new(0, 16)
+        Q.Parent = P
+        local R = Instance.new("UIListLayout")
+        R.FillDirection = Enum.FillDirection.Vertical
+        R.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        R.SortOrder = Enum.SortOrder.LayoutOrder
+        R.Padding = UDim.new(0, 10)
+        R.Parent = P
+        local function label(S, T, U, V, W)
+            local X = Instance.new("TextLabel")
+            X.Size = UDim2.new(1, 0, 0, T)
+            X.BackgroundTransparency = 1
+            X.Font = U or Enum.Font.Gotham
+            X.Text = S
+            X.TextColor3 = W or Theme.TextColor
+            X.TextSize = V or 13
+            X.TextWrapped = true
+            X.TextXAlignment = Enum.TextXAlignment.Left
+            X.TextYAlignment = Enum.TextYAlignment.Center
+            X.Parent = P
+            return X
+        end
+        local S = label(
+            "Escolha uma op\u{e7}\u{e3}o, conclua as etapas no navegador e cole a key aqui. Work.ink, LootLabs e Linkvertise liberam exatamente as mesmas fun\u{e7}\u{f5}es.",
+            58,
+            Enum.Font.GothamMedium,
+            15,
+            Color3.fromRGB(238, 238, 244)
+        )
+        S.LayoutOrder = 1
+        local T = label("ESCOLHA ONDE PEGAR A KEY", 22, Enum.Font.GothamBold, 13, Color3.fromRGB(218, 218, 228))
+        T.LayoutOrder = 2
+        local U = Instance.new("Frame")
+        U.Size = UDim2.new(1, 0, 0, 54)
+        U.BackgroundTransparency = 1
+        U.LayoutOrder = 3
+        U.Parent = P
+        local V = Instance.new("UIListLayout")
+        V.FillDirection = Enum.FillDirection.Horizontal
+        V.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        V.VerticalAlignment = Enum.VerticalAlignment.Center
+        V.Padding = UDim.new(0, 8)
+        V.Parent = U
+        local W = Instance.new("TextBox")
+        W.Name = "KeyLink"
+        W.Size = UDim2.new(1, 0, 0, 46)
+        W.BackgroundColor3 = Theme.ElementColor
+        W.BorderSizePixel = 0
+        W.ClearTextOnFocus = false
+        W.Font = Enum.Font.Code
+        W.PlaceholderText = "O link escolhido aparece aqui"
+        W.PlaceholderColor3 = Color3.fromRGB(188, 188, 201)
+        W.Text = ""
+        W.TextColor3 = Color3.fromRGB(240, 240, 246)
+        W.TextSize = 13
+        W.TextTruncate = Enum.TextTruncate.AtEnd
+        W.TextXAlignment = Enum.TextXAlignment.Left
+        W.LayoutOrder = 4
+        W.Parent = P
+        Instance.new("UICorner", W).CornerRadius = UDim.new(0, 11)
+        local X = Instance.new("UIPadding")
+        X.PaddingLeft = UDim.new(0, 12)
+        X.PaddingRight = UDim.new(0, 12)
+        X.Parent = W
+        local Y = Instance.new("UIStroke")
+        Y.Color = Color3.fromRGB(62, 62, 76)
+        Y.Thickness = 1
+        Y.Parent = W
+        local Z = Instance.new("TextBox")
+        Z.Name = "KeyInput"
+        Z.Size = UDim2.new(1, 0, 0, 52)
+        Z.BackgroundColor3 = Theme.ElementColor
+        Z.BorderSizePixel = 0
+        Z.ClearTextOnFocus = false
+        Z.Font = Enum.Font.RobotoMono
+        Z.PlaceholderText = "Cole sua key: NOTH-XXXX-XXXX-XXXX-XXXX-XXXX"
+        Z.PlaceholderColor3 = Color3.fromRGB(195, 195, 208)
+        Z.Text = ""
+        Z.TextColor3 = Theme.TextColor
+        Z.TextSize = 15
+        Z.TextXAlignment = Enum.TextXAlignment.Left
+        Z.LayoutOrder = 5
+        Z.Parent = P
+        Instance.new("UICorner", Z).CornerRadius = UDim.new(0, 12)
+        local _ = Instance.new("UIPadding")
+        _.PaddingLeft = UDim.new(0, 14)
+        _.PaddingRight = UDim.new(0, 14)
+        _.Parent = Z
+        local aa = Instance.new("UIStroke")
+        aa.Color = Color3.fromRGB(72, 72, 88)
+        aa.Thickness = 1
+        aa.Parent = Z
+        local ab = Instance.new("TextButton")
+        ab.Name = "Verify"
+        ab.Size = UDim2.new(1, 0, 0, 52)
+        ab.BackgroundColor3 = Theme.SchemeColor
+        ab.BorderSizePixel = 0
+        ab.AutoButtonColor = true
+        ab.Font = Enum.Font.GothamBold
+        ab.Text = "VALIDAR E ABRIR O NOTHRILO"
+        ab.TextColor3 = Color3.fromRGB(8, 8, 10)
+        ab.TextSize = 14
+        ab.LayoutOrder = 6
+        ab.Parent = P
+        Instance.new("UICorner", ab).CornerRadius = UDim.new(0, 13)
+        local ac = Instance.new("Frame")
+        ac.Size = UDim2.new(1, 0, 0, 62)
+        ac.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+        ac.BorderSizePixel = 0
+        ac.LayoutOrder = 7
+        ac.Parent = P
+        Instance.new("UICorner", ac).CornerRadius = UDim.new(0, 12)
+        local ad = Instance.new("Frame")
+        ad.AnchorPoint = Vector2.new(0, 0.5)
+        ad.Position = UDim2.new(0, 13, 0.5, 0)
+        ad.Size = UDim2.fromOffset(10, 10)
+        ad.BackgroundColor3 = Theme.SchemeColor
+        ad.BorderSizePixel = 0
+        ad.Parent = ac
+        Instance.new("UICorner", ad).CornerRadius = UDim.new(1, 0)
+        local ae = Instance.new("TextLabel")
+        ae.Position = UDim2.new(0, 35, 0, 6)
+        ae.Size = UDim2.new(1, -48, 1, -12)
+        ae.BackgroundTransparency = 1
+        ae.Font = Enum.Font.Gotham
+        ae.Text = serverConfigured and "Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis."
+            or "O servidor de keys ainda n\u{e3}o foi conectado nesta build."
+        ae.TextColor3 = Color3.fromRGB(232, 232, 240)
+        ae.TextSize = 14
+        ae.TextWrapped = true
+        ae.TextXAlignment = Enum.TextXAlignment.Left
+        ae.TextYAlignment = Enum.TextYAlignment.Center
+        ae.Parent = ac
+        local af = label(
+            "\u{1f510} Todas as fun\u{e7}\u{f5}es s\u{e3}o gr\u{e1}tis ap\u{f3}s a key. Nenhuma senha \u{e9} pedida.",
+            42,
+            Enum.Font.GothamMedium,
+            13,
+            Color3.fromRGB(205, 205, 216)
+        )
+        af.LayoutOrder = 8
+        local ag = {}
+        local ah = {
+            { id = "workink", text = "Work.ink \u{1f7e2}" },
+            { id = "lootlabs", text = "LootLabs \u{1f48e}" },
+            { id = "linkvertise", text = "Linkvertise \u{1f517}" },
+        }
+        local function setStatus(ai, aj)
+            ae.Text = ai
+            if aj == "good" then
+                ae.TextColor3 = Color3.fromRGB(116, 255, 158)
+            elseif aj == "bad" then
+                ae.TextColor3 = Color3.fromRGB(255, 116, 148)
+            else
+                ae.TextColor3 = Color3.fromRGB(232, 232, 240)
+            end
+        end
+        local function copyText(ai)
+            for aj, ak in ipairs({ "setclipboard", "toclipboard" }) do
+                local al = environmentFunction(ak)
+                if al then
+                    local am = pcall(al, ai)
+                    if am then
+                        return true
+                    end
+                end
+            end
+            return false
+        end
+        for ai, aj in ipairs(ah) do
+            local ak = Instance.new("TextButton")
+            ak.Name = aj.id
+            ak.Size = UDim2.new(1 / 3, -6, 1, 0)
+            ak.BackgroundColor3 = Color3.fromRGB(24, 24, 31)
+            ak.BorderSizePixel = 0
+            ak.AutoButtonColor = true
+            ak.Font = Enum.Font.GothamBold
+            ak.Text = aj.text
+            ak.TextColor3 = Theme.TextColor
+            ak.TextSize = 14
+            ak.Parent = U
+            Instance.new("UICorner", ak).CornerRadius = UDim.new(0, 12)
+            local al = Instance.new("UIStroke")
+            al.Color = Theme.SchemeColor
+            al.Transparency = 0.18
+            al.Thickness = 1
+            al.Parent = ak
+            table.insert(ag, al)
+            connect(ak.Activated, function()
+                if not gateAlive() then
+                    return
+                end
+                if not serverConfigured then
+                    setStatus(
+                        "O servidor ainda n\u{e3}o foi publicado. Esta build \u{e9} apenas de prepara\u{e7}\u{e3}o.",
+                        "bad"
+                    )
+                    return
+                end
+                local am = apiOrigin
+                    .. "/v1/nothrilo/key/start?provider="
+                    .. HttpService:UrlEncode(aj.id)
+                    .. "&userId="
+                    .. HttpService:UrlEncode(tostring(LocalPlayer.UserId))
+                W.Text = am
+                if copyText(am) then
+                    setStatus(
+                        "Link do " .. aj.text .. " copiado. Cole no navegador, conclua e volte com a key.",
+                        "good"
+                    )
+                else
+                    setStatus([[Copie o link do campo acima, abra no navegador, conclua e volte com a key.]], nil)
+                    pcall(function()
+                        W:CaptureFocus()
+                        W.CursorPosition = #W.Text + 1
+                        W.SelectionStart = 1
+                    end)
+                end
+            end)
+        end
+        local function setBusy(ai)
+            ab.Active = not ai
+            ab.AutoButtonColor = not ai
+            ab.Text = ai and "VERIFICANDO..." or "VALIDAR E ABRIR O NOTHRILO"
+            ab.BackgroundTransparency = ai and 0.35 or 0
+            pcall(function()
+                Z.TextEditable = not ai
+            end)
+        end
+        local function friendlyError(ai, aj)
+            if ai == "server_not_configured" then
+                return "O servidor de keys ainda n\u{e3}o foi conectado nesta build."
+            end
+            if ai == "network_error" then
+                return "N\u{e3}o consegui falar com o servidor. Confira a internet e tente novamente."
+            end
+            if ai == "invalid_key" or ai == "invalid_lease" or aj == 401 or aj == 403 then
+                return "Key inv\u{e1}lida, expirada ou criada para outro usu\u{e1}rio."
+            end
+            if aj == 429 then
+                return "Muitas tentativas. Aguarde um pouco e tente novamente."
+            end
+            return [[O servidor respondeu de um jeito inesperado. Tente novamente em instantes.]]
+        end
+        local function beginVerification(ai, aj, ak)
+            if not gateAlive() then
+                return
+            end
+            aj = tostring(aj or ""):match("^%s*(.-)%s*$")
+            if ai == "key" then
+                aj = aj:upper()
+            end
+            if
+                (ai == "key" and not aj:match("^NOTH%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w%-%w%w%w%w$"))
+                or (ai == "lease" and not validLease(aj))
+            then
+                if ak then
+                    clearKeyCache()
+                else
+                    setStatus("Cole uma key Nothrilo completa antes de validar.", "bad")
+                end
+                return
+            end
+            D += 1
+            local al = D
+            setBusy(true)
+            setStatus(ak and "Verificando seu acesso salvo..." or "Validando sua key com seguran\u{e7}a...", nil)
+            task.delay(20, function()
+                if gateAlive() and D == al and not A then
+                    D += 1
+                    setBusy(false)
+                    setStatus("A verifica\u{e7}\u{e3}o demorou demais. Tente novamente.", "bad")
+                end
+            end)
+            task.spawn(function()
+                local am = tostring(os.clock())
+                pcall(function()
+                    am = HttpService:GenerateGUID(false)
+                end)
+                local an = {
+                    product = "nothrilo",
+                    clientVersion = "free-key-v1",
+                    userId = tostring(LocalPlayer.UserId),
+                    placeId = tostring(game.PlaceId),
+                    nonce = am,
+                }
+                an[ai] = aj
+                local ao, ap, aq, ar = postKeyServer(an)
+                if not gateAlive() or D ~= al or A then
+                    return
+                end
+                if
+                    ao
+                    and type(aq) == "table"
+                    and aq.ok == true
+                    and validLease(aq.lease)
+                    and tonumber(aq.ttlSeconds)
+                    and tonumber(aq.ttlSeconds) > 5
+                then
+                    local as = math.floor(math.clamp(tonumber(aq.ttlSeconds), 1, maxKeyTtl))
+                    saveKeyCache(aq.lease, as)
+                    local at = os.clock() + as
+                    task.spawn(function()
+                        while not destroyed and isCurrentSuiteGeneration() do
+                            local au = at - os.clock()
+                            if au <= 0 then
+                                break
+                            end
+                            task.wait(math.max(0.25, math.min(30, au)))
+                        end
+                        if destroyed or not isCurrentSuiteGeneration() or os.clock() < at then
+                            return
+                        end
+                        clearKeyCache()
+                        if destroyNothrilo then
+                            destroyNothrilo()
+                        else
+                            destroyed = true
+                            if runtime and runtime.Parent then
+                                runtime:Destroy()
+                            end
+                        end
+                    end)
+                    setStatus("Acesso liberado! Abrindo o Nothrilo completo...", "good")
+                    task.wait(0.45)
+                    if gateAlive() and D == al then
+                        B = true
+                        A = true
+                    end
+                    return
+                end
+                if ak then
+                    clearKeyCache()
+                end
+                setBusy(false)
+                setStatus(friendlyError(ar or (aq and aq.error), ap), "bad")
+            end)
+        end
+        connect(ab.Activated, function()
+            beginVerification("key", Z.Text, false)
+        end)
+        connect(Z.FocusLost, function(ai)
+            if ai then
+                beginVerification("key", Z.Text, false)
+            end
+        end)
+        connect(O.Activated, function()
+            D += 1
+            A = true
+            B = false
+        end)
+        local ai = Vector2.new()
+        local function resizeGate()
+            local aj = workspace.CurrentCamera
+            local ak = aj and aj.ViewportSize or Vector2.new(800, 600)
+            if ak == ai then
+                return
+            end
+            ai = ak
+            local al = math.max(284, math.min(600, ak.X - 16))
+            local am = math.max(350, math.min(550, ak.Y - 16))
+            H.Size = UDim2.fromOffset(al, am)
+            local an = al < 390
+            M.TextSize = an and 17 or 19
+            N.TextSize = an and 12 or 13
+            S.TextSize = an and 14 or 15
+            T.TextSize = an and 12 or 13
+            W.TextSize = an and 12 or 13
+            Z.TextSize = an and 13 or 15
+            ab.TextSize = an and 13 or 14
+            ae.TextSize = an and 13 or 14
+            af.TextSize = an and 12 or 13
+            for ao, ap in ipairs(ag) do
+                ap.Parent.TextSize = an and 12 or 14
+            end
+        end
+        resizeGate()
+        task.spawn(function()
+            while gateAlive() and not A do
+                resizeGate()
+                local aj = Color3.fromHSV((os.clock() * 0.075) % 1, 0.86, 1)
+                J.Color = aj
+                L.BackgroundColor3 = aj
+                ab.BackgroundColor3 = aj
+                P.ScrollBarImageColor3 = aj
+                ad.BackgroundColor3 = aj
+                for ak, al in ipairs(ag) do
+                    al.Color = aj
+                end
+                task.wait(0.08)
+            end
+        end)
+        local aj = readKeyCache()
+        if aj then
+            beginVerification("lease", aj.lease, true)
+        elseif serverConfigured then
+            setStatus("Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis.", nil)
+        end
+        repeat
+            task.wait(0.05)
+        until A or not gateAlive()
+        D += 1
+        E = nil
+        for ak = #C, 1, -1 do
+            pcall(function()
+                C[ak]:Disconnect()
+            end)
+            C[ak] = nil
+        end
+        if keyGateGui and keyGateGui.Parent then
+            pcall(function()
+                keyGateGui:Destroy()
+            end)
+        end
+        keyGateGui = nil
+        return B and not destroyed and isCurrentSuiteGeneration()
+    end
+    if not runFreeKeyGate() then
+        destroyed = true
+        for aa = #runtimeConnections, 1, -1 do
+            pcall(function()
+                runtimeConnections[aa]:Disconnect()
+            end)
+            runtimeConnections[aa] = nil
+        end
+        if runtime and runtime.Parent then
+            runtime:Destroy()
+        end
+        return
+    end
+end
 
 -- =============================================================================
 -- Tela de carregamento
@@ -424,836 +1160,6 @@ startup.gui, startup.status, startup.progress = (function()
 end)()
 
 -- =============================================================================
--- O carregamento aparece antes da key gate.
--- O menu só é montado depois que a pessoa passa pela validação.
-if os.clock() < startup.beganAt + startup.seconds then
-    if startup.status then startup.status.Text = "Funções prontas • abrindo a validação..." end
-    repeat
-        RunService.RenderStepped:Wait()
-    until os.clock() >= startup.beganAt + startup.seconds
-end
-if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
-if destroyed or not isCurrentSuiteGeneration() or not runtime or not runtime.Parent then
-    return
-end
-
-
--- Nothrilo V2 usa o SDK oficial do JNKIE para gerar e validar a key.
--- O serviço e o identificador podem ser definidos antes do loader com:
--- getgenv().NOTHRILO_JNKIE_SERVICE = "..."
--- getgenv().NOTHRILO_JNKIE_IDENTIFIER = "1177853"
--- getgenv().NOTHRILO_JNKIE_PROVIDER = "Linkvertise"
-do
-    local keyGateGui
-    local function configValue(name, fallback)
-        local ok, value = pcall(function()
-            return suiteEnvironment[name]
-        end)
-        if ok and (type(value) == "string" or type(value) == "number") then
-            local text = tostring(value):match("^%s*(.-)%s*$")
-            if text ~= "" then return text end
-        end
-        return fallback
-    end
-
-    local junkieConfig = {
-        service = configValue("NOTHRILO_JNKIE_SERVICE", "NothriloV2"),
-        -- The JNKIE SDK expects the numeric account/user identifier shown in
-        -- the dashboard. The public service slug is used by the key page, not
-        -- by the SDK configuration.
-        identifier = configValue("NOTHRILO_JNKIE_IDENTIFIER", "1177853"),
-        provider = configValue("NOTHRILO_JNKIE_PROVIDER", "Linkvertise"),
-    }
-    local configured = junkieConfig.identifier ~= ""
-        and not junkieConfig.identifier:find("__CONFIGURE_", 1, true)
-    local junkie
-    local loadedJunkie = false
-    local loadError
-    local accepted = false
-    local gateClosed = false
-    local connections = {}
-    local attempts = 0
-
-    local function environmentFunction(name)
-        local ok, value = pcall(function()
-            return suiteEnvironment[name]
-        end)
-        if ok and type(value) == "function" then return value end
-        return nil
-    end
-
-    local function copyText(value)
-        for _, name in ipairs({ "setclipboard", "toclipboard" }) do
-            local fn = environmentFunction(name)
-            if fn and pcall(fn, value) then return true end
-        end
-        return false
-    end
-
-    local function loadJunkie()
-        if loadedJunkie then return junkie, loadError end
-        loadedJunkie = true
-        if not configured then
-            loadError = "Configure o identificador do serviço JNKIE antes de usar esta build."
-            return nil, loadError
-        end
-        local ok, source = pcall(function()
-            return game:HttpGet("https://jnkie.com/sdk/library.lua")
-        end)
-        if not ok or type(source) ~= "string" or source == "" then
-            loadError = "Não consegui carregar a biblioteca do JNKIE."
-            return nil, loadError
-        end
-        local loader = loadstring(source)
-        if type(loader) ~= "function" then
-            loadError = "A biblioteca do JNKIE retornou um código inválido."
-            return nil, loadError
-        end
-        local created, api = pcall(loader)
-        if not created or type(api) ~= "table" then
-            loadError = "A biblioteca do JNKIE não iniciou neste executor."
-            return nil, loadError
-        end
-        api.service = junkieConfig.service
-        api.identifier = junkieConfig.identifier
-        api.provider = junkieConfig.provider
-        junkie = api
-        return junkie, nil
-    end
-
-    local function invoke(name, ...)
-        local api, err = loadJunkie()
-        if not api then return nil, err end
-        local fn = api[name]
-        if type(fn) ~= "function" then
-            return nil, "A biblioteca do JNKIE não oferece " .. name .. "."
-        end
-        local ok, first, second = pcall(fn, ...)
-        if not ok then return nil, "O JNKIE recusou a solicitação." end
-        return first, second
-    end
-
-    local function isAlive()
-        return not destroyed and isCurrentSuiteGeneration()
-            and keyGateGui and keyGateGui.Parent ~= nil and not gateClosed
-    end
-
-    local function connect(signal, callback)
-        local connection = signal:Connect(callback)
-        table.insert(connections, connection)
-        return connection
-    end
-
-    local function label(parent, text, height, size, color)
-        local item = Instance.new("TextLabel")
-        item.Size = UDim2.new(1, 0, 0, height)
-        item.BackgroundTransparency = 1
-        item.Font = Enum.Font.Gotham
-        item.Text = text
-        item.TextColor3 = color or Theme.TextColor
-        item.TextSize = size or 13
-        item.TextWrapped = true
-        item.TextXAlignment = Enum.TextXAlignment.Left
-        item.TextYAlignment = Enum.TextYAlignment.Center
-        item.Parent = parent
-        return item
-    end
-
-    local function rounded(parent, radius)
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, radius)
-        corner.Parent = parent
-        return corner
-    end
-
-    local gate = Instance.new("ScreenGui")
-    gate.Name = "NothriloKeyGate"
-    gate.ResetOnSpawn = false
-    gate.IgnoreGuiInset = true
-    gate.DisplayOrder = 10100
-    gate.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    gate.Parent = CoreGui
-    keyGateGui = gate
-
-    local shade = Instance.new("Frame")
-    shade.Size = UDim2.fromScale(1, 1)
-    shade.BackgroundColor3 = Color3.fromRGB(8, 14, 27)
-    shade.BackgroundTransparency = 0.38
-    shade.BorderSizePixel = 0
-    shade.Parent = gate
-
-    local card = Instance.new("Frame")
-    card.Name = "Card"
-    card.AnchorPoint = Vector2.new(0.5, 0.5)
-    card.Position = UDim2.fromScale(0.5, 0.5)
-    local viewportWidth = 1024
-    pcall(function()
-        if workspace.CurrentCamera then
-            viewportWidth = workspace.CurrentCamera.ViewportSize.X
-        end
-    end)
-    local compactLayout = viewportWidth < 760
-    card.Size = compactLayout and UDim2.fromOffset(420, 700)
-        or UDim2.fromOffset(920, 492)
-    card.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    card.BackgroundTransparency = 1
-    card.BorderSizePixel = 0
-    card.ClipsDescendants = false
-    card.Parent = shade
-    rounded(card, 20)
-    local gateScale = Instance.new("UIScale")
-    gateScale.Name = "FitScale"
-    gateScale.Parent = card
-
-    -- Capa nativa: arte estática em 3D, sem downloads ou assets externos.
-    local promo = Instance.new("Frame")
-    promo.Name = "PromoPanel"
-    promo.Position = UDim2.fromOffset(0, 0)
-    promo.Size = compactLayout
-        and UDim2.new(1, 0, 0, 210)
-        or UDim2.new(0.44, -4, 1, 0)
-    promo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    promo.BorderSizePixel = 0
-    promo.ClipsDescendants = true
-    promo.Parent = card
-    rounded(promo, 20)
-    do
-        local sky = Instance.new("UIGradient")
-        sky.Rotation = 90
-        sky.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 32, 79)),
-            ColorSequenceKeypoint.new(0.30, Color3.fromRGB(86, 45, 133)),
-            ColorSequenceKeypoint.new(0.51, Color3.fromRGB(238, 116, 117)),
-            ColorSequenceKeypoint.new(0.65, Color3.fromRGB(255, 206, 119)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(123, 67, 96)),
-        })
-        sky.Parent = promo
-        local border = Instance.new("UIStroke")
-        border.Color = Color3.fromRGB(246, 211, 145)
-        border.Thickness = 2
-        border.Transparency = 0.12
-        border.Parent = promo
-
-        local function disc(name, x, y, width, color, transparency)
-            local item = Instance.new("Frame")
-            item.Name = name
-            item.AnchorPoint = Vector2.new(0.5, 0.5)
-            item.Position = UDim2.fromScale(x, y)
-            item.Size = UDim2.fromScale(width, width)
-            item.BackgroundColor3 = color
-            item.BackgroundTransparency = transparency or 0
-            item.BorderSizePixel = 0
-            item.ZIndex = 1
-            item.Parent = promo
-            local aspect = Instance.new("UIAspectRatioConstraint")
-            aspect.AspectRatio = 1
-            aspect.Parent = item
-            rounded(item, 1000)
-            return item
-        end
-        disc("SunHalo", 0.58, 0.53, 0.50, Color3.fromRGB(255, 222, 143), 0.83)
-        disc("SunGlow", 0.58, 0.53, 0.36, Color3.fromRGB(255, 229, 146), 0.62)
-        disc("Sun", 0.58, 0.53, 0.22, Color3.fromRGB(255, 243, 177), 0)
-        for _, cloud in ipairs({
-            {-0.04, 0.40, 0.30}, {0.10, 0.42, 0.25}, {0.20, 0.44, 0.17},
-            {0.97, 0.37, 0.28}, {0.85, 0.40, 0.22}, {0.75, 0.42, 0.16},
-        }) do
-            disc("SunsetCloud", cloud[1], cloud[2], cloud[3], Color3.fromRGB(244, 186, 211), 0.25)
-        end
-
-        local scene = Instance.new("ViewportFrame")
-        scene.Name = "CartRideArtwork"
-        scene.Position = UDim2.fromScale(-0.05, 0.24)
-        scene.Size = UDim2.fromScale(1.10, 0.88)
-        scene.BackgroundTransparency = 1
-        scene.BorderSizePixel = 0
-        scene.ZIndex = 2
-        scene.Ambient = Color3.fromRGB(174, 143, 184)
-        scene.LightColor = Color3.fromRGB(255, 218, 157)
-        scene.LightDirection = Vector3.new(-1, -0.7, -1)
-        scene.Parent = promo
-        -- Uma falha de renderização afeta somente a ilustração, nunca a key.
-        local sceneOk = pcall(function()
-            local world = Instance.new("WorldModel")
-            world.Parent = scene
-            local camera = Instance.new("Camera")
-            camera.FieldOfView = 43
-            camera.CFrame = CFrame.lookAt(Vector3.new(19, 15, 26), Vector3.new(-1, 0, -13))
-            camera.Parent = scene
-            scene.CurrentCamera = camera
-
-            local function part(name, size, transform, color, shape)
-                local item = Instance.new("Part")
-                item.Name = name
-                item.Size = size
-                item.CFrame = transform
-                item.Color = color
-                item.Material = Enum.Material.SmoothPlastic
-                item.Anchored = true
-                item.CanCollide = false
-                item.CastShadow = false
-                item.TopSurface = Enum.SurfaceType.Smooth
-                item.BottomSurface = Enum.SurfaceType.Smooth
-                if shape then item.Shape = shape end
-                item.Parent = world
-                return item
-            end
-            local gold = Color3.fromRGB(255, 194, 100)
-            local timber = Color3.fromRGB(121, 76, 66)
-            local steel = Color3.fromRGB(155, 166, 192)
-            for track = 0, 1 do
-                local offset = track == 0 and 0 or -13
-                for index = -11, 9 do
-                    local z = index * 3.5
-                    local x = offset + math.max(0, -z - 6) * 0.12
-                    local frame = CFrame.new(x, 0, z)
-                    part("WoodenSleeper", Vector3.new(8.3, 0.45, 1.3), frame, timber)
-                    for _, railX in ipairs({-2.65, 2.65}) do
-                        part("TrackRail", Vector3.new(0.32, 0.44, 3.6), frame * CFrame.new(railX, 0.43, 0), steel)
-                        part("SunlitRailEdge", Vector3.new(0.40, 0.08, 3.6), frame * CFrame.new(railX, 0.68, 0), gold)
-                    end
-                end
-            end
-            local function cart(base, scale)
-                local function piece(name, size, position, color, shape)
-                    return part(name, size * scale, base * CFrame.new(position * scale), color, shape)
-                end
-                local body = Color3.fromRGB(83, 98, 133)
-                local edge = Color3.fromRGB(189, 202, 218)
-                local dark = Color3.fromRGB(38, 42, 63)
-                piece("CartFloor", Vector3.new(4.9, 0.4, 6), Vector3.new(0, 1.45, 0), dark)
-                for _, x in ipairs({-2.36, 2.36}) do
-                    piece("CartSide", Vector3.new(0.30, 2.4, 6.0), Vector3.new(x, 2.75, 0), body)
-                    piece("CartRim", Vector3.new(0.43, 0.20, 6.2), Vector3.new(x, 4.0, 0), edge)
-                    for _, z in ipairs({-1.9, 1.9}) do
-                        piece("CartWheel", Vector3.new(0.60, 1.45, 1.45), Vector3.new(x * 1.13, 1.03, z), dark, Enum.PartType.Cylinder)
-                        piece("WheelHub", Vector3.new(0.65, 0.55, 0.55), Vector3.new(x * 1.13, 1.03, z), gold, Enum.PartType.Cylinder)
-                    end
-                end
-                for _, z in ipairs({-2.88, 2.88}) do
-                    piece("CartEnd", Vector3.new(4.6, 2.4, 0.30), Vector3.new(0, 2.75, z), body)
-                    piece("CartEndRim", Vector3.new(4.9, 0.20, 0.43), Vector3.new(0, 4.0, z), edge)
-                    for _, x in ipairs({-1.8, 1.8}) do
-                        piece("CartRivet", Vector3.new(0.17, 0.17, 0.18), Vector3.new(x, 2.8, z * 1.06), gold, Enum.PartType.Ball)
-                    end
-                end
-            end
-            cart(CFrame.new(0, 0, 3), 1)
-            cart(CFrame.new(-10, 0, -25), 0.80)
-            -- Alguns studs na borda preservam o visual de brinquedo do mapa.
-            part("FloatingPlatform", Vector3.new(6, 0.8, 58), CFrame.new(8, -1.0, -3), Color3.fromRGB(151, 130, 65))
-            for row = 0, 17 do
-                for column = 0, 2 do
-                    part("PlatformStud", Vector3.new(0.65, 0.15, 0.65), CFrame.new(6 + column * 1.7, -0.51, 23 - row * 3), Color3.fromRGB(201, 169, 83))
-                end
-            end
-        end)
-        if not sceneOk then scene:Destroy() end
-
-        local topShade = Instance.new("Frame")
-        topShade.Size = UDim2.fromScale(1, 0.43)
-        topShade.BackgroundColor3 = Color3.fromRGB(15, 16, 42)
-        topShade.BorderSizePixel = 0
-        topShade.ZIndex = 3
-        topShade.Parent = promo
-        local fade = Instance.new("UIGradient")
-        fade.Rotation = 90
-        fade.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.10), NumberSequenceKeypoint.new(1, 1)})
-        fade.Parent = topShade
-
-        local function title(text, y, height, first, last, size)
-            local item = Instance.new("TextLabel")
-            item.Name = text == "Nothrilo V2" and "ArtworkTitle" or "ArtworkSubtitle"
-            item.BackgroundTransparency = 1
-            item.Position = UDim2.new(0, 12, y, 0)
-            item.Size = UDim2.new(1, -24, 0, height)
-            item.Font = Enum.Font.GothamBlack
-            item.Text = text
-            item.TextColor3 = Color3.new(1, 1, 1)
-            item.TextScaled = true
-            item.ZIndex = 4
-            item.Parent = promo
-            local limit = Instance.new("UITextSizeConstraint")
-            limit.MaxTextSize = size
-            limit.MinTextSize = 16
-            limit.Parent = item
-            local outline = Instance.new("UIStroke")
-            outline.Color = Color3.fromRGB(43, 22, 42)
-            outline.Thickness = 2.5
-            outline.Parent = item
-            local gradient = Instance.new("UIGradient")
-            gradient.Rotation = 90
-            gradient.Color = ColorSequence.new(first, last)
-            gradient.Parent = item
-        end
-        title("Nothrilo V2", 0.065, compactLayout and 35 or 48, Color3.fromRGB(255, 247, 193), Color3.fromRGB(255, 184, 73), 42)
-        title("Menu Completo", compactLayout and 0.22 or 0.17, compactLayout and 30 or 42, Color3.fromRGB(255, 237, 252), Color3.fromRGB(243, 105, 203), 34)
-
-        local badge = Instance.new("TextLabel")
-        badge.Name = "ArtworkBadge"
-        badge.AnchorPoint = Vector2.new(0.5, 0)
-        badge.Position = UDim2.fromScale(0.5, compactLayout and 0.39 or 0.29)
-        badge.Size = UDim2.fromOffset(186, 25)
-        badge.BackgroundColor3 = Color3.fromRGB(30, 25, 48)
-        badge.BackgroundTransparency = 0.10
-        badge.BorderSizePixel = 0
-        badge.Font = Enum.Font.GothamSemibold
-        badge.Text = "KEY JNKIE   •   ACESSO 24H"
-        badge.TextSize = 10
-        badge.TextColor3 = Color3.fromRGB(255, 238, 213)
-        badge.ZIndex = 4
-        badge.Parent = promo
-        rounded(badge, 13)
-
-        local footer = Instance.new("Frame")
-        footer.Name = "ArtworkFooter"
-        footer.AnchorPoint = Vector2.new(0, 1)
-        footer.Position = UDim2.fromScale(0, 1)
-        footer.Size = UDim2.new(1, 0, 0, compactLayout and 35 or 62)
-        footer.BackgroundColor3 = Color3.fromRGB(17, 17, 31)
-        footer.BackgroundTransparency = 0.18
-        footer.BorderSizePixel = 0
-        footer.ZIndex = 4
-        footer.Parent = promo
-        local maker = Instance.new("TextLabel")
-        maker.Name = "ArtworkCredit"
-        maker.BackgroundTransparency = 1
-        maker.Position = UDim2.fromOffset(18, 0)
-        maker.Size = UDim2.new(1, -36, 1, 0)
-        maker.Font = Enum.Font.GothamSemibold
-        maker.Text = compactLayout and "Feito por Cafezl" or "CAFEZL\nCriador do Nothrilo"
-        maker.TextSize = compactLayout and 12 or 14
-        maker.TextColor3 = Color3.fromRGB(255, 233, 204)
-        maker.TextXAlignment = Enum.TextXAlignment.Left
-        maker.ZIndex = 5
-        maker.Parent = footer
-    end
-
-    local panel = Instance.new("Frame")
-    panel.Name = "ValidationPanel"
-    panel.Position = compactLayout
-        and UDim2.fromOffset(0, 218)
-        or UDim2.new(0.44, 8, 0, 0)
-    panel.Size = compactLayout
-        and UDim2.new(1, 0, 1, -218)
-        or UDim2.new(0.56, -8, 1, 0)
-    panel.BackgroundColor3 = Color3.fromRGB(20, 29, 47)
-    panel.BorderSizePixel = 0
-    panel.ClipsDescendants = true
-    panel.Parent = card
-    rounded(panel, 20)
-    local panelStroke = Instance.new("UIStroke")
-    panelStroke.Thickness = 1
-    panelStroke.Color = Color3.fromRGB(87, 107, 138)
-    panelStroke.Transparency = 0.26
-    panelStroke.Parent = panel
-
-    local header = Instance.new("Frame")
-    header.Position = UDim2.fromOffset(0, 0)
-    header.Size = UDim2.new(1, 0, 0, 110)
-    header.BackgroundTransparency = 1
-    header.BorderSizePixel = 0
-    header.Parent = panel
-    local title = label(header, "Nothrilo V2 • Validação\nde Chave", 58, 25, Theme.TextColor)
-    title.Name = "GateTitle"
-    title.Position = UDim2.fromOffset(22, 17)
-    title.Size = UDim2.new(1, -76, 0, 58)
-    title.Font = Enum.Font.GothamBold
-    title.TextYAlignment = Enum.TextYAlignment.Top
-    local subtitle = label(header, "Obtenha seu acesso total (24 horas)", 24, 16, Color3.fromRGB(216, 225, 238))
-    subtitle.Position = UDim2.fromOffset(22, 78)
-    subtitle.Size = UDim2.new(1, -44, 0, 24)
-    local close = Instance.new("TextButton")
-    close.Name = "Close"
-    close.AnchorPoint = Vector2.new(1, 0)
-    close.Position = UDim2.new(1, -12, 0, 14)
-    close.Size = UDim2.fromOffset(32, 32)
-    close.BackgroundColor3 = Color3.fromRGB(33, 45, 65)
-    close.BorderSizePixel = 0
-    close.Font = Enum.Font.GothamBold
-    close.Text = "×"
-    close.TextColor3 = Theme.TextColor
-    close.TextSize = 23
-    close.Parent = header
-    rounded(close, 13)
-
-    local content = Instance.new("ScrollingFrame")
-    content.Name = "Content"
-    content.Position = UDim2.fromOffset(0, 110)
-    content.Size = UDim2.new(1, 0, 1, -110)
-    content.BackgroundTransparency = 1
-    content.BorderSizePixel = 0
-    content.ScrollBarThickness = 4
-    content.ScrollBarImageColor3 = Theme.SchemeColor
-    content.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    content.CanvasSize = UDim2.new()
-    content.Parent = panel
-    local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, 22)
-    padding.PaddingRight = UDim.new(0, 22)
-    padding.PaddingTop = UDim.new(0, 4)
-    padding.PaddingBottom = UDim.new(0, 12)
-    padding.Parent = content
-    local layout = Instance.new("UIListLayout")
-    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 8)
-    layout.Parent = content
-
-    local linkGreen = Color3.fromRGB(38, 190, 119)
-    local linkBlue = Color3.fromRGB(191, 216, 243)
-    local fieldBlue = Color3.fromRGB(35, 43, 64)
-    local providerButton = Instance.new("TextButton")
-    providerButton.Name = "linkvertise"
-    providerButton.Size = UDim2.new(1, 0, 0, 44)
-    providerButton.BackgroundColor3 = linkGreen
-    providerButton.BorderSizePixel = 0
-    providerButton.Font = Enum.Font.GothamBold
-    providerButton.Text = "🔗  1. GERAR LINK LINKVERTISE"
-    providerButton.TextColor3 = Color3.fromRGB(248, 255, 251)
-    providerButton.TextSize = 13
-    providerButton.LayoutOrder = 1
-    providerButton.Parent = content
-    rounded(providerButton, 12)
-    local providerStroke = Instance.new("UIStroke")
-    providerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    providerStroke.Color = linkGreen
-    providerStroke.Transparency = 0.08
-    providerStroke.Parent = providerButton
-
-    local linkLabel = label(content, "Link gerado:", 20, 14, Color3.fromRGB(222, 232, 245))
-    linkLabel.Font = Enum.Font.GothamSemibold
-    linkLabel.LayoutOrder = 2
-
-    local keyLink = Instance.new("TextBox")
-    keyLink.Name = "KeyLink"
-    keyLink.Size = UDim2.new(1, 0, 0, 44)
-    keyLink.BackgroundColor3 = fieldBlue
-    keyLink.BorderSizePixel = 0
-    keyLink.ClearTextOnFocus = false
-    keyLink.Font = Enum.Font.Code
-    keyLink.TextEditable = false
-    keyLink.PlaceholderText = "O link gerado aparece aqui..."
-    keyLink.PlaceholderColor3 = Color3.fromRGB(188, 198, 216)
-    keyLink.Text = ""
-    keyLink.TextColor3 = Theme.TextColor
-    keyLink.TextSize = 12
-    keyLink.TextXAlignment = Enum.TextXAlignment.Left
-    keyLink.TextWrapped = false
-    keyLink.TextTruncate = Enum.TextTruncate.AtEnd
-    keyLink.LayoutOrder = 3
-    keyLink.Parent = content
-    rounded(keyLink, 11)
-    local linkPadding = Instance.new("UIPadding")
-    linkPadding.PaddingLeft = UDim.new(0, 12)
-    linkPadding.PaddingRight = UDim.new(0, 12)
-    linkPadding.Parent = keyLink
-    local keyLinkStroke = Instance.new("UIStroke")
-    keyLinkStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    keyLinkStroke.Color = linkBlue
-    keyLinkStroke.Transparency = 0.18
-    keyLinkStroke.Parent = keyLink
-
-    local copyLink = Instance.new("TextButton")
-    copyLink.Name = "CopyLink"
-    copyLink.Size = UDim2.new(1, 0, 0, 34)
-    copyLink.BackgroundColor3 = linkBlue
-    copyLink.BorderSizePixel = 0
-    copyLink.Font = Enum.Font.GothamBold
-    copyLink.Text = "COPIAR LINK"
-    copyLink.TextColor3 = Color3.fromRGB(17, 25, 38)
-    copyLink.TextSize = 12
-    copyLink.LayoutOrder = 4
-    copyLink.Parent = content
-    rounded(copyLink, 10)
-    local copyLinkStroke = Instance.new("UIStroke")
-    copyLinkStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    copyLinkStroke.Color = linkBlue
-    copyLinkStroke.Transparency = 0.16
-    copyLinkStroke.Parent = copyLink
-
-    local sessionKey = configValue("SCRIPT_KEY", "")
-    local input = Instance.new("TextBox")
-    input.Name = "KeyInput"
-    input.Size = UDim2.new(1, 0, 0, 44)
-    input.BackgroundColor3 = fieldBlue
-    input.BorderSizePixel = 0
-    input.ClearTextOnFocus = false
-    input.Font = Enum.Font.RobotoMono
-    input.PlaceholderText = "2. COLE A CHAVE DO JNKIE AQUI"
-    input.PlaceholderColor3 = Color3.fromRGB(195, 201, 216)
-    input.Text = sessionKey
-    input.TextColor3 = Theme.TextColor
-    input.TextSize = 13
-    input.TextXAlignment = Enum.TextXAlignment.Left
-    input.TextWrapped = false
-    input.LayoutOrder = 5
-    input.Parent = content
-    rounded(input, 12)
-    local inputPadding = Instance.new("UIPadding")
-    inputPadding.PaddingLeft = UDim.new(0, 12)
-    inputPadding.PaddingRight = UDim.new(0, 12)
-    inputPadding.Parent = input
-    local inputStroke = Instance.new("UIStroke")
-    inputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    inputStroke.Color = linkBlue
-    inputStroke.Transparency = 0.32
-    inputStroke.Parent = input
-
-    local verify = Instance.new("TextButton")
-    verify.Name = "Verify"
-    verify.Size = UDim2.new(1, 0, 0, 46)
-    verify.BackgroundTransparency = 1
-    verify.BorderSizePixel = 0
-    verify.Font = Enum.Font.GothamBold
-    verify.Text = ""
-    verify.TextColor3 = Color3.fromRGB(255, 255, 255)
-    verify.TextSize = 13
-    verify.LayoutOrder = 6
-    verify.Parent = content
-    rounded(verify, 13)
-    local verifyFill = Instance.new("Frame")
-    verifyFill.Size = UDim2.fromScale(1, 1)
-    verifyFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    verifyFill.BorderSizePixel = 0
-    verifyFill.ZIndex = 1
-    verifyFill.Parent = verify
-    rounded(verifyFill, 13)
-    local verifyGradient = Instance.new("UIGradient")
-    verifyGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 168)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(166, 56, 255)),
-    })
-    verifyGradient.Parent = verifyFill
-    local verifyText = label(verify, "VALIDAR KEY E ABRIR O NOTHRILO V2", 46, 13, Color3.fromRGB(255, 255, 255))
-    verifyText.Name = "ButtonText"
-    verifyText.Font = Enum.Font.GothamBold
-    verifyText.TextXAlignment = Enum.TextXAlignment.Center
-    verifyText.ZIndex = 2
-
-    local status = label(content, "", 46, 13, Color3.fromRGB(232, 232, 240))
-    status.Name = "GateStatus"
-    status.LayoutOrder = 7
-    local footer = label(content, "🔒 A validação é feita pelo JNKIE. Nunca informe sua senha.", 30, 12, Color3.fromRGB(205, 205, 216))
-    footer.LayoutOrder = 8
-
-    -- Ajusta o conjunto à janela, inclusive ao girar o celular ou trocar câmera.
-    local function fitGate()
-        if not isAlive() then return end
-        local camera = workspace.CurrentCamera
-        local size = camera and camera.ViewportSize or Vector2.new(1024, 768)
-        if size.X <= 0 or size.Y <= 0 then return end
-        compactLayout = size.X < 760 and size.Y > size.X
-        local width, height = compactLayout and 420 or 920, compactLayout and 718 or 492
-        card.Size = UDim2.fromOffset(width, height)
-        promo.Size = compactLayout and UDim2.new(1, 0, 0, 210) or UDim2.new(0.44, -4, 1, 0)
-        panel.Position = compactLayout and UDim2.fromOffset(0, 226) or UDim2.new(0.44, 12, 0, 0)
-        panel.Size = compactLayout and UDim2.new(1, 0, 0, 492) or UDim2.new(0.56, -12, 1, 0)
-        local artTitle = promo:FindFirstChild("ArtworkTitle")
-        local artSubtitle = promo:FindFirstChild("ArtworkSubtitle")
-        local artBadge = promo:FindFirstChild("ArtworkBadge")
-        local artFooter = promo:FindFirstChild("ArtworkFooter")
-        if artTitle then artTitle.Size = UDim2.new(1, -24, 0, compactLayout and 35 or 48) end
-        if artSubtitle then
-            artSubtitle.Position = UDim2.new(0, 12, compactLayout and 0.22 or 0.17, 0)
-            artSubtitle.Size = UDim2.new(1, -24, 0, compactLayout and 30 or 42)
-        end
-        if artBadge then artBadge.Position = UDim2.fromScale(0.5, compactLayout and 0.39 or 0.29) end
-        if artFooter then
-            artFooter.Size = UDim2.new(1, 0, 0, compactLayout and 35 or 62)
-            local credit = artFooter:FindFirstChild("ArtworkCredit")
-            if credit then
-                credit.Text = compactLayout and "Feito por Cafezl" or "CAFEZL\nCriador do Nothrilo"
-                credit.TextSize = compactLayout and 12 or 14
-            end
-        end
-        gateScale.Scale = math.min(1, (size.X - 28) / width, (size.Y - 28) / height)
-    end
-    local viewportConnection
-    local function watchViewport()
-        if viewportConnection then viewportConnection:Disconnect() end
-        local camera = workspace.CurrentCamera
-        if camera then viewportConnection = connect(camera:GetPropertyChangedSignal("ViewportSize"), fitGate) end
-        fitGate()
-    end
-    connect(workspace:GetPropertyChangedSignal("CurrentCamera"), watchViewport)
-    watchViewport()
-
-    local function setStatus(text, kind)
-        status.Text = text
-        status.TextColor3 = kind == "good" and Color3.fromRGB(116, 255, 158)
-            or kind == "bad" and Color3.fromRGB(255, 116, 148)
-            or Color3.fromRGB(232, 232, 240)
-    end
-
-    local validating = false
-    local linkBusy = false
-    local lastLinkAt = -math.huge
-    local LINK_COOLDOWN = 3
-
-    local function setBusy(busy)
-        validating = busy
-        local enabled = not busy and not linkBusy
-        providerButton.Active = enabled
-        providerButton.AutoButtonColor = enabled
-        copyLink.Active = enabled
-        copyLink.AutoButtonColor = enabled
-        verify.Active = not busy
-        verify.AutoButtonColor = not busy
-        verifyText.Text = busy and "VERIFICANDO..." or "VALIDAR KEY E ABRIR O NOTHRILO V2"
-        pcall(function() input.TextEditable = not busy and not linkBusy end)
-    end
-
-    local function setLinkBusy(busy)
-        linkBusy = busy
-        local enabled = not busy and not validating
-        providerButton.Active = enabled
-        providerButton.AutoButtonColor = enabled
-        copyLink.Active = enabled
-        copyLink.AutoButtonColor = enabled
-        pcall(function() input.TextEditable = not busy and not validating end)
-        providerButton.Text = busy and "GERANDO LINK..." or "🔗  1. GERAR LINK LINKVERTISE"
-    end
-
-    local function explainJunkieError(value, fallback)
-        local raw = tostring(value or "")
-        local upper = raw:upper()
-        if upper:find("RATE_LIMIT", 1, true) or upper:find("429", 1, true) then
-            return "O JNKIE limitou novos links. Aguarde alguns minutos e tente novamente."
-        elseif upper == "KEY_INVALID" then
-            return "Essa key não foi encontrada. Gere uma nova e cole o valor completo."
-        elseif upper == "KEY_EXPIRED" then
-            return "Essa key expirou. Gere outra pelo botão acima."
-        elseif upper == "HWID_MISMATCH" then
-            return "Essa key está vinculada a outro dispositivo/executor."
-        elseif upper == "SERVICE_MISMATCH" or upper == "SERVICE_NOT_FOUND" then
-            return "A key não pertence ao serviço Nothrilo V2."
-        elseif upper:find("HTTP 400", 1, true) then
-            return "O JNKIE recusou o valor. Cole a key exibida no fim do fluxo."
-        end
-        return raw ~= "" and raw or fallback
-    end
-
-    connect(providerButton.Activated, function()
-        if not isAlive() or linkBusy or validating then return end
-        local remaining = LINK_COOLDOWN - (os.clock() - lastLinkAt)
-        if remaining > 0 then
-            setStatus("Aguarde " .. math.ceil(remaining) .. "s antes de gerar outro link.", nil)
-            return
-        end
-        lastLinkAt = os.clock()
-        setLinkBusy(true)
-        setStatus("Gerando um link seguro no JNKIE...", nil)
-        task.spawn(function()
-            local link, err = invoke("get_key_link")
-            if not isAlive() then return end
-            setLinkBusy(false)
-            if type(link) ~= "string" or link == "" then
-                setStatus(explainJunkieError(err, "O JNKIE não gerou um link agora. Tente novamente em alguns minutos."), "bad")
-                return
-            end
-            keyLink.Text = link
-            if copyText(link) then
-                setStatus("Link pronto e copiado. Abra no navegador, conclua o fluxo e cole a key abaixo.", "good")
-            else
-                setStatus("Link pronto. Abra-o no navegador, conclua o fluxo e cole a key abaixo.", nil)
-            end
-        end)
-    end)
-
-    connect(copyLink.Activated, function()
-        if not isAlive() then return end
-        local link = tostring(keyLink.Text or ""):match("^%s*(.-)%s*$")
-        if link == "" then
-            setStatus("Gere o link primeiro usando o botão acima.", "bad")
-            return
-        end
-        if copyText(link) then
-            setStatus("Link copiado. Conclua o fluxo no navegador.", "good")
-        else
-            setStatus("Não consegui copiar automaticamente; selecione o link acima.", nil)
-        end
-    end)
-
-    local function verifyKey()
-        if not isAlive() or validating or linkBusy then return end
-        if attempts >= 5 then
-            setStatus("Limite de tentativas nesta execução. Feche e reabra para tentar novamente.", "bad")
-            return
-        end
-        local value = tostring(input.Text or ""):match("^%s*(.-)%s*$")
-        if value == "" then
-            setStatus("Cole uma key do JNKIE antes de validar.", "bad")
-            return
-        end
-        attempts += 1
-        setBusy(true)
-        setStatus("Validando sua key com o JNKIE...", nil)
-        task.spawn(function()
-            local result, err = invoke("check_key", value)
-            if not isAlive() then return end
-            local valid = type(result) == "table"
-                and (result.valid == true or result.success == true or result.active == true)
-            if valid then
-                pcall(function() suiteEnvironment.SCRIPT_KEY = value end)
-                setStatus("Key aprovada. Abrindo o Nothrilo V2...", "good")
-                accepted = true
-                task.wait(0.45)
-                gateClosed = true
-            else
-                setBusy(false)
-                local message = type(result) == "table" and (result.error or result.message) or err
-                setStatus(explainJunkieError(message, "Key inválida ou expirada."), "bad")
-            end
-        end)
-    end
-
-    connect(verify.Activated, verifyKey)
-    connect(input.FocusLost, function(enterPressed)
-        if enterPressed then verifyKey() end
-    end)
-    connect(input:GetPropertyChangedSignal("Text"), function()
-        if not isAlive() or validating or linkBusy then return end
-        local value = tostring(input.Text or ""):match("^%s*(.-)%s*$")
-        if value == "" then
-            setStatus("Cole a key recebida depois de concluir o fluxo.", nil)
-        else
-            setStatus("Key preenchida. Clique em validar para continuar.", nil)
-        end
-    end)
-    connect(close.Activated, function()
-        gateClosed = true
-    end)
-
-    if not configured then
-        setStatus("Configure NOTHRILO_JNKIE_IDENTIFIER com o identificador do seu serviço JNKIE.", "bad")
-    elseif sessionKey ~= "" then
-        setStatus("Key desta sessão encontrada. Clique em validar para continuar.", "good")
-    else
-        setStatus("Clique em GERAR LINK para começar.", nil)
-    end
-
-    repeat task.wait(0.05) until gateClosed or not isAlive()
-    for index = #connections, 1, -1 do
-        pcall(function() connections[index]:Disconnect() end)
-        connections[index] = nil
-    end
-    if keyGateGui and keyGateGui.Parent then pcall(function() keyGateGui:Destroy() end) end
-    keyGateGui = nil
-    if not accepted then
-        destroyed = true
-        for index = #runtimeConnections, 1, -1 do
-            pcall(function() runtimeConnections[index]:Disconnect() end)
-            runtimeConnections[index] = nil
-        end
-        if runtime and runtime.Parent then runtime:Destroy() end
-        return
-    end
-end
-
-
-
-
 -- Classic UI local — API compatível com Kavo sem polling por controle
 -- =============================================================================
 -- A Kavo upstream abre um `while wait()` permanente para praticamente cada
@@ -2636,19 +2542,6 @@ local function startVehicleFly(inputEnabled)
         end
     end)
 
-    -- Movimento direto do sFLY do CRAN UI V3, com os guards do Nothrilo.
-    -- A câmera define a direção e o último controle mantém o movimento estável.
-    local function inspirationFlyVelocity(camera, controls, speed)
-        return (
-            (camera.CFrame.LookVector * (controls.F + controls.B))
-            + ((camera.CFrame * CFrame.new(
-                controls.L + controls.R,
-                (controls.F + controls.B + controls.Q + controls.E) * 0.2,
-                0
-            )).Position - camera.CFrame.Position)
-        ) * speed
-    end
-
     task.spawn(function()
         while FLYING and session == flySession and root.Parent and humanoid.Parent do
             task.wait()
@@ -2672,7 +2565,14 @@ local function startVehicleFly(inputEnabled)
             if keyboardMoving and spd > 0 then
                 local cam = workspace.CurrentCamera
                 if not cam then break end
-                bodyVelocity.Velocity = inspirationFlyVelocity(cam, cur, spd)
+                bodyVelocity.Velocity = (
+                    (cam.CFrame.LookVector * (cur.F + cur.B))
+                    + ((cam.CFrame * CFrame.new(
+                        cur.L + cur.R,
+                        (cur.F + cur.B + cur.Q + cur.E) * 0.2,
+                        0
+                    )).Position - cam.CFrame.Position)
+                ) * spd
             elseif mobileMoving and spd > 0 then
                 bodyVelocity.Velocity =
                     Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * spd)
@@ -4770,7 +4670,7 @@ task.delay(0.3, function()
     addShortcutBadge("B  •  Boost do Carrinho",     "B")
     addShortcutBadge("NumPad 1/2/3  •  Checkpoints","1/2/3")
     addShortcutBadge("K  •  Minimizar / Abrir",     "K")
-                    addShortcutBadge("X  •  Fechar o Nothrilo",     "X")
+    addShortcutBadge("X  •  Fechar o Nothrilo",     "X")
 end)
 
 -- =============================================================================
@@ -4801,7 +4701,6 @@ if os.clock() < startup.beganAt + startup.seconds then
     until os.clock() >= startup.beganAt + startup.seconds
 end
 if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
-
 menuGui.Enabled = true
 
 -- =============================================================================

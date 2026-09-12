@@ -37,6 +37,25 @@ local function runFixture(source, options)
     env.warn = function(message) table.insert(warnings, tostring(message)) end
     env._G = env
     env.getgenv = function() return env end
+    env.SCRIPT_KEY = options.sessionKey
+    local sdkCalls, copiedText = {}, {}
+    env.setclipboard = function(value) table.insert(copiedText, value) end
+    local sdk = {}
+    function sdk.get_key_link()
+        table.insert(sdkCalls, { name = "get_key_link", service = sdk.service, identifier = sdk.identifier, provider = sdk.provider })
+        if options.sdkDelay then env.task.wait(options.sdkDelay) end
+        return options.sdkLink or "https://jnkie.com/get-key/nothrilov2"
+    end
+    function sdk.check_key(key)
+        table.insert(sdkCalls, { name = "check_key", key = key, service = sdk.service, identifier = sdk.identifier, provider = sdk.provider })
+        if options.sdkDelay then env.task.wait(options.sdkDelay) end
+        if options.sdkValid == false then return { valid = false, error = "KEY_INVALID" } end
+        return { valid = true }
+    end
+    env.loadstring = function(source, ...)
+        if source == "fixture-jnkie-sdk" then return function() return sdk end end
+        return base.loadstring(source, ...)
+    end
 
     local function signal()
         local listeners = {}
@@ -53,6 +72,11 @@ local function runFixture(source, options)
                 end
             end,
             Wait = function() return env.task.wait(1 / 60) end,
+            ListenerCount = function()
+                local count = 0
+                for _, entry in ipairs(listeners) do if entry[1].Connected then count += 1 end end
+                return count
+            end,
         }
     end
     local vectorMeta = {}
@@ -245,7 +269,7 @@ local function runFixture(source, options)
     function methods:GetPlayerFromCharacter(value) return value == character and player or nil end
     function methods:GetTagged() return {} end
     local camera = instance("Camera", workspace)
-    camera.ViewportSize, camera.CFrame, camera.FieldOfView, camera.CameraSubject = vector(800, 600), cframe(), 70, humanoid
+    camera.ViewportSize, camera.CFrame, camera.FieldOfView, camera.CameraSubject = vector(options.viewportWidth or 800, options.viewportHeight or 600), cframe(), 70, humanoid
     workspace.CurrentCamera = camera
     function methods:Create(target, _, properties)
         return { Play = function() for key, value in pairs(properties) do target[key] = value end end, Cancel = function() end, Completed = signal() }
@@ -260,7 +284,10 @@ local function runFixture(source, options)
         if options.networkFailure or options.inheritedRequest then error("fixture client HTTP unavailable") end
         return { StatusCode = 200, Body = "fixture-response" }
     end
-    function methods:HttpGet() error("fixture does not download files") end
+    function methods:HttpGet(url)
+        if options.sdk and url == "https://jnkie.com/sdk/library.lua" then return "fixture-jnkie-sdk" end
+        error("fixture does not download files")
+    end
     env.gethui = function() return options.badHui and {} or env.game:GetService("CoreGui") end
 
     local main = assert(loadstring(source, "@fixture/" .. (options.name or "client")))
@@ -274,12 +301,15 @@ local function runFixture(source, options)
         now = current.at
         if not options.noPlayer and now >= (options.playerDelay or 0) then players.LocalPlayer = player end
         if now >= (options.guiDelay or 0) and not playerGui.Parent then playerGui.Parent = player end
-        if options.authorize ~= false or options.closeGate or options.replaceSuite then
+        if options.authorize ~= false or options.closeGate or options.replaceSuite or options.onGate then
             for _, parent in ipairs({ env.game:GetService("CoreGui"), playerGui }) do
                 local gate = parent:FindFirstChild("NothriloKeyGate")
                 if gate and not submitted[gate] then
                     local input, button = gate:FindFirstChild("KeyInput", true), gate:FindFirstChild("Verify", true)
-                    if options.closeGate then
+                    if options.onGate then
+                        submitted[gate] = true
+                        env.task.spawn(function() options.onGate(gate, env) end)
+                    elseif options.closeGate then
                         submitted[gate] = true
                         env.task.spawn(function() gate:FindFirstChild("Close", true).Activated:Fire() end)
                     elseif options.replaceSuite then
@@ -300,7 +330,7 @@ local function runFixture(source, options)
         end
         steps += 1
         assert(steps < 10000, "fixture scheduler exceeded its budget")
-        if coroutine.status(mainThread) == "dead" then break end
+        if coroutine.status(mainThread) == "dead" and not options.drainAfterMain then break end
     end
-    return { env = env, core = env.game:GetService("CoreGui"), playerGui = playerGui, failures = failures, warnings = warnings, finished = coroutine.status(mainThread) == "dead", elapsed = now }
+    return { env = env, core = env.game:GetService("CoreGui"), playerGui = playerGui, failures = failures, warnings = warnings, finished = coroutine.status(mainThread) == "dead", elapsed = now, sdkCalls = sdkCalls, copiedText = copiedText }
 end

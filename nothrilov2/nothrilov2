@@ -188,6 +188,255 @@ local Theme = {
     ElementColor = Color3.fromRGB(22, 22, 27),
 }
 
+-- =============================================================================
+-- Tela de carregamento
+-- =============================================================================
+-- Loader compacto e procedural: não depende de vídeo, GIF, arquivo local nem
+-- APIs diferentes entre executores. Por isso abre igual no Roblox e no Xeno.
+local startup = {
+    seconds = 5,
+    beganAt = os.clock(),
+}
+startup.gui, startup.status, startup.progress = (function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name            = "NothriloLoading"
+    gui.ResetOnSpawn    = false
+    gui.IgnoreGuiInset  = true
+    gui.DisplayOrder    = 10050
+    gui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
+    gui.Parent          = CoreGui
+
+    local shade = Instance.new("Frame")
+    shade.Name                   = "Shade"
+    shade.Size                   = UDim2.fromScale(1, 1)
+    shade.BackgroundColor3       = Color3.fromRGB(3, 3, 5)
+    shade.BackgroundTransparency = 0.08
+    shade.BorderSizePixel        = 0
+    shade.Parent                 = gui
+
+    local shadow = Instance.new("Frame")
+    shadow.Name                   = "Shadow"
+    shadow.AnchorPoint            = Vector2.new(0.5, 0.5)
+    shadow.Position               = UDim2.new(0.5, 0, 0.5, 6)
+    shadow.Size                   = UDim2.new(0.88, 0, 0, 190)
+    shadow.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+    shadow.BackgroundTransparency = 0.38
+    shadow.BorderSizePixel        = 0
+    shadow.Parent                 = shade
+    Instance.new("UICorner", shadow).CornerRadius = UDim.new(0, 24)
+
+    local shadowSize = Instance.new("UISizeConstraint")
+    shadowSize.MinSize = Vector2.new(278, 190)
+    shadowSize.MaxSize = Vector2.new(390, 190)
+    shadowSize.Parent  = shadow
+
+    local card = Instance.new("Frame")
+    card.Name            = "Card"
+    card.AnchorPoint     = Vector2.new(0.5, 0.5)
+    card.Position        = UDim2.fromScale(0.5, 0.5)
+    card.Size            = UDim2.new(0.88, 0, 0, 190)
+    card.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
+    card.BorderSizePixel = 0
+    card.ClipsDescendants = true
+    card.Parent          = shade
+    local cardSize = Instance.new("UISizeConstraint")
+    cardSize.MinSize = Vector2.new(278, 190)
+    cardSize.MaxSize = Vector2.new(390, 190)
+    cardSize.Parent = card
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 24)
+    corner.Parent = card
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 2
+    stroke.Color     = Theme.SchemeColor
+    stroke.Parent    = card
+
+    stroke.Transparency = 0.06
+
+    local brandDot = Instance.new("Frame")
+    brandDot.Name             = "BrandDot"
+    brandDot.Position         = UDim2.fromOffset(18, 18)
+    brandDot.Size             = UDim2.fromOffset(18, 18)
+    brandDot.BackgroundColor3 = Theme.SchemeColor
+    brandDot.BorderSizePixel  = 0
+    brandDot.Parent           = card
+    Instance.new("UICorner", brandDot).CornerRadius = UDim.new(1, 0)
+
+    local titleL = Instance.new("TextLabel")
+    titleL.BackgroundTransparency = 1
+    titleL.Position  = UDim2.fromOffset(46, 14)
+    titleL.Size      = UDim2.new(1, -64, 0, 26)
+    titleL.Font      = Enum.Font.GothamBold
+    titleL.Text      = MENU_NAME
+    titleL.TextColor3 = Color3.fromRGB(248, 248, 250)
+    titleL.TextSize  = 18
+    titleL.TextXAlignment = Enum.TextXAlignment.Left
+    titleL.Parent    = card
+
+    local subtitleL = Instance.new("TextLabel")
+    subtitleL.BackgroundTransparency = 1
+    subtitleL.Position  = UDim2.fromOffset(18, 43)
+    subtitleL.Size      = UDim2.new(1, -36, 0, 17)
+    subtitleL.Font      = Enum.Font.Gotham
+    subtitleL.Text      = "Feito por Cafezl  •  preparando tudo"
+    subtitleL.TextColor3 = Color3.fromRGB(205, 205, 214)
+    subtitleL.TextSize  = 12
+    subtitleL.TextXAlignment = Enum.TextXAlignment.Left
+    subtitleL.Parent    = card
+
+    local emojiPanel = Instance.new("Frame")
+    emojiPanel.Name             = "EmojiPanel"
+    emojiPanel.Position         = UDim2.fromOffset(14, 66)
+    emojiPanel.Size             = UDim2.new(1, -28, 0, 62)
+    emojiPanel.BackgroundColor3 = Color3.fromRGB(17, 17, 23)
+    emojiPanel.BorderSizePixel  = 0
+    emojiPanel.ClipsDescendants = true
+    emojiPanel.Parent           = card
+    Instance.new("UICorner", emojiPanel).CornerRadius = UDim.new(0, 16)
+
+    local emojiStroke = Instance.new("UIStroke")
+    emojiStroke.Thickness    = 1
+    emojiStroke.Transparency = 0.60
+    emojiStroke.Color        = Theme.SchemeColor
+    emojiStroke.Parent       = emojiPanel
+
+    local emojiLabels = {}
+    local emojis = { "🐱", "😸", "✨", "⚡", "🚀", "🎮" }
+    for index, emoji in ipairs(emojis) do
+        local label = Instance.new("TextLabel")
+        label.Name = "Emoji" .. index
+        label.AnchorPoint = Vector2.new(0.5, 0.5)
+        label.Position = UDim2.new((index - 0.5) / #emojis, 0, 0.5, 0)
+        label.Size = UDim2.fromOffset(42, 46)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.GothamBold
+        label.Text = emoji
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.TextSize = 27
+        label.Parent = emojiPanel
+        table.insert(emojiLabels, label)
+    end
+
+    local statusDot = Instance.new("Frame")
+    statusDot.Name             = "StatusDot"
+    statusDot.AnchorPoint      = Vector2.new(0.5, 0.5)
+    statusDot.Position         = UDim2.fromOffset(22, 148)
+    statusDot.Size             = UDim2.fromOffset(8, 8)
+    statusDot.BackgroundColor3 = Theme.SchemeColor
+    statusDot.BorderSizePixel  = 0
+    statusDot.Parent           = card
+    Instance.new("UICorner", statusDot).CornerRadius = UDim.new(1, 0)
+
+    local status = Instance.new("TextLabel")
+    status.BackgroundTransparency = 1
+    status.Position  = UDim2.fromOffset(34, 137)
+    status.Size      = UDim2.new(1, -100, 0, 22)
+    status.Font      = Enum.Font.Gotham
+    status.Text      = "Preparando interface..."
+    status.TextColor3 = Theme.SchemeColor
+    status.TextSize  = 12
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent    = card
+
+    local percent = Instance.new("TextLabel")
+    percent.Name = "Percent"
+    percent.BackgroundTransparency = 1
+    percent.Position = UDim2.new(1, -68, 0, 137)
+    percent.Size = UDim2.fromOffset(50, 22)
+    percent.Font = Enum.Font.GothamSemibold
+    percent.Text = "0%"
+    percent.TextColor3 = Theme.SchemeColor
+    percent.TextSize = 12
+    percent.TextXAlignment = Enum.TextXAlignment.Right
+    percent.Parent = card
+
+    local progressTrack = Instance.new("Frame")
+    progressTrack.Name = "ProgressTrack"
+    progressTrack.Position = UDim2.fromOffset(18, 166)
+    progressTrack.Size = UDim2.new(1, -36, 0, 8)
+    progressTrack.BackgroundColor3 = Color3.fromRGB(34, 34, 42)
+    progressTrack.BorderSizePixel = 0
+    progressTrack.Parent = card
+    Instance.new("UICorner", progressTrack).CornerRadius = UDim.new(1, 0)
+
+    local progress = Instance.new("Frame")
+    progress.Name = "Progress"
+    progress.Size = UDim2.fromScale(0, 1)
+    progress.BackgroundColor3 = Theme.SchemeColor
+    progress.BorderSizePixel = 0
+    progress.Parent = progressTrack
+    Instance.new("UICorner", progress).CornerRadius = UDim.new(1, 0)
+
+    task.spawn(function()
+        local generatedStatus = status.Text
+        while gui.Parent do
+            local elapsed = os.clock() - startup.beganAt
+            local alpha = math.clamp(elapsed / startup.seconds, 0, 1)
+            progress.Size = UDim2.fromScale(alpha, 1)
+
+            local rgb = Color3.fromHSV((elapsed * 0.20) % 1, 0.84, 1)
+            progress.BackgroundColor3 = rgb
+            stroke.Color = rgb
+            emojiStroke.Color = rgb
+            brandDot.BackgroundColor3 = rgb
+            statusDot.BackgroundColor3 = rgb
+            status.TextColor3 = rgb
+            percent.TextColor3 = rgb
+            percent.Text = ("%d%%"):format(math.floor(alpha * 100))
+
+            local message
+            if alpha < 0.24 then
+                message = "Preparando interface..."
+            elseif alpha < 0.50 then
+                message = "Carregando funções..."
+            elseif alpha < 0.76 then
+                message = "Organizando atalhos..."
+            elseif alpha < 0.98 then
+                message = "Aplicando acabamento..."
+            else
+                message = "Tudo pronto!"
+            end
+            if status.Text == generatedStatus then
+                generatedStatus = message
+                status.Text = generatedStatus
+            end
+
+            for index, label in ipairs(emojiLabels) do
+                local wave = elapsed * 5.2 + index * 0.78
+                label.Position = UDim2.new(
+                    (index - 0.5) / #emojiLabels,
+                    0,
+                    0.5,
+                    math.floor(math.sin(wave) * 4)
+                )
+                label.Rotation = math.sin(wave * 0.82) * 7
+                label.TextSize = 27 + math.floor((math.sin(wave) + 1) * 1.5)
+            end
+
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    return gui, status, progress
+end)()
+
+-- =============================================================================
+-- O carregamento aparece antes da key gate.
+-- O menu só é montado depois que a pessoa passa pela validação.
+if os.clock() < startup.beganAt + startup.seconds then
+    if startup.status then startup.status.Text = "Funções prontas • abrindo a validação..." end
+    repeat
+        RunService.RenderStepped:Wait()
+    until os.clock() >= startup.beganAt + startup.seconds
+end
+if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
+if destroyed or not isCurrentSuiteGeneration() or not runtime or not runtime.Parent then
+    return
+end
+
+
 -- Nothrilo V2 usa o SDK oficial do JNKIE para gerar e validar a key.
 -- O serviço e o identificador podem ser definidos antes do loader com:
 -- getgenv().NOTHRILO_JNKIE_SERVICE = "..."
@@ -571,241 +820,8 @@ do
 end
 
 
--- =============================================================================
--- Tela de carregamento
--- =============================================================================
--- Loader compacto e procedural: não depende de vídeo, GIF, arquivo local nem
--- APIs diferentes entre executores. Por isso abre igual no Roblox e no Xeno.
-local startup = {
-    seconds = 5,
-    beganAt = os.clock(),
-}
-startup.gui, startup.status, startup.progress = (function()
-    local gui = Instance.new("ScreenGui")
-    gui.Name            = "NothriloLoading"
-    gui.ResetOnSpawn    = false
-    gui.IgnoreGuiInset  = true
-    gui.DisplayOrder    = 10050
-    gui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
-    gui.Parent          = CoreGui
 
-    local shade = Instance.new("Frame")
-    shade.Name                   = "Shade"
-    shade.Size                   = UDim2.fromScale(1, 1)
-    shade.BackgroundColor3       = Color3.fromRGB(3, 3, 5)
-    shade.BackgroundTransparency = 0.08
-    shade.BorderSizePixel        = 0
-    shade.Parent                 = gui
 
-    local shadow = Instance.new("Frame")
-    shadow.Name                   = "Shadow"
-    shadow.AnchorPoint            = Vector2.new(0.5, 0.5)
-    shadow.Position               = UDim2.new(0.5, 0, 0.5, 6)
-    shadow.Size                   = UDim2.new(0.88, 0, 0, 190)
-    shadow.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-    shadow.BackgroundTransparency = 0.38
-    shadow.BorderSizePixel        = 0
-    shadow.Parent                 = shade
-    Instance.new("UICorner", shadow).CornerRadius = UDim.new(0, 24)
-
-    local shadowSize = Instance.new("UISizeConstraint")
-    shadowSize.MinSize = Vector2.new(278, 190)
-    shadowSize.MaxSize = Vector2.new(390, 190)
-    shadowSize.Parent  = shadow
-
-    local card = Instance.new("Frame")
-    card.Name            = "Card"
-    card.AnchorPoint     = Vector2.new(0.5, 0.5)
-    card.Position        = UDim2.fromScale(0.5, 0.5)
-    card.Size            = UDim2.new(0.88, 0, 0, 190)
-    card.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
-    card.BorderSizePixel = 0
-    card.ClipsDescendants = true
-    card.Parent          = shade
-    local cardSize = Instance.new("UISizeConstraint")
-    cardSize.MinSize = Vector2.new(278, 190)
-    cardSize.MaxSize = Vector2.new(390, 190)
-    cardSize.Parent = card
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 24)
-    corner.Parent = card
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Thickness = 2
-    stroke.Color     = Theme.SchemeColor
-    stroke.Parent    = card
-
-    stroke.Transparency = 0.06
-
-    local brandDot = Instance.new("Frame")
-    brandDot.Name             = "BrandDot"
-    brandDot.Position         = UDim2.fromOffset(18, 18)
-    brandDot.Size             = UDim2.fromOffset(18, 18)
-    brandDot.BackgroundColor3 = Theme.SchemeColor
-    brandDot.BorderSizePixel  = 0
-    brandDot.Parent           = card
-    Instance.new("UICorner", brandDot).CornerRadius = UDim.new(1, 0)
-
-    local titleL = Instance.new("TextLabel")
-    titleL.BackgroundTransparency = 1
-    titleL.Position  = UDim2.fromOffset(46, 14)
-    titleL.Size      = UDim2.new(1, -64, 0, 26)
-    titleL.Font      = Enum.Font.GothamBold
-    titleL.Text      = MENU_NAME
-    titleL.TextColor3 = Color3.fromRGB(248, 248, 250)
-    titleL.TextSize  = 18
-    titleL.TextXAlignment = Enum.TextXAlignment.Left
-    titleL.Parent    = card
-
-    local subtitleL = Instance.new("TextLabel")
-    subtitleL.BackgroundTransparency = 1
-    subtitleL.Position  = UDim2.fromOffset(18, 43)
-    subtitleL.Size      = UDim2.new(1, -36, 0, 17)
-    subtitleL.Font      = Enum.Font.Gotham
-    subtitleL.Text      = "Feito por Cafezl  •  preparando tudo"
-    subtitleL.TextColor3 = Color3.fromRGB(205, 205, 214)
-    subtitleL.TextSize  = 12
-    subtitleL.TextXAlignment = Enum.TextXAlignment.Left
-    subtitleL.Parent    = card
-
-    local emojiPanel = Instance.new("Frame")
-    emojiPanel.Name             = "EmojiPanel"
-    emojiPanel.Position         = UDim2.fromOffset(14, 66)
-    emojiPanel.Size             = UDim2.new(1, -28, 0, 62)
-    emojiPanel.BackgroundColor3 = Color3.fromRGB(17, 17, 23)
-    emojiPanel.BorderSizePixel  = 0
-    emojiPanel.ClipsDescendants = true
-    emojiPanel.Parent           = card
-    Instance.new("UICorner", emojiPanel).CornerRadius = UDim.new(0, 16)
-
-    local emojiStroke = Instance.new("UIStroke")
-    emojiStroke.Thickness    = 1
-    emojiStroke.Transparency = 0.60
-    emojiStroke.Color        = Theme.SchemeColor
-    emojiStroke.Parent       = emojiPanel
-
-    local emojiLabels = {}
-    local emojis = { "🐱", "😸", "✨", "⚡", "🚀", "🎮" }
-    for index, emoji in ipairs(emojis) do
-        local label = Instance.new("TextLabel")
-        label.Name = "Emoji" .. index
-        label.AnchorPoint = Vector2.new(0.5, 0.5)
-        label.Position = UDim2.new((index - 0.5) / #emojis, 0, 0.5, 0)
-        label.Size = UDim2.fromOffset(42, 46)
-        label.BackgroundTransparency = 1
-        label.Font = Enum.Font.GothamBold
-        label.Text = emoji
-        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        label.TextSize = 27
-        label.Parent = emojiPanel
-        table.insert(emojiLabels, label)
-    end
-
-    local statusDot = Instance.new("Frame")
-    statusDot.Name             = "StatusDot"
-    statusDot.AnchorPoint      = Vector2.new(0.5, 0.5)
-    statusDot.Position         = UDim2.fromOffset(22, 148)
-    statusDot.Size             = UDim2.fromOffset(8, 8)
-    statusDot.BackgroundColor3 = Theme.SchemeColor
-    statusDot.BorderSizePixel  = 0
-    statusDot.Parent           = card
-    Instance.new("UICorner", statusDot).CornerRadius = UDim.new(1, 0)
-
-    local status = Instance.new("TextLabel")
-    status.BackgroundTransparency = 1
-    status.Position  = UDim2.fromOffset(34, 137)
-    status.Size      = UDim2.new(1, -100, 0, 22)
-    status.Font      = Enum.Font.Gotham
-    status.Text      = "Preparando interface..."
-    status.TextColor3 = Theme.SchemeColor
-    status.TextSize  = 12
-    status.TextXAlignment = Enum.TextXAlignment.Left
-    status.Parent    = card
-
-    local percent = Instance.new("TextLabel")
-    percent.Name = "Percent"
-    percent.BackgroundTransparency = 1
-    percent.Position = UDim2.new(1, -68, 0, 137)
-    percent.Size = UDim2.fromOffset(50, 22)
-    percent.Font = Enum.Font.GothamSemibold
-    percent.Text = "0%"
-    percent.TextColor3 = Theme.SchemeColor
-    percent.TextSize = 12
-    percent.TextXAlignment = Enum.TextXAlignment.Right
-    percent.Parent = card
-
-    local progressTrack = Instance.new("Frame")
-    progressTrack.Name = "ProgressTrack"
-    progressTrack.Position = UDim2.fromOffset(18, 166)
-    progressTrack.Size = UDim2.new(1, -36, 0, 8)
-    progressTrack.BackgroundColor3 = Color3.fromRGB(34, 34, 42)
-    progressTrack.BorderSizePixel = 0
-    progressTrack.Parent = card
-    Instance.new("UICorner", progressTrack).CornerRadius = UDim.new(1, 0)
-
-    local progress = Instance.new("Frame")
-    progress.Name = "Progress"
-    progress.Size = UDim2.fromScale(0, 1)
-    progress.BackgroundColor3 = Theme.SchemeColor
-    progress.BorderSizePixel = 0
-    progress.Parent = progressTrack
-    Instance.new("UICorner", progress).CornerRadius = UDim.new(1, 0)
-
-    task.spawn(function()
-        local generatedStatus = status.Text
-        while gui.Parent do
-            local elapsed = os.clock() - startup.beganAt
-            local alpha = math.clamp(elapsed / startup.seconds, 0, 1)
-            progress.Size = UDim2.fromScale(alpha, 1)
-
-            local rgb = Color3.fromHSV((elapsed * 0.20) % 1, 0.84, 1)
-            progress.BackgroundColor3 = rgb
-            stroke.Color = rgb
-            emojiStroke.Color = rgb
-            brandDot.BackgroundColor3 = rgb
-            statusDot.BackgroundColor3 = rgb
-            status.TextColor3 = rgb
-            percent.TextColor3 = rgb
-            percent.Text = ("%d%%"):format(math.floor(alpha * 100))
-
-            local message
-            if alpha < 0.24 then
-                message = "Preparando interface..."
-            elseif alpha < 0.50 then
-                message = "Carregando funções..."
-            elseif alpha < 0.76 then
-                message = "Organizando atalhos..."
-            elseif alpha < 0.98 then
-                message = "Aplicando acabamento..."
-            else
-                message = "Tudo pronto!"
-            end
-            if status.Text == generatedStatus then
-                generatedStatus = message
-                status.Text = generatedStatus
-            end
-
-            for index, label in ipairs(emojiLabels) do
-                local wave = elapsed * 5.2 + index * 0.78
-                label.Position = UDim2.new(
-                    (index - 0.5) / #emojiLabels,
-                    0,
-                    0.5,
-                    math.floor(math.sin(wave) * 4)
-                )
-                label.Rotation = math.sin(wave * 0.82) * 7
-                label.TextSize = 27 + math.floor((math.sin(wave) + 1) * 1.5)
-            end
-
-            RunService.RenderStepped:Wait()
-        end
-    end)
-
-    return gui, status, progress
-end)()
-
--- =============================================================================
 -- Classic UI local — API compatível com Kavo sem polling por controle
 -- =============================================================================
 -- A Kavo upstream abre um `while wait()` permanente para praticamente cada
@@ -2188,6 +2204,19 @@ local function startVehicleFly(inputEnabled)
         end
     end)
 
+    -- Movimento direto do sFLY do CRAN UI V3, com os guards do Nothrilo.
+    -- A câmera define a direção e o último controle mantém o movimento estável.
+    local function inspirationFlyVelocity(camera, controls, speed)
+        return (
+            (camera.CFrame.LookVector * (controls.F + controls.B))
+            + ((camera.CFrame * CFrame.new(
+                controls.L + controls.R,
+                (controls.F + controls.B + controls.Q + controls.E) * 0.2,
+                0
+            )).Position - camera.CFrame.Position)
+        ) * speed
+    end
+
     task.spawn(function()
         while FLYING and session == flySession and root.Parent and humanoid.Parent do
             task.wait()
@@ -2211,14 +2240,7 @@ local function startVehicleFly(inputEnabled)
             if keyboardMoving and spd > 0 then
                 local cam = workspace.CurrentCamera
                 if not cam then break end
-                bodyVelocity.Velocity = (
-                    (cam.CFrame.LookVector * (cur.F + cur.B))
-                    + ((cam.CFrame * CFrame.new(
-                        cur.L + cur.R,
-                        (cur.F + cur.B + cur.Q + cur.E) * 0.2,
-                        0
-                    )).Position - cam.CFrame.Position)
-                ) * spd
+                bodyVelocity.Velocity = inspirationFlyVelocity(cam, cur, spd)
             elseif mobileMoving and spd > 0 then
                 bodyVelocity.Velocity =
                     Vector3.new(mobileDir.X, 0, mobileDir.Z) * (vehicleFlySpeed * spd)
@@ -4347,6 +4369,7 @@ if os.clock() < startup.beganAt + startup.seconds then
     until os.clock() >= startup.beganAt + startup.seconds
 end
 if startup.gui and startup.gui.Parent then startup.gui:Destroy() end
+
 menuGui.Enabled = true
 
 -- =============================================================================

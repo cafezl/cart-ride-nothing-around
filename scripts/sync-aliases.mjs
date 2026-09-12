@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 
 export const aliases = [
   { source: "Cafezitos.lua", targets: ["Cafezitos-V2.lua", "Cafezitos-completo.lua"] },
-  { source: "Nothrilo.lua", targets: ["Nothrilo-key-gratis.lua"] },
+  { source: "Nothrilo.lua", targets: ["Nothrilo-key-gratis.lua", "Nothrilo-classico-funcoes-corrigidas.lua"] },
 ];
 
 export async function syncAliases({ write = false } = {}) {

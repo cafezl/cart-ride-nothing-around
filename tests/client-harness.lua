@@ -119,7 +119,7 @@ local function runFixture(source, options)
             ClassName = className, Name = className, Enabled = true, Visible = true,
             Text = "", TextSize = 14, TextBounds = vector(100, 20), AbsoluteSize = vector(800, 600), AbsolutePosition = vector(),
             AbsoluteContentSize = vector(), CanvasPosition = vector(), Position = env.UDim2.fromOffset(0, 0), Size = env.UDim2.fromOffset(100, 30),
-        }, _children = {}, _signals = {}, _attributes = {} }, instanceMeta)
+        }, _children = {}, _signals = {}, _attributes = {}, _stateEnabled = {} }, instanceMeta)
         if parent then object.Parent = parent end
         return object
     end
@@ -203,6 +203,12 @@ local function runFixture(source, options)
     function methods:GetMouseLocation() return vector() end
     function methods:GetMouseDelta() return vector() end
     function methods:GetState() return env.Enum.HumanoidStateType.Running end
+    function methods:GetStateEnabled(state)
+        local value = self._stateEnabled[state]
+        if value == nil then return true end
+        return value
+    end
+    function methods:SetStateEnabled(state, enabled) self._stateEnabled[state] = enabled end
     function methods:SetCore() end
     function methods:IsLoaded() return true end
     function methods:IsClient() return true end
@@ -268,12 +274,18 @@ local function runFixture(source, options)
         now = current.at
         if not options.noPlayer and now >= (options.playerDelay or 0) then players.LocalPlayer = player end
         if now >= (options.guiDelay or 0) and not playerGui.Parent then playerGui.Parent = player end
-        if options.authorize ~= false then
+        if options.authorize ~= false or options.closeGate or options.replaceSuite then
             for _, parent in ipairs({ env.game:GetService("CoreGui"), playerGui }) do
                 local gate = parent:FindFirstChild("NothriloKeyGate")
                 if gate and not submitted[gate] then
                     local input, button = gate:FindFirstChild("KeyInput", true), gate:FindFirstChild("Verify", true)
-                    if input and button then
+                    if options.closeGate then
+                        submitted[gate] = true
+                        env.task.spawn(function() gate:FindFirstChild("Close", true).Activated:Fire() end)
+                    elseif options.replaceSuite then
+                        submitted[gate] = true
+                        env.__CafezlSuiteGeneration = (env.__CafezlSuiteGeneration or 0) + 1
+                    elseif input and button then
                         submitted[gate] = true
                         input.Text = "NOTH-AAAA-AAAA-AAAA-AAAA-AAAA"
                         env.task.spawn(function() button.Activated:Fire() end)

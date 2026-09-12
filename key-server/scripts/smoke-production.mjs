@@ -6,6 +6,8 @@ const READY_ATTEMPTS = 8;
 const READY_DELAY_MS = 3_000;
 
 const providerHosts = {
+  workink: new Set(["work.ink"]),
+  lootlabs: new Set(["loot-link.com"]),
   linkvertise: new Set(["linkvertise.com", "link-to.net", "direct-link.net"]),
 };
 
@@ -78,6 +80,13 @@ async function checkProvider(provider, index) {
     `/v1/nothrilo/key/start?provider=${encodeURIComponent(provider)}&userId=${encodeURIComponent(userId)}`,
     { redirect: "manual" },
   );
+  if (provider === "lootlabs" && start.status === 503) {
+    const markup = await start.text();
+    assert.ok(markup.includes("LootLabs está aguardando a configuração de confirmação"), "unexpected LootLabs failure");
+    assert.equal(start.headers.get("set-cookie"), null, "unconfigured provider created a session");
+    console.warn("::warning::LootLabs awaits postback configuration; its menu option and integration are preserved.");
+    return;
+  }
   assert.equal(start.status, 302, `${provider} did not return a redirect`);
 
   const location = new URL(start.headers.get("location") || "", origin);

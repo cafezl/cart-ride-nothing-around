@@ -32,23 +32,27 @@ test("the diagnostic loader targets maintained sources and bounds its error outp
   assert.match(source, /:sub\(1, 1600\)/);
 });
 
-test("production deploy keeps only Linkvertise configured and runs a smoke test", async () => {
+test("production deploy keeps all provider links configured and runs a smoke test", async () => {
   const config = JSON.parse(await readFile(new URL("key-server/wrangler.jsonc", root), "utf8"));
-  const value = config.vars?.LINKVERTISE_URL;
-  assert.equal(typeof value, "string", "LINKVERTISE_URL is missing");
-  assert.doesNotMatch(value, /REPLACE/i, "LINKVERTISE_URL still contains a placeholder");
-  const url = new URL(value);
-  assert.equal(url.protocol, "https:", "LINKVERTISE_URL must use HTTPS");
-  assert.equal(url.hostname, "direct-link.net", "LINKVERTISE_URL uses an unexpected host");
-  assert.equal(url.username, "", "LINKVERTISE_URL must not contain credentials");
-  assert.equal(url.password, "", "LINKVERTISE_URL must not contain credentials");
-  assert.equal(config.vars?.WORKINK_URL, undefined);
-  assert.equal(config.vars?.WORKINK_LINK_ID, undefined);
-  assert.equal(config.vars?.LOOTLABS_URL, undefined);
+  const expectedHosts = {
+    WORKINK_URL: "work.ink",
+    LOOTLABS_URL: "loot-link.com",
+    LINKVERTISE_URL: "direct-link.net",
+  };
+
+  for (const [name, expectedHost] of Object.entries(expectedHosts)) {
+    const value = config.vars?.[name];
+    assert.equal(typeof value, "string", `${name} is missing`);
+    assert.doesNotMatch(value, /REPLACE/i, `${name} still contains a placeholder`);
+    const url = new URL(value);
+    assert.equal(url.protocol, "https:", `${name} must use HTTPS`);
+    assert.equal(url.hostname, expectedHost, `${name} uses an unexpected host`);
+    assert.equal(url.username, "", `${name} must not contain credentials`);
+    assert.equal(url.password, "", `${name} must not contain credentials`);
+  }
 
   const workflow = await readFile(new URL(".github/workflows/deploy-key-server.yml", root), "utf8");
   assert.match(workflow, /push:\s*\n\s+branches:\s*\n\s+- main/);
   assert.match(workflow, /pnpm run smoke:production/);
-  const worker = await readFile(new URL("key-server/src/index.js", root), "utf8");
-  assert.doesNotMatch(worker, /callback\/(?:workink|lootlabs)|WORKINK_|LOOTLABS_|work\.ink|loot-link/i);
+  assert.doesNotMatch(workflow, /inputs\.lootlabs_url/);
 });

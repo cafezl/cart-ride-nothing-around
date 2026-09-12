@@ -174,6 +174,60 @@ const COPY_SCRIPT = `
   });
 })();`;
 
+const PENDING_SCRIPT = `
+(() => {
+  const status = document.getElementById('status');
+  const result = document.getElementById('result');
+  const field = document.getElementById('key');
+  const button = document.getElementById('copy');
+  let attempts = 0;
+
+  async function copyKey() {
+    if (!field || !button) return;
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(field.value);
+      copied = true;
+    } catch {
+      field.focus();
+      field.select();
+      copied = typeof document.execCommand === 'function' && document.execCommand('copy');
+    }
+    button.textContent = copied ? 'Copiada ✓' : 'Selecione e copie a key';
+  }
+
+  if (button) button.addEventListener('click', copyKey);
+
+  async function poll() {
+    attempts += 1;
+    try {
+      const response = await fetch('/v1/nothrilo/key/status', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      const data = await response.json();
+      if (data.ok && data.status === 'complete' && typeof data.key === 'string') {
+        status.className = 'status ok';
+        status.textContent = 'Key liberada!';
+        field.value = data.key;
+        result.hidden = false;
+        field.focus();
+        return;
+      }
+      if (!data.ok && data.error !== 'pending') throw new Error('invalid-status');
+    } catch {}
+    if (attempts >= 40) {
+      status.className = 'status bad';
+      status.textContent = 'A confirmação demorou demais. Volte ao menu e tente novamente.';
+      return;
+    }
+    setTimeout(poll, 1500);
+  }
+
+  poll();
+})();`;
+
 function BrandRow() {
   return h(
     "div",
@@ -231,11 +285,13 @@ export function renderLandingPage(origin, nonce) {
       h(
         "p",
         { className: "muted" },
-        "Abra o Nothrilo, gere o link da Linkvertise e conclua as etapas no mesmo navegador. A key libera o menu inteiro por 24 horas.",
+        "Abra o Nothrilo, escolha um provedor e conclua uma das opções. Todas liberam o menu inteiro por 24 horas.",
       ),
       h(
         "div",
-        { className: "providers", "aria-label": "Provedor disponível" },
+        { className: "providers", "aria-label": "Provedores disponíveis" },
+        h("div", { className: "provider" }, "Work.ink"),
+        h("div", { className: "provider" }, "LootLabs"),
         h("div", { className: "provider" }, "Linkvertise"),
       ),
       h(
@@ -290,5 +346,35 @@ export function renderKeyPage({ key, expiry, provider, nonce }) {
       h("p", { className: "small" }, "A key é vinculada ao seu usuário do Roblox e libera todas as funções."),
     ),
     COPY_SCRIPT,
+  );
+}
+
+export function renderPendingPage(nonce) {
+  return renderDocument(
+    "Confirmando — Nothrilo Key",
+    nonce,
+    h(
+      React.Fragment,
+      null,
+      h(BrandRow),
+      h("h1", { className: "title" }, "Confirmando…"),
+      h("p", { className: "muted" }, "Aguardando o postback do LootLabs. Normalmente leva poucos segundos."),
+      h("div", { id: "status", className: "status", role: "status", "aria-live": "polite" }, "Verificando conclusão…"),
+      h(
+        "section",
+        { id: "result", hidden: true },
+        h("input", {
+          id: "key",
+          className: "key",
+          readOnly: true,
+          defaultValue: "",
+          "aria-label": "Sua key",
+          autoComplete: "off",
+          spellCheck: false,
+        }),
+        h("button", { id: "copy", className: "copy", type: "button" }, "Copiar key"),
+      ),
+    ),
+    PENDING_SCRIPT,
   );
 }

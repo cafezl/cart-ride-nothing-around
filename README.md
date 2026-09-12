@@ -1,129 +1,166 @@
-# Cafezitos e Nothrilo 🇧🇷
+<div align="center">
 
-Menu em Lua criado por **Cafezl** para **Cart Ride Around Nothing**, no Roblox. O projeto reúne ferramentas de jogador, carrinho, teleporte, mapa e câmera em uma interface em português.
+# 🇧🇷 Nothrilo & Cafezitos ☕
 
-## Recuperação dos projetos — 03/09/2026
+**Dois menus por Cafezl para Cart Ride Around Nothing.**<br>
+Carrinho, movimento, exploração e câmera — com interface em português.
 
-Esta revisão recupera arquivos Lua inválidos/incompletos, corrige a inicialização
-dos menus e reforça a API existente. As URLs antigas continuam existindo. O
-[relatório de recuperação](docs/recuperacao-2026-09-03.md) registra o que foi
-corrigido, os testes e as verificações que ainda dependem do ambiente real.
+[Executar Nothrilo](#-nothrilo-clássico) · [Executar Cafezitos](#-cafezitos) · [Pegar a key](#-key-do-nothrilo) · [Documentação](#-desenvolvimento)
 
-Os menus continuam em Lua/Luau. A camada externa do sistema de key usa componentes
-React escritos em JavaScript e renderizados com segurança pelo backend JavaScript
-no Cloudflare Workers. React não substitui nem modifica a interface nativa dos
-scripts. Não houve migração para C, C++, C# ou Java.
-O [relatório de React, segurança e otimização](docs/react-seguranca-2026-09-05.md)
-documenta a revisão atual e confirma a preservação dos arquivos Lua/Luau.
+</div>
 
-## Principais recursos
+---
 
-- Ajustes de velocidade, pulo infinito, noclip e anti-AFK.
-- Teleporte por clique, até jogadores, partes do mapa e checkpoints.
-- Voo do veículo, estabilizador, boost, anti-flip e freio automático.
-- ESP, câmera livre, spectate e posições salvas.
-- Interface com notificações, menu minimizável e atalhos de teclado.
-- Sistema de key grátis com acesso salvo por até 24 horas.
+## Escolha seu menu
 
-## Como executar
+| | 🇧🇷 Nothrilo | ☕ Cafezitos |
+|---|---|---|
+| **Visual** | Clássico, com abas laterais e controles no estilo Kavo | Tema de café, com abas e controles próprios |
+| **Acesso** | Key gratuita por Linkvertise, Work.ink ou LootLabs, válida por até 24 horas | Abertura direta, sem key |
+| **Fonte principal** | [`Nothrilo.lua`](Nothrilo.lua) | [`Cafezitos.lua`](Cafezitos.lua) |
 
-Os arquivos `.lua` não são programas de Windows nem páginas web: precisam de um
-ambiente cliente compatível. Teste somente em ambientes em que você tenha
-autorização e respeite as regras da plataforma. O código abaixo usa a branch
-`main`; uma correção enviada apenas a outra branch ainda não aparece nessa URL.
+**O Nothrilo Clássico é a versão principal.** O endereço habitual de `Nothrilo.lua` carrega o menu clássico completo com a tela de key. As URLs `Nothrilo-key-gratis.lua` e `Nothrilo-classico-funcoes-corrigidas.lua` recebem o mesmo código, incluindo a validação de acesso.
 
-Abra **Cart Ride Around Nothing** e execute:
+## 🇧🇷 Nothrilo Clássico
+
+No cliente do Roblox, dentro de **Cart Ride Around Nothing**, execute em um ambiente compatível:
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/Nothrilo.lua"))()
 ```
 
-Na tela inicial do Nothrilo, escolha um dos provedores disponíveis, conclua as etapas no navegador e cole a key gerada. O Nothrilo não solicita a senha da sua conta Roblox.
+O menu reúne **Jogador, Teleporte, Carrinho, Cart+, Extras, Mapa, Eliminador, Troll, Comandos e Interface**. A interface clássica é implementada no próprio arquivo, com controles compatíveis com o estilo Kavo.
 
-## Atalhos
+### 🔑 Key do Nothrilo
 
-| Tecla | Função |
+1. Abra o Nothrilo e escolha **Linkvertise**, **Work.ink** ou **LootLabs** na tela de key.
+2. Cole no navegador o link gerado pelo menu e conclua as etapas do serviço escolhido.
+3. Continue no **mesmo navegador**, mantendo a sessão aberta até aparecer a key.
+4. Copie a key, volte ao Roblox e clique em **Validar e abrir o Nothrilo**.
+
+A key libera o menu completo por até **24 horas**. Quando o ambiente permite salvar arquivos, o acesso válido é lembrado nas próximas execuções.
+
+> **Comece sempre pelo link gerado no menu.** Abrir apenas um link público compartilhado do provedor não cria a sessão necessária para emitir sua key. Se a sessão expirar, gere um novo link no Nothrilo e reinicie o processo.
+
+Os três serviços permanecem disponíveis no menu e possuem integração no servidor. A emissão depende da configuração e da confirmação do serviço escolhido.
+
+Na Linkvertise, foi corrigida a validação que recusava o código de retorno (`hash`) quando ele continha caracteres fora do formato hexadecimal. A confirmação pela API do provedor continua obrigatória. Essa correção não equivale a um teste completo de emissão de keys reais nos três serviços.
+
+## ☕ Cafezitos
+
+Para abrir o Cafezitos, execute:
+
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/Cafezitos.lua"))()
+```
+
+O **Cafezitos V2** abre diretamente, com tema de café, notificações e controles de interface. Também reúne as abas de jogador, teleporte, carrinho, física, exploração, câmera e comandos.
+
+## 🎮 Recursos dos menus
+
+| Área | Controles disponíveis |
 |---|---|
-| `V` | Voo do veículo |
-| `L` | ESP |
-| `P` | Pulo infinito |
-| `T` | Teleporte por clique |
-| `B` | Boost do carrinho |
-| `NumPad 1/2/3` | Ir aos checkpoints |
-| `K` | Minimizar ou abrir o menu |
-| `X` | Fechar o Nothrilo |
+| **Jogador** | Velocidade, pulo infinito, anti-AFK, ESP e voo do veículo |
+| **Teleporte** | Início, botão de carrinho, áreas do mapa, insígnia e sala secreta |
+| **Carrinho** | Checkpoints, leitura de velocidade, saída do assento e estabilizador ajustável |
+| **Cart+** | Boost, anti-flip e freio automático |
+| **Extras** | Noclip, transparência local, força do pulo, gravidade e posição salva |
+| **Mapa** | Busca de partes, carrinho próximo e câmera livre |
+| **Eliminador / Troll** | Controle de alvo, spectate, câmera giratória e teleporte aleatório |
+| **Interface** | Minimizar, reabrir, fechar e consultar atalhos |
 
-## Arquivos principais
+### ⌨️ Atalhos
 
-| Arquivo | Papel |
+| Tecla | Ação |
 |---|---|
-| `Cafezitos.lua` | Fonte principal mantida do Cafezitos |
-| `Cafezitos-V2.lua`, `Cafezitos-completo.lua` | Cópias completas da fonte principal para manter as URLs antigas |
-| `Nothrilo.lua` | Fonte principal do Nothrilo; corpo legado minificado com inicialização legível |
-| `Nothrilo-key-gratis.lua` | Cópia completa do Nothrilo |
-| `Nothrilo-classico-funcoes-corrigidas.lua` | Versão clássica legível, mantida separadamente |
-| `Cafezitos-teste.lua` | Diagnóstico de download, compilação e execução, com mensagem de erro |
-| `key-server/` | API JavaScript e testes do fluxo de keys |
-| `key-server/src/ui.js` | Interface externa em React + JavaScript |
-| `assets/` | Arquivos visuais usados pelo carregamento |
+| `V` | Ativar ou desativar o voo do veículo |
+| `L` | Ativar ou desativar o ESP |
+| `P` | Ativar ou desativar o pulo infinito |
+| `T` | Criar a ferramenta de teleporte por clique |
+| `B` | Ativar ou desativar o boost |
+| `NumPad 1 / 2 / 3` | Ir aos checkpoints |
+| `K` | Minimizar ou reabrir o menu |
+| `X` | Fechar o menu |
 
-Não edite as cópias separadamente. Após mudar uma fonte principal, execute
-`node scripts/sync-aliases.mjs --write`; sem `--write`, o comando apenas verifica
-se elas estão sincronizadas. As versões anteriores permanecem no histórico Git.
+## 🔎 Se algo não abrir
 
-### Se a interface não abrir
+**Erro na key:** gere um link novo pelo botão do provedor escolhido, conclua o fluxo no mesmo navegador e verifique se a key ainda está válida. Registre qual serviço foi usado e a mensagem de erro. Não compartilhe URLs de retorno que contenham tokens, keys ou dados da sessão.
 
-O `Cafezitos-teste.lua` usa `Cafezitos.lua` por padrão. Antes de iniciar o
-diagnóstico, o ambiente pode definir `CafezlDiagnosticTarget` como `Cafezitos` ou
-`Nothrilo` e `CafezlDiagnosticRef` como uma branch ou commit deste repositório.
-As opções são lidas de `getgenv()` quando disponível, ou de `_G`.
+**Erro ao iniciar o menu:** [`Cafezitos-teste.lua`](Cafezitos-teste.lua) ajuda a identificar falhas de download, compilação e execução. Ele verifica o Cafezitos por padrão; o alvo também pode ser definido como Nothrilo. Esse diagnóstico mantém a validação de key.
 
-Na revisão de recuperação, a referência é `fix/restore-menus-api-20260903`.
-O próprio arquivo de diagnóstico também precisa ser obtido dessa referência
-enquanto ela não estiver em `main`. O diagnóstico não contorna a validação de key.
-Anote a mensagem apresentada, sem compartilhar keys, leases, senhas ou tokens.
+**Uma função falha dentro do jogo:** registre o nome do menu, a função usada, a mensagem de erro e se o personagem estava sentado no carrinho. Isso ajuda a distinguir problemas do menu de mudanças na física ou na organização do mapa.
 
-## Testes de desenvolvimento
+## 🗂️ Organização do projeto
 
-Com Node.js 22 ou superior, instale primeiro as dependências fixadas do backend:
+| Caminho | Conteúdo |
+|---|---|
+| [`Nothrilo.lua`](Nothrilo.lua) | Fonte principal legível do Nothrilo Clássico, com key |
+| [`Nothrilo-key-gratis.lua`](Nothrilo-key-gratis.lua) | Cópia completa e sincronizada do Nothrilo |
+| [`Nothrilo-classico-funcoes-corrigidas.lua`](Nothrilo-classico-funcoes-corrigidas.lua) | Mesmo Nothrilo principal, preservando a URL da versão clássica |
+| [`Cafezitos.lua`](Cafezitos.lua) | Fonte principal do Cafezitos |
+| [`Cafezitos-V2.lua`](Cafezitos-V2.lua) e [`Cafezitos-completo.lua`](Cafezitos-completo.lua) | Cópias completas e sincronizadas do Cafezitos |
+| [`INSPIRAÇÃO/`](INSPIRA%C3%87%C3%83O/) | Scripts de referência para comparação de funções; separados dos menus publicados |
+| [`key-server/`](key-server/) | API de keys em JavaScript, com Cloudflare Workers e Durable Objects |
+| [`key-server/src/ui.js`](key-server/src/ui.js) | Páginas externas do sistema de key em React + JavaScript |
+| [`tests/`](tests/) e [`scripts/`](scripts/) | Verificações, diagnóstico e sincronização das cópias |
+| [`docs/`](docs/) | Relatórios de manutenção e segurança |
+
+Os menus do Roblox continuam em **Lua/Luau**. **React + JavaScript** atendem às páginas externas e ao servidor de keys. Os arquivos de `INSPIRAÇÃO/` servem para leitura e comparação; seus carregadores externos não fazem parte da inicialização dos menus.
+
+## 🔒 Dados do sistema de key
+
+O Nothrilo envia ao seu servidor o `UserId`, o `PlaceId` e a credencial necessária à validação. Após a primeira validação, o acesso pode ser salvo localmente como uma autorização temporária em `Nothrilo/key-cache-v1.json`, quando o ambiente oferece suporte a arquivos.
+
+A emissão da key depende da confirmação do provedor pelo servidor. Os segredos das integrações ficam no Cloudflare Workers. O Nothrilo não pede a senha da conta Roblox. A navegação na Linkvertise, no Work.ink ou no LootLabs está sujeita às políticas de cada serviço.
+
+Os limites e as propriedades de segurança estão documentados no [README do servidor de keys](key-server/README.md).
+
+## 🛠️ Desenvolvimento
+
+Edite somente as fontes principais e sincronize as cópias antes de publicar. O histórico Git preserva as versões anteriores.
+
+<details>
+<summary><strong>Instalação e verificações</strong></summary>
+
+Requisitos: **Node.js 22 ou superior**, a versão de pnpm indicada no `package.json` e, para os testes Lua, `luau` e `luau-compile`.
 
 ```sh
 corepack enable
 pnpm --dir key-server install --frozen-lockfile
-```
-
-Depois, na raiz do repositório:
-
-```sh
-node --test tests/source.test.mjs key-server/test/key-store.test.mjs
+pnpm run sync:aliases
+pnpm test
 pnpm --dir key-server run check
-node scripts/sync-aliases.mjs
+pnpm run check:aliases
+pnpm run test:luau
 ```
 
-Com `luau` e `luau-compile` também disponíveis no PATH:
+Os executáveis Luau podem estar no `PATH` ou ser indicados por `LUAU_BIN` e `LUAU_COMPILE_BIN`.
 
-```sh
-node --test tests/client.test.mjs
-```
+As verificações cobrem os arquivos publicados, a sincronização das cópias, a API de keys, a compilação Luau em O0/O1/O2 e a inicialização dos menus em um ambiente simulado. **Elas não comprovam a física, todos os botões ou a emissão de uma key real dentro do jogo.**
 
-É possível indicar os executáveis por `LUAU_BIN` e `LUAU_COMPILE_BIN`. Os testes
-compilam os sete arquivos em O0, O1 e O2 e simulam somente a inicialização da
-interface. Não substituem testes no Roblox, nem verificam a física do jogo,
-todos os botões, serviços externos ou a instalação real do Worker.
+O workflow [`Validate menus and API`](https://github.com/cafezl/cart-ride-nothing-around/actions/workflows/validate.yml) executa as verificações automáticas. A publicação do servidor é tratada separadamente pelo workflow de deploy.
 
-O workflow `Validate menus and API` repete essas verificações sem fazer deploy,
-sem acessar segredos dos provedores e com o compilador Luau fixado em um commit.
+</details>
 
-## Privacidade do sistema de key
+<details>
+<summary><strong>Opções do diagnóstico e relatórios anteriores</strong></summary>
 
-A versão atual envia ao servidor do Nothrilo o `UserId`, o `PlaceId` e a key ou autorização temporária necessária para validar o acesso. Quando o ambiente permite salvar arquivos, a autorização válida pode ficar armazenada localmente em `Nothrilo/key-cache-v1.json`. Os provedores de key abrem páginas externas e possuem suas próprias políticas.
+Antes de executar `Cafezitos-teste.lua`, o ambiente pode definir `CafezlDiagnosticTarget` como `Cafezitos` ou `Nothrilo` e `CafezlDiagnosticRef` como uma branch ou commit deste repositório. As opções são lidas de `getgenv()` quando disponível, ou de `_G`.
 
-## Observações
+- [Servidor de keys: configuração e manutenção](key-server/README.md)
+- [Revisão de React e segurança — 05/09/2026](docs/react-seguranca-2026-09-05.md)
+- [Relatório de recuperação — 03/09/2026](docs/recuperacao-2026-09-03.md)
 
-- Atualizações do Roblox ou do jogo podem exigir ajustes no script.
-- O projeto é independente e não possui afiliação com Roblox ou com os criadores do jogo.
-- Nunca informe sua senha do Roblox em páginas de key ou executores. Use apenas em ambientes autorizados, por sua conta e risco, e respeite as regras da plataforma.
+Os relatórios registram o estado de cada revisão; os arquivos principais representam a versão atual.
+
+</details>
 
 ---
 
-Feito por **Cafezl**.
+<div align="center">
+
+**Feito por [Cafezl](https://github.com/cafezl).** 🇧🇷 ☕<br>
+Projeto independente, sem afiliação com Roblox ou com os criadores do jogo.<br>
+Use em ambientes autorizados e respeite as regras da plataforma.
+
+</div>

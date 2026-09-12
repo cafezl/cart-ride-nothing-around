@@ -1,10 +1,6 @@
 # Nothrilo Key Server
 
-Backend gratuito e independente do JNKIE para liberar o Nothrilo inteiro após uma conclusão em **uma** destas opções:
-
-- Work.ink
-- LootLabs
-- Linkvertise
+Backend gratuito e independente do JNKIE para liberar o Nothrilo inteiro após uma conclusão na **Linkvertise**.
 
 Todas as keys dão o mesmo acesso por 24 horas. Não existe Premium e nenhuma função é vendida separadamente.
 
@@ -12,10 +8,9 @@ Todas as keys dão o mesmo acesso por 24 horas. Não existe Premium e nenhuma fu
 
 - Tokens permanentes nunca entram no Lua, GitHub ou `wrangler.jsonc`.
 - Os logs detalhados do Worker ficam desligados por padrão para não registrar
-  tokens temporários nem o segredo do postback presente na URL do LootLabs.
+  tokens temporários ou dados de sessão.
 - A key fica vinculada ao `UserId` do Roblox. Depois da primeira validação, o Lua guarda somente uma lease opaca — não a key digitada.
-- Work.ink e Linkvertise são validados diretamente nas APIs oficiais e consumidos uma vez.
-- LootLabs usa postback com rota secreta, sessão curta e `unique_id` de uso único.
+- A conclusão Linkvertise é validada diretamente na API oficial e consumida uma vez.
 - O armazenamento forte é um Durable Object SQLite; não depende da consistência eventual do KV.
 - O início de key valida o provedor antes de gravar e limita tentativas por IP,
   usuário e combinação dos dois. Também limita sessões simultâneas pendentes.
@@ -57,26 +52,15 @@ sensíveis. Hashes de IP usados nos contadores também não são anonimização 
 ## Configuração depois do primeiro deploy
 
 1. Anote a origem do Worker, como `https://nothrilo-key.SUA-CONTA.workers.dev`.
-2. Crie/configure os links:
-   - Work.ink: ative Key System. O Worker usa a Link Override API para inserir seu callback.
-   - Linkvertise: use **Target Link** com destino `ORIGEM/v1/nothrilo/key/callback/linkvertise`.
-   - LootLabs: use 1 tarefa e destino `ORIGEM/v1/nothrilo/key/callback/lootlabs`.
-3. Troque os quatro placeholders em `wrangler.jsonc` pelos links/ID públicos.
-4. Cadastre no LootLabs Advanced o postback:
-
-   `ORIGEM/v1/nothrilo/key/postback/lootlabs?secret=SEGREDO`
-
-5. Grave os segredos somente como Cloudflare Secrets:
+2. Na Linkvertise, use **Target Link** com destino `ORIGEM/v1/nothrilo/key/callback/linkvertise`.
+3. Troque `LINKVERTISE_URL` em `wrangler.jsonc` pelo link público da campanha.
+4. Grave os segredos somente como Cloudflare Secrets:
 
    - `LINKVERTISE_ANTI_BYPASS_TOKEN`
-   - `LOOTLABS_POSTBACK_SECRET`
    - `ADMIN_ISSUE_SECRET` (segredo aleatório de pelo menos 32 caracteres)
 
-O segredo do postback deve ter pelo menos 32 caracteres aleatórios. O token Linkvertise possui 64 caracteres.
-O LootLabs exige o segredo na URL do postback; por isso essa URL deve ser tratada
-como credencial, nunca publicada, e o segredo deve ser rotacionado se aparecer em
-logs ou capturas. A observabilidade detalhada permanece desligada para reduzir a
-exposição.
+O token Linkvertise possui 64 caracteres. Nunca publique esse valor; mantenha-o
+somente como Cloudflare Secret.
 
 ## Key manual do dono
 
@@ -181,12 +165,10 @@ Antes de usá-lo, cadastre em **Settings → Secrets and variables → Actions**
 - `CLOUDFLARE_ACCOUNT_ID`: ID da conta que possui o Worker.
 
 Nunca coloque esses valores em commits, issues, logs ou mensagens. A URL pública
-do LootLabs fica na configuração versionada porque já é revelada ao usuário pelo
-próprio redirecionamento; o segredo do postback continua apenas na Cloudflare.
-Depois do deploy, o workflow confirma a interface React, a rota de saúde e a
-criação de sessões pendentes para Work.ink, LootLabs e Linkvertise sem concluir
-anúncios nem registrar keys de teste. Os outros segredos do Worker já existentes
-na Cloudflare não são apagados pelo deploy.
+da Linkvertise fica na configuração versionada porque já é revelada ao usuário
+pelo próprio redirecionamento. Depois do deploy, o workflow confirma a interface
+React, a rota de saúde e a criação de uma sessão pendente Linkvertise sem concluir
+anúncios nem registrar keys de teste.
 
 O deploy usa versões fixadas do Wrangler e das Actions. O ambiente GitHub
 `production` pode receber regras de aprovação nas configurações do repositório.

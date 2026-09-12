@@ -421,18 +421,17 @@ not V.Parent or not V.SeatPart or os.clock()>=W if n or(T and T~=w)or not V.Pare
 isCurrentSuiteGeneration()or(T and T~=w)or not S.Parent or(S.Occupant and S.Occupant~=V)then break end U.CFrame=S.CFrame*CFrame.new(0,2,0)task.wait(0.12)if V.SeatPart==S or S.Occupant==V then return
 true end if n or(T and T~=w)or not S.Parent or not V.Parent or(S.Occupant and S.Occupant~=V)then break end pcall(function()S:Sit(V)end)task.wait(0.2)if n or(T and T~=w)or not S.Parent or not V.Parent
 or not U.Parent then return false end if V.SeatPart==S or S.Occupant==V then return true end V.Sit=true task.wait(0.12)if n or(T and T~=w)or not S.Parent or not V.Parent or not U.Parent then return
-false end if V.SeatPart==S or S.Occupant==V then return true end end return false end local function moveToTarget(S,T,U,V,W)local X=getRoot()local Y=getHumanoid()local Z=os.clock()while os.clock()-Z<T
-do if n or not v or U~=w then return false end if not X or not X.Parent or not Y or not Y.Parent or not S or not S.Parent or not V or not V.Parent or V.Occupant~=Y or Y.SeatPart~=V or getCurrentCart()
-~=W then return false end local _=S.Position-S.CFrame.LookVector*1.2+Vector3.new(0,1.5,0)X.CFrame=CFrame.lookAt(_,S.Position)b.Heartbeat:Wait()end return true end local function finishKiller(S,T)if T
+false end if V.SeatPart==S or S.Occupant==V then return true end end return false end local function moveToTarget(S,T,V,W)local X=getRoot()local Y=getHumanoid()local Z=os.clock()while os.clock()-Z<T
+do if n or not v then return false end if not X or not X.Parent or not Y or not Y.Parent or not S or not S.Parent or not V or not V.Parent or not W or not W.Parent or not W:IsAncestorOf(V)or V.Occupant~=Y or Y.SeatPart~=V then return false end local _=S.Position-S.CFrame.LookVector*1.2+Vector3.new(0,1.5,0)X.CFrame=CFrame.lookAt(_,S.Position)b.Heartbeat:Wait()end return true end local function finishKiller(S,T)if T
 and T~=w then return end w=w+1 local U=w local V=getHumanoid()local W=V and V.SeatPart~=nil if V then V.Sit=false end if W then task.wait(0.05)if w~=U then return end end if al and am then am:
 UpdateToggle(nil,false)else stopFly()end v=false if S then notify('Eliminador',S)end end local function executeKiller(S)if v then notify('Eliminador','Aguarde a tentativa atual terminar.')return end
 if z.autoWin then z.autoWin(true)end local T=findPlayerByPartialName(S)if not T or T==f then notify('Eliminador',T==f and'Escolha outro jogador.'or'Jogador n\u{e3}o encontrado.')return end w=w+1 local
 U=w v=true if al and am then am:UpdateToggle(nil,false)else stopFly()end if ap then ap()end if an then task.defer(function()an:UpdateToggle(nil,false)end)end local V=getHumanoid()local W=V and V.
 SeatPart local X=W and W:IsA('VehicleSeat')and(W.Occupant==V or V.SeatPart==W)if not X then W=findNearestFreeVehicleSeat()if not W then finishKiller('N\u{e3}o h\u{e1} carrinho livre por perto.',U)
-return end if n or U~=w then return end if not sitOnVehicleSeat(W,U)then if U==w then finishKiller('N\u{e3}o foi poss\u{ed}vel sentar no carrinho.',U)end return end end if n or U~=w then return end
+return end if not sitOnVehicleSeat(W)then finishKiller('N\u{e3}o foi poss\u{ed}vel sentar no carrinho.',U)return end end if n then return end
 local Y=cacheCartFromSeat(W)if not Y then finishKiller('Estrutura do carrinho n\u{e3}o reconhecida.',U)return end if not startVehicleFly(false)then finishKiller(
-'N\u{e3}o foi poss\u{ed}vel iniciar o voo.',U)return end task.wait(0.15)if n or U~=w then return end local Z local _=os.clock()+2 repeat local av=T.Character Z=av and av:FindFirstChild(
-'HumanoidRootPart')if Z then break end task.wait(0.2)until os.clock()>=_ or n or U~=w if not Z then finishKiller('Personagem do alvo n\u{e3}o carregou.',U)return end local av=moveToTarget(Z,3,U,W,Y)if
+'N\u{e3}o foi poss\u{ed}vel iniciar o voo.',U)return end task.wait(0.15)if n then return end local Z local _=os.clock()+2 repeat local av=T.Character Z=av and av:FindFirstChild(
+'HumanoidRootPart')if Z then break end task.wait(0.2)until os.clock()>=_ or n if not Z then finishKiller('Personagem do alvo n\u{e3}o carregou.',U)return end local av=moveToTarget(Z,3,W,Y)if
 U==w then finishKiller(av and'Carrinho levado ao alvo.'or'Tentativa cancelada.',U)end end local function teleportPlayerOrCart(av)local S=getCurrentCart()if S then stopCartControllersForTeleport()
 return pivotCartByReference(S,av)end return teleportCharacter(av)end trackConnection(f.CharacterAdded:Connect(function()w=w+1 v=false end))local av local S local T=false local U local V local W=ac:
 NewTab('Jogador'):NewSection('Configura\u{e7}\u{f5}es do Jogador')W:NewSlider('Velocidade','Velocidade de caminhada (padr\u{e3}o 16).',500,0,16,function(X)au=X local Y=getHumanoid()if Y and not ar

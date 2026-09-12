@@ -2,6 +2,7 @@ import {
   renderErrorPage,
   renderKeyPage,
   renderLandingPage,
+  renderPendingPage,
 } from "./ui.js";
 
 const PRODUCT = "nothrilo";
@@ -27,7 +28,6 @@ const DEFAULT_VERIFY_WINDOW = 60;
 const DEFAULT_VERIFY_IP_LIMIT = 60;
 const DEFAULT_VERIFY_PAIR_LIMIT = 12;
 const CLEANUP_CURSOR_KEY = "metadata:cleanup-cursor";
-const RETIRED_PROVIDERS = new Set(["workink", "lootlabs"]);
 
 const encoder = new TextEncoder();
 
@@ -163,11 +163,7 @@ async function readJsonBody(request, maxBytes) {
 
 function normalizeProvider(value) {
   const provider = String(value ?? "").trim().toLowerCase();
-  return provider === "linkvertise" ? provider : null;
-}
-
-function isRetiredProvider(provider) {
-  return RETIRED_PROVIDERS.has(String(provider ?? "").trim().toLowerCase());
+  return ["workink", "lootlabs", "linkvertise"].includes(provider) ? provider : null;
 }
 
 function validLinkvertiseHash(value) {
@@ -229,8 +225,18 @@ function clientAddress(request) {
   return /^[0-9a-f:.]{3,64}$/i.test(value) ? value : "unknown";
 }
 
-function providerLabel() {
-  return "Linkvertise";
+function appendQuery(urlString, name, value) {
+  const url = new URL(urlString);
+  url.searchParams.set(name, value);
+  return url.href;
+}
+
+function providerLabel(provider) {
+  return {
+    workink: "Work.ink",
+    lootlabs: "LootLabs",
+    linkvertise: "Linkvertise",
+  }[provider] || provider;
 }
 
 async function providerFetch(env, input, init = {}, responseType = "json") {
@@ -336,6 +342,10 @@ function keyPage(key, expiresAt, provider) {
   }));
 }
 
+function pendingLootlabsPage() {
+  return html(renderPendingPage(randomHex(16)));
+}
+
 async function internalRequest(env, path, init = {}) {
   const id = env.KEY_STORE.idFromName(PRODUCT);
   const stub = env.KEY_STORE.get(id);
@@ -347,6 +357,15 @@ async function createSession(env, provider, userId, clientKey) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ provider, userId, clientKey }),
+  });
+  return { status: response.status, data: await response.json() };
+}
+
+async function cancelSession(env, sessionId) {
+  const response = await internalRequest(env, "/cancel", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId }),
   });
   return { status: response.status, data: await response.json() };
 }
@@ -383,11 +402,28 @@ async function issueManualOwnerKey(env, userId, clientKey) {
   return { status: response.status, data: await response.json() };
 }
 
-function providerConfiguration(env) {
-  const link = configuredHttpsUrl(env.LINKVERTISE_URL, ["linkvertise.com", "link-to.net", "direct-link.net"]);
+function providerConfiguration(env, provider) {
+  if (provider === "workink") {
+    const baseLink = configuredHttpsUrl(env.WORKINK_URL, ["work.ink"]);
+    const expectedLinkId = String(env.WORKINK_LINK_ID || "").trim();
+    return baseLink && /^\d{1,20}$/.test(expectedLinkId)
+      ? { ok: true, baseLink }
+      : { ok: false, message: "A opção Work.ink ainda não foi configurada." };
+  }
+  if (provider === "linkvertise") {
+    const link = configuredHttpsUrl(env.LINKVERTISE_URL, ["linkvertise.com", "link-to.net", "direct-link.net"]);
+    return link
+      ? { ok: true, link }
+      : { ok: false, message: "A opção Linkvertise ainda não foi configurada." };
+  }
+  const link = configuredHttpsUrl(env.LOOTLABS_URL, ["loot-link.com"]);
+  const postbackSecret = String(env.LOOTLABS_POSTBACK_SECRET || "");
+  if (postbackSecret.length < 32 || postbackSecret.length > 512) {
+    return { ok: false, message: "A opção LootLabs está aguardando a configuração de confirmação. Use Linkvertise ou Work.ink por enquanto." };
+  }
   return link
     ? { ok: true, link }
-    : { ok: false, message: "A opção Linkvertise ainda não foi configurada." };
+    : { ok: false, message: "A opção LootLabs ainda não foi configurada." };
 }
 
 async function startProvider(request, env, url) {
@@ -395,7 +431,7 @@ async function startProvider(request, env, url) {
   const userId = normalizeUserId(url.searchParams.get("userId") || url.searchParams.get("uid"));
   if (!provider || !userId) return errorPage("Provedor ou usuário inválido.");
 
-  const configuration = providerConfiguration(env);
+  const configuration = providerConfiguration(env, provider);
   if (!configuration.ok) return errorPage(configuration.message, 503);
 
   const clientKey = await sha256Hex(`ip:${clientAddress(request)}`);
@@ -414,7 +450,62 @@ async function startProvider(request, env, url) {
   const maxAge = asPositiveInt(env.SESSION_TTL_SECONDS, DEFAULT_SESSION_TTL, 300, 3600);
   const headers = { "Set-Cookie": sessionCookie(sessionId, maxAge) };
 
-  return redirect(configuration.link, headers);
+  if (provider === "workink") {
+    const destination = `${url.origin}/v1/nothrilo/key/callback/workink?session=${encodeURIComponent(sessionId)}&token={TOKEN}`;
+    const overrideUrl = `https://work.ink/_api/v2/override?destination=${encodeURIComponent(destination)}`;
+    let overrideResponse;
+    let override;
+    try {
+      const providerResult = await providerFetch(env, overrideUrl, { headers: { Accept: "application/json" } });
+      overrideResponse = providerResult.response;
+      override = providerResult.body;
+    } catch {
+      await cancelSession(env, sessionId).catch(() => null);
+      return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
+    }
+    if (!overrideResponse.ok) {
+      await cancelSession(env, sessionId).catch(() => null);
+      return errorPage("Work.ink não respondeu ao iniciar a key.", 502);
+    }
+    if (!override || typeof override.sr !== "string" || override.sr.length < 1 || override.sr.length > 2048) {
+      await cancelSession(env, sessionId).catch(() => null);
+      return errorPage("Work.ink retornou uma sessão inválida.", 502);
+    }
+    return redirect(appendQuery(configuration.baseLink, "sr", override.sr), headers);
+  }
+
+  if (provider === "linkvertise") {
+    return redirect(configuration.link, headers);
+  }
+
+  return redirect(appendQuery(configuration.link, "puid", sessionId), headers);
+}
+
+async function workinkCallback(env, url) {
+  const sessionId = String(url.searchParams.get("session") || "");
+  const token = String(url.searchParams.get("token") || "");
+  if (!/^[a-f0-9-]{20,80}$/i.test(sessionId) || !/^[a-f0-9-]{20,80}$/i.test(token)) {
+    return errorPage("Token Work.ink inválido.");
+  }
+  const endpoint = `https://work.ink/_api/v2/token/isValid/${encodeURIComponent(token)}?deleteToken=1`;
+  let response;
+  let result;
+  try {
+    const providerResult = await providerFetch(env, endpoint, { headers: { Accept: "application/json" } });
+    response = providerResult.response;
+    result = providerResult.body;
+  } catch {
+    return errorPage("Work.ink demorou para responder. Tente novamente.", 502);
+  }
+  const expectedLinkId = String(env.WORKINK_LINK_ID || "").trim();
+  const linkMatches = expectedLinkId !== "" && String(result?.info?.linkId ?? "") === expectedLinkId;
+  const notExpired = Number(result?.info?.expiresAfter || 0) > Date.now();
+  if (!response.ok || result?.valid !== true || result?.deleted !== true || !linkMatches || !notExpired) {
+    return errorPage("A conclusão do Work.ink não pôde ser confirmada.", 403);
+  }
+  const completed = await completeSession(env, sessionId, "workink", token);
+  if (!completed.data.ok) return errorPage("Esta conclusão já foi usada ou expirou.", completed.status);
+  return keyPage(completed.data.key, completed.data.expiresAt, "workink");
 }
 
 async function linkvertiseCallback(request, env, url) {
@@ -444,6 +535,19 @@ async function linkvertiseCallback(request, env, url) {
   const completed = await completeSession(env, sessionId, "linkvertise", hash);
   if (!completed.data.ok) return errorPage("Esta conclusão já foi usada ou expirou.", completed.status);
   return keyPage(completed.data.key, completed.data.expiresAt, "linkvertise");
+}
+
+async function lootlabsPostback(env, url) {
+  const configuredSecret = String(env.LOOTLABS_POSTBACK_SECRET || "");
+  const providedSecret = String(url.searchParams.get("secret") || "");
+  if (!await secretsEqual(providedSecret, configuredSecret)) return privateJson({ ok: false }, 403);
+  const sessionId = String(url.searchParams.get("click_id") || url.searchParams.get("puid") || "");
+  const uniqueId = String(url.searchParams.get("unique_id") || "");
+  if (!/^[a-f0-9]{32}$/i.test(sessionId) || uniqueId.length < 6 || uniqueId.length > 256) {
+    return json({ ok: false, error: "invalid_postback" }, 400);
+  }
+  const completed = await completeSession(env, sessionId, "lootlabs", uniqueId);
+  return json({ ok: completed.data.ok }, completed.data.ok ? 200 : completed.status);
 }
 
 async function verifyKeyRequest(request, env) {
@@ -802,10 +906,6 @@ export class KeyStore {
         if (!leaseRecord || leaseRecord.product !== PRODUCT || leaseRecord.userId !== userId || leaseRecord.expiresAt <= Date.now()) {
           return json({ ok: false, error: "invalid_lease" }, 401);
         }
-        if (isRetiredProvider(leaseRecord.provider)) {
-          await this.storage.delete(`lease:${leaseHash}`);
-          return json({ ok: false, error: "invalid_lease" }, 401);
-        }
         return json({
           ok: true,
           product: PRODUCT,
@@ -822,13 +922,6 @@ export class KeyStore {
         const keyRecordKey = `key:${keyHash}`;
         const record = await this.storage.get(keyRecordKey);
         if (!record || record.product !== PRODUCT || record.userId !== userId || record.expiresAt <= Date.now()) {
-          return json({ ok: false, error: "invalid_key" }, 401);
-        }
-        if (isRetiredProvider(record.provider)) {
-          await this.storage.delete(keyRecordKey);
-          if (/^NLEASE-[a-f0-9]{64}$/i.test(record.lease)) {
-            await this.storage.delete(`lease:${await sha256Hex(record.lease)}`);
-          }
           return json({ ok: false, error: "invalid_key" }, 401);
         }
         const issuedLease = /^NLEASE-[a-f0-9]{64}$/i.test(record.lease)
@@ -881,16 +974,8 @@ export class KeyStore {
           startAfter = key;
           if (key === CLEANUP_CURSOR_KEY) continue;
           const expiresAt = Number(value?.expiresAt || 0);
-          if (isRetiredProvider(value?.provider)) {
-            if (key.startsWith("session:") && value?.status === "pending") {
-              await this.removePendingSession(value);
-            }
-            expired.push(key);
-          } else if (expiresAt <= now) {
-            expired.push(key);
-          } else {
-            nextExpiry = Math.min(nextExpiry, expiresAt);
-          }
+          if (expiresAt <= now) expired.push(key);
+          else nextExpiry = Math.min(nextExpiry, expiresAt);
         }
         if (expired.length) await this.storage.delete(expired);
         if (records.size < pageSize) break;
@@ -918,7 +1003,10 @@ const routeMethods = new Map([
   ["/v1/nothrilo/key/health", "GET"],
   ["/v1/nothrilo/key/admin/issue", "POST"],
   ["/v1/nothrilo/key/start", "GET"],
+  ["/v1/nothrilo/key/callback/workink", "GET"],
   ["/v1/nothrilo/key/callback/linkvertise", "GET"],
+  ["/v1/nothrilo/key/callback/lootlabs", "GET"],
+  ["/v1/nothrilo/key/postback/lootlabs", "GET"],
   ["/v1/nothrilo/key/status", "GET"],
   ["/v1/nothrilo/key/verify", "POST"],
 ]);
@@ -941,7 +1029,10 @@ async function dispatchRequest(request, env) {
       return manualOwnerIssueRequest(request, env);
     }
     if (url.pathname === "/v1/nothrilo/key/start" && request.method === "GET") return startProvider(request, env, url);
+    if (url.pathname === "/v1/nothrilo/key/callback/workink" && request.method === "GET") return workinkCallback(env, url);
     if (url.pathname === "/v1/nothrilo/key/callback/linkvertise" && request.method === "GET") return linkvertiseCallback(request, env, url);
+    if (url.pathname === "/v1/nothrilo/key/callback/lootlabs" && request.method === "GET") return pendingLootlabsPage();
+    if (url.pathname === "/v1/nothrilo/key/postback/lootlabs" && request.method === "GET") return lootlabsPostback(env, url);
     if (url.pathname === "/v1/nothrilo/key/status" && request.method === "GET") {
       const sessionId = readCookie(request, SESSION_COOKIE);
       if (!sessionId || !/^[a-f0-9]{32}$/i.test(sessionId)) {

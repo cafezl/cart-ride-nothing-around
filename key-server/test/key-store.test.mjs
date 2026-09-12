@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import vm from "node:vm";
 import worker, { KeyStore } from "../src/index.js";
 import { renderErrorPage } from "../src/ui.js";
 
@@ -89,13 +90,13 @@ test("creates, completes and verifies a 24-hour key", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
 
-  const created = await call(store, "/session", sessionRequest("linkvertise", "123456"));
+  const created = await call(store, "/session", sessionRequest("workink", "123456"));
   assert.equal(created.status, 200);
   assert.match(created.body.sessionId, /^[a-f0-9]{32}$/);
 
   const completed = await call(store, "/complete", {
     sessionId: created.body.sessionId,
-    provider: "linkvertise",
+    provider: "workink",
     proofId: "11111111-2222-4333-8444-555555555555",
   });
   assert.equal(completed.status, 200);
@@ -104,7 +105,7 @@ test("creates, completes and verifies a 24-hour key", async () => {
   const valid = await call(store, "/verify", { key: completed.body.key, userId: "123456" });
   assert.equal(valid.status, 200);
   assert.equal(valid.body.ok, true);
-  assert.equal(valid.body.provider, "linkvertise");
+  assert.equal(valid.body.provider, "workink");
   assert.ok(valid.body.ttlSeconds > 86390);
   assert.match(valid.body.lease, /^NLEASE-[a-f0-9]{64}$/);
 
@@ -287,10 +288,10 @@ test("expires both key and lease and requires a fresh completion", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
 
-  const firstSession = await call(store, "/session", sessionRequest("linkvertise", "123456"));
+  const firstSession = await call(store, "/session", sessionRequest("workink", "123456"));
   const firstCompletion = await call(store, "/complete", {
     sessionId: firstSession.body.sessionId,
-    provider: "linkvertise",
+    provider: "workink",
     proofId: "21111111-2222-4333-8444-555555555555",
   });
   const firstVerification = await call(store, "/verify", {
@@ -320,10 +321,10 @@ test("expires both key and lease and requires a fresh completion", async () => {
   assert.equal(expiredLease.status, 401);
   assert.equal(expiredLease.body.error, "invalid_lease");
 
-  const nextSession = await call(store, "/session", sessionRequest("linkvertise", "123456"));
+  const nextSession = await call(store, "/session", sessionRequest("workink", "123456"));
   const nextCompletion = await call(store, "/complete", {
     sessionId: nextSession.body.sessionId,
-    provider: "linkvertise",
+    provider: "workink",
     proofId: "31111111-2222-4333-8444-555555555555",
   });
   assert.equal(nextCompletion.status, 200);
@@ -334,10 +335,10 @@ test("serializes concurrent lease creation for one key", async () => {
   const storage = new MemoryStorage();
   // This test isolates lease idempotency; abuse limits are covered separately.
   const store = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400", VERIFY_PAIR_LIMIT: "30" });
-  const created = await call(store, "/session", sessionRequest("linkvertise", "123456"));
+  const created = await call(store, "/session", sessionRequest("workink", "123456"));
   const completed = await call(store, "/complete", {
     sessionId: created.body.sessionId,
-    provider: "linkvertise",
+    provider: "workink",
     proofId: "11111111-2222-4333-8444-555555555555",
   });
 
@@ -397,14 +398,14 @@ test("rejects invalid providers and expired sessions", async () => {
   const invalid = await call(store, "/session", sessionRequest("unknown", "123"));
   assert.equal(invalid.status, 400);
 
-  const created = await call(store, "/session", sessionRequest("linkvertise", "123"));
+  const created = await call(store, "/session", sessionRequest("lootlabs", "123"));
   const record = await storage.get(`session:${created.body.sessionId}`);
   record.expiresAt = Date.now() - 1;
   await storage.put(`session:${created.body.sessionId}`, record);
 
   const expired = await call(store, "/complete", {
     sessionId: created.body.sessionId,
-    provider: "linkvertise",
+    provider: "lootlabs",
     proofId: "unique-proof",
   });
   assert.equal(expired.status, 410);
@@ -450,6 +451,38 @@ test("rejects malformed session cookies before accessing storage", async () => {
     assert.deepEqual(await response.json(), { ok: false, error: "missing_session" });
   }
   assert.equal(bindingCalls, 0);
+});
+
+test("stops LootLabs pending polling after about 60 seconds", async () => {
+  const response = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/callback/lootlabs"), {});
+  const page = await response.text();
+  const script = page.match(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script);
+
+  const scheduled = [];
+  let fetchCalls = 0;
+  const elements = {
+    status: { className: "", textContent: "" },
+    result: { innerHTML: "" },
+  };
+  vm.runInNewContext(script, {
+    document: { getElementById: (id) => elements[id] },
+    fetch: async () => {
+      fetchCalls += 1;
+      return { json: async () => ({ ok: false, error: "pending", status: "pending" }) };
+    },
+    setTimeout: (callback) => scheduled.push(callback),
+    navigator: { clipboard: { writeText: async () => {} } },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  while (scheduled.length > 0) {
+    const callback = scheduled.shift();
+    await callback();
+  }
+
+  assert.equal(fetchCalls, 40);
+  assert.match(elements.status.textContent, /demorou demais/);
+  assert.equal(scheduled.length, 0);
 });
 
 test("rate limits starts by IP, user and pair without blocking normal retries", async () => {
@@ -503,10 +536,10 @@ test("releases pending quota after a session completes", async () => {
   assert.equal((await call(store, "/session", request)).status, 200);
 });
 
-test("rejects a missing Linkvertise configuration before touching Durable Object state", async () => {
+test("rejects an unconfigured provider before touching Durable Object state", async () => {
   let bindingCalls = 0;
   const env = {
-    LINKVERTISE_URL: "REPLACE_AFTER_DEPLOY",
+    LOOTLABS_URL: "REPLACE_AFTER_DEPLOY",
     KEY_STORE: {
       idFromName() {
         bindingCalls += 1;
@@ -514,39 +547,11 @@ test("rejects a missing Linkvertise configuration before touching Durable Object
       },
     },
   };
-  const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=linkvertise&userId=123", {
+  const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=lootlabs&userId=123", {
     headers: { "CF-Connecting-IP": "203.0.113.10" },
   });
   const response = await worker.fetch(request, env);
   assert.equal(response.status, 503);
-  assert.equal(bindingCalls, 0);
-});
-
-test("rejects retired providers and their old callback routes", async () => {
-  let bindingCalls = 0;
-  const env = {
-    KEY_STORE: {
-      idFromName() {
-        bindingCalls += 1;
-        throw new Error("unexpected storage access");
-      },
-    },
-  };
-  for (const path of [
-    "/v1/nothrilo/key/start?provider=workink&userId=123",
-    "/v1/nothrilo/key/start?provider=lootlabs&userId=123",
-  ]) {
-    const response = await worker.fetch(new Request(`https://nothrilo.test${path}`), env);
-    assert.equal(response.status, 400);
-  }
-  for (const path of [
-    "/v1/nothrilo/key/callback/workink",
-    "/v1/nothrilo/key/callback/lootlabs",
-    "/v1/nothrilo/key/postback/lootlabs",
-  ]) {
-    const response = await worker.fetch(new Request(`https://nothrilo.test${path}`), env);
-    assert.equal(response.status, 404);
-  }
   assert.equal(bindingCalls, 0);
 });
 
@@ -592,6 +597,54 @@ test("starts a configured provider through the public Worker route", async () =>
   assert.equal((await storage.list({ prefix: "session:" })).size, 1);
 });
 
+test("times out an unresponsive provider and cancels its pending session", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const env = {
+    SESSION_TTL_SECONDS: "900",
+    PROVIDER_TIMEOUT_MS: "100",
+    WORKINK_URL: "https://work.ink/example/nothrilo",
+    WORKINK_LINK_ID: "123",
+    KEY_STORE: bindingFor(keyStore),
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = neverRespond;
+  try {
+    const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=workink&userId=123", {
+      headers: { "CF-Connecting-IP": "203.0.113.10" },
+    });
+    const response = await worker.fetch(request, env);
+    assert.equal(response.status, 502);
+    assert.equal((await storage.list({ prefix: "session:" })).size, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("bounds provider response bodies and cancels the pending session", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const env = {
+    SESSION_TTL_SECONDS: "900",
+    PROVIDER_RESPONSE_MAX_BYTES: "512",
+    WORKINK_URL: "https://work.ink/example/nothrilo",
+    WORKINK_LINK_ID: "123",
+    KEY_STORE: bindingFor(keyStore),
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("x".repeat(2048), { status: 200 });
+  try {
+    const request = new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=workink&userId=123", {
+      headers: { "CF-Connecting-IP": "203.0.113.10" },
+    });
+    const response = await worker.fetch(request, env);
+    assert.equal(response.status, 502);
+    assert.equal((await storage.list({ prefix: "session:" })).size, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("times out Linkvertise verification without completing the session", async () => {
   const storage = new MemoryStorage();
   const keyStore = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
@@ -616,28 +669,70 @@ test("times out Linkvertise verification without completing the session", async 
   }
 });
 
-test("accepts Linkvertise hashes that contain letters outside hexadecimal", async () => {
+test("Linkvertise accepts non-hexadecimal hashes only after provider confirmation", async () => {
   const storage = new MemoryStorage();
-  const keyStore = new KeyStore({ storage }, { SESSION_TTL_SECONDS: "900", KEY_TTL_SECONDS: "86400" });
+  const keyStore = new KeyStore({ storage }, {});
   const created = await call(keyStore, "/session", sessionRequest("linkvertise", "123"));
   const hash = "x4lvOoo41p6woT47hk4cpnaPCqNuIARe9wSCV3ydZQ5rL8mN2sK6bF9dP0aC7eH";
-  const env = {
-    LINKVERTISE_ANTI_BYPASS_TOKEN: "f".repeat(64),
-    KEY_STORE: bindingFor(keyStore),
-  };
+  const env = { LINKVERTISE_ANTI_BYPASS_TOKEN: "f".repeat(64), KEY_STORE: bindingFor(keyStore) };
+  const callback = () => new Request(`https://nothrilo.test/v1/nothrilo/key/callback/linkvertise?hash=${hash}`, {
+    headers: { Cookie: `nothrilo_key_session=${created.body.sessionId}` },
+  });
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response("TRUE", { status: 200 });
   try {
-    const request = new Request(`https://nothrilo.test/v1/nothrilo/key/callback/linkvertise?hash=${hash}`, {
-      headers: { Cookie: `nothrilo_key_session=${created.body.sessionId}` },
-    });
-    const response = await worker.fetch(request, env);
+    globalThis.fetch = async () => new Response("FALSE", { status: 200 });
+    assert.equal((await worker.fetch(callback(), env)).status, 403);
+    assert.equal((await storage.get(`session:${created.body.sessionId}`)).status, "pending");
+    globalThis.fetch = async (input) => {
+      assert.equal(new URL(input).searchParams.get("hash"), hash);
+      return new Response("TRUE", { status: 200 });
+    };
+    const response = await worker.fetch(callback(), env);
     assert.equal(response.status, 200);
     assert.match(await response.text(), /Key liberada/);
-    const session = await storage.get(`session:${created.body.sessionId}`);
-    assert.equal(session.status, "complete");
+    assert.equal((await storage.get(`session:${created.body.sessionId}`)).status, "complete");
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("LootLabs requires a configured confirmation secret before redirecting users", async () => {
+  let bindingCalls = 0;
+  const env = {
+    LOOTLABS_URL: "https://loot-link.com/s?fixture",
+    KEY_STORE: { idFromName() { bindingCalls += 1; throw new Error("unexpected storage access"); } },
+  };
+  const response = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=lootlabs&userId=123"), env);
+  assert.equal(response.status, 503);
+  assert.match(await response.text(), /LootLabs está aguardando a configuração de confirmação/);
+  assert.equal(response.headers.get("set-cookie"), null);
+  assert.equal(bindingCalls, 0);
+});
+
+test("LootLabs completes only after its authenticated postback", async () => {
+  const storage = new MemoryStorage();
+  const keyStore = new KeyStore({ storage }, {});
+  const secret = "s".repeat(32);
+  const env = { LOOTLABS_URL: "https://loot-link.com/s?fixture", LOOTLABS_POSTBACK_SECRET: secret, KEY_STORE: bindingFor(keyStore) };
+  const started = await worker.fetch(new Request("https://nothrilo.test/v1/nothrilo/key/start?provider=lootlabs&userId=123"), env);
+  assert.equal(started.status, 302);
+  const sessionId = new URL(started.headers.get("location")).searchParams.get("puid");
+  const postback = (value) => new Request(`https://nothrilo.test/v1/nothrilo/key/postback/lootlabs?secret=${value}&puid=${sessionId}&unique_id=fixture-postback`);
+  assert.equal((await worker.fetch(postback("incorrect"), env)).status, 403);
+  assert.equal((await storage.get(`session:${sessionId}`)).status, "pending");
+  assert.equal((await worker.fetch(postback(secret), env)).status, 200);
+  assert.equal((await storage.get(`session:${sessionId}`)).status, "complete");
+});
+
+test("cleanup preserves unexpired records from all supported providers", async () => {
+  const storage = new MemoryStorage();
+  const expiresAt = Date.now() + 60 * 60 * 1000;
+  for (const provider of ["workink", "lootlabs", "linkvertise"]) {
+    await storage.put(`key:${provider}`, { product: "nothrilo", provider, expiresAt });
+  }
+  await new KeyStore({ storage }, {}).alarm();
+  for (const provider of ["workink", "lootlabs", "linkvertise"]) {
+    assert.ok(await storage.get(`key:${provider}`));
   }
 });
 
@@ -665,20 +760,6 @@ test("cleans expired records in bounded pages and reschedules remaining work", a
   assert.equal([...storage.values.keys()].filter((key) => key.startsWith("expired:")).length, 0);
   assert.equal(storage.values.has("live:record"), true);
   assert.equal(storage.listLimits.every((limit) => Number.isInteger(limit) && limit <= 8), true);
-});
-
-test("purges records issued by retired providers while preserving Linkvertise records", async () => {
-  const storage = new MemoryStorage();
-  const expiresAt = Date.now() + 60 * 60 * 1000;
-  await storage.put("key:old-workink", { product: "nothrilo", provider: "workink", expiresAt });
-  await storage.put("lease:old-lootlabs", { product: "nothrilo", provider: "lootlabs", expiresAt });
-  await storage.put("key:linkvertise", { product: "nothrilo", provider: "linkvertise", expiresAt });
-
-  await new KeyStore({ storage }, { CLEANUP_PAGE_SIZE: "8", CLEANUP_MAX_PAGES: "1" }).alarm();
-
-  assert.equal(storage.values.has("key:old-workink"), false);
-  assert.equal(storage.values.has("lease:old-lootlabs"), false);
-  assert.equal(storage.values.has("key:linkvertise"), true);
 });
 
 function publicVerify(body, ip = "203.0.113.50") {
@@ -777,14 +858,14 @@ test("serializes concurrent verification rate-limit consumption", async () => {
   assert.equal(responses.filter((response) => response.status === 429).length, 4);
 });
 
-test("uses unique CSP nonces without unsafe-inline", async () => {
-  const url = "https://nothrilo.test/";
+test("permits same-origin polling with unique CSP nonces instead of unsafe-inline", async () => {
+  const url = "https://nothrilo.test/v1/nothrilo/key/callback/lootlabs";
   const response = await worker.fetch(new Request(url), {});
   const markup = await response.text();
   const csp = response.headers.get("Content-Security-Policy");
   assert.match(csp, /connect-src 'self'/);
   assert.doesNotMatch(csp, /unsafe-inline/);
-  const nonce = markup.match(/<style nonce="([a-f0-9]{32})">/)?.[1];
+  const nonce = markup.match(/<script nonce="([a-f0-9]{32})">/)?.[1];
   assert.ok(nonce);
   assert.ok(csp.includes(`script-src 'nonce-${nonce}'`));
   assert.ok(markup.includes(`<style nonce="${nonce}">`));
@@ -828,9 +909,9 @@ test("restricts HTTP methods and never gives administrative routes a CORS prefli
 test("reuses an existing lease without rewriting credential records", async () => {
   const storage = new MemoryStorage();
   const store = new KeyStore({ storage }, {});
-  const created = await call(store, "/session", sessionRequest("linkvertise", "123"));
+  const created = await call(store, "/session", sessionRequest("workink", "123"));
   const completed = await call(store, "/complete", {
-    sessionId: created.body.sessionId, provider: "linkvertise", proofId: "lease-reuse-fixture",
+    sessionId: created.body.sessionId, provider: "workink", proofId: "lease-reuse-fixture",
   });
   const body = { key: completed.body.key, userId: "123" };
   const first = await call(store, "/verify", body);

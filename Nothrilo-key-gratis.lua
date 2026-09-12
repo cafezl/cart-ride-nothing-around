@@ -103,11 +103,11 @@ PaddingLeft=UDim.new(0,18)Q.PaddingRight=UDim.new(0,18)Q.PaddingTop=UDim.new(0,1
 Vertical R.HorizontalAlignment=Enum.HorizontalAlignment.Center R.SortOrder=Enum.SortOrder.LayoutOrder R.Padding=UDim.new(0,10)R.Parent=P local function label(S,T,U,V,W)local X=Instance.new('TextLabel'
 )X.Size=UDim2.new(1,0,0,T)X.BackgroundTransparency=1 X.Font=U or Enum.Font.Gotham X.Text=S X.TextColor3=W or r.TextColor X.TextSize=V or 13 X.TextWrapped=true X.TextXAlignment=Enum.TextXAlignment.Left
 X.TextYAlignment=Enum.TextYAlignment.Center X.Parent=P return X end local S=label(
-'Escolha uma op\u{e7}\u{e3}o, conclua as etapas no navegador e cole a key aqui. Work.ink, LootLabs e Linkvertise liberam exatamente as mesmas fun\u{e7}\u{f5}es.',58,Enum.Font.GothamMedium,15,Color3.
-fromRGB(238,238,244))S.LayoutOrder=1 local T=label('ESCOLHA ONDE PEGAR A KEY',22,Enum.Font.GothamBold,13,Color3.fromRGB(218,218,228))T.LayoutOrder=2 local U=Instance.new('Frame')U.Size=UDim2.new(1,0,0
+'Escolha uma op\u{e7}\u{e3}o, conclua as etapas no navegador e cole a key aqui. A Linkvertise libera todas as fun\u{e7}\u{f5}es.',58,Enum.Font.GothamMedium,15,Color3.
+fromRGB(238,238,244))S.LayoutOrder=1 local T=label('GERAR KEY COM LINKVERTISE',22,Enum.Font.GothamBold,13,Color3.fromRGB(218,218,228))T.LayoutOrder=2 local U=Instance.new('Frame')U.Size=UDim2.new(1,0,0
 ,54)U.BackgroundTransparency=1 U.LayoutOrder=3 U.Parent=P local V=Instance.new('UIListLayout')V.FillDirection=Enum.FillDirection.Horizontal V.HorizontalAlignment=Enum.HorizontalAlignment.Center V.
 VerticalAlignment=Enum.VerticalAlignment.Center V.Padding=UDim.new(0,8)V.Parent=U local W=Instance.new('TextBox')W.Name='KeyLink'W.Size=UDim2.new(1,0,0,46)W.BackgroundColor3=r.ElementColor W.
-BorderSizePixel=0 W.ClearTextOnFocus=false W.Font=Enum.Font.Code W.PlaceholderText='O link escolhido aparece aqui'W.PlaceholderColor3=Color3.fromRGB(188,188,201)W.Text=''W.TextColor3=Color3.fromRGB(
+BorderSizePixel=0 W.ClearTextOnFocus=false W.Font=Enum.Font.Code W.PlaceholderText='O link da Linkvertise aparece aqui'W.PlaceholderColor3=Color3.fromRGB(188,188,201)W.Text=''W.TextColor3=Color3.fromRGB(
 240,240,246)W.TextSize=13 W.TextTruncate=Enum.TextTruncate.AtEnd W.TextXAlignment=Enum.TextXAlignment.Left W.LayoutOrder=4 W.Parent=P Instance.new('UICorner',W).CornerRadius=UDim.new(0,11)local X=
 Instance.new('UIPadding')X.PaddingLeft=UDim.new(0,12)X.PaddingRight=UDim.new(0,12)X.Parent=W local Y=Instance.new('UIStroke')Y.Color=Color3.fromRGB(62,62,76)Y.Thickness=1 Y.Parent=W local Z=Instance.
 new('TextBox')Z.Name='KeyInput'Z.Size=UDim2.new(1,0,0,52)Z.BackgroundColor3=r.ElementColor Z.BorderSizePixel=0 Z.ClearTextOnFocus=false Z.Font=Enum.Font.RobotoMono Z.PlaceholderText=
@@ -118,13 +118,13 @@ AutoButtonColor=true ab.Font=Enum.Font.GothamBold ab.Text='VALIDAR E ABRIR O NOT
 CornerRadius=UDim.new(0,13)local ac=Instance.new('Frame')ac.Size=UDim2.new(1,0,0,62)ac.BackgroundColor3=Color3.fromRGB(15,15,20)ac.BorderSizePixel=0 ac.LayoutOrder=7 ac.Parent=P Instance.new(
 'UICorner',ac).CornerRadius=UDim.new(0,12)local ad=Instance.new('Frame')ad.AnchorPoint=Vector2.new(0,0.5)ad.Position=UDim2.new(0,13,0.5,0)ad.Size=UDim2.fromOffset(10,10)ad.BackgroundColor3=r.
 SchemeColor ad.BorderSizePixel=0 ad.Parent=ac Instance.new('UICorner',ad).CornerRadius=UDim.new(1,0)local ae=Instance.new('TextLabel')ae.Position=UDim2.new(0,35,0,6)ae.Size=UDim2.new(1,-48,1,-12)ae.
-BackgroundTransparency=1 ae.Font=Enum.Font.Gotham ae.Text=v and'Escolha uma op\u{e7}\u{e3}o para gerar sua key gr\u{e1}tis.'or'O servidor de keys ainda n\u{e3}o foi conectado nesta build.'ae.
+BackgroundTransparency=1 ae.Font=Enum.Font.Gotham ae.Text=v and'Use a Linkvertise para gerar sua key gr\u{e1}tis.'or'O servidor de keys ainda n\u{e3}o foi conectado nesta build.'ae.
 TextColor3=Color3.fromRGB(232,232,240)ae.TextSize=14 ae.TextWrapped=true ae.TextXAlignment=Enum.TextXAlignment.Left ae.TextYAlignment=Enum.TextYAlignment.Center ae.Parent=ac local af=label(
 '\u{1f510} Todas as fun\u{e7}\u{f5}es s\u{e3}o gr\u{e1}tis ap\u{f3}s a key. Nenhuma senha \u{e9} pedida.',42,Enum.Font.GothamMedium,13,Color3.fromRGB(205,205,216))af.LayoutOrder=8 local ag={}local ah=
-{{id='workink',text='Work.ink \u{1f7e2}'},{id='lootlabs',text='LootLabs \u{1f48e}'},{id='linkvertise',text='Linkvertise \u{1f517}'}}local function setStatus(ai,aj)ae.Text=ai if aj=='good'then ae.
+{{id='linkvertise',text='Linkvertise \u{1f517}'}}local function setStatus(ai,aj)ae.Text=ai if aj=='good'then ae.
 TextColor3=Color3.fromRGB(116,255,158)elseif aj=='bad'then ae.TextColor3=Color3.fromRGB(255,116,148)else ae.TextColor3=Color3.fromRGB(232,232,240)end end local function copyText(ai)for aj,ak in
 ipairs({'setclipboard','toclipboard'})do local al=environmentFunction(ak)if al then local am=pcall(al,ai)if am then return true end end end return false end for ai,aj in ipairs(ah)do local ak=Instance
-.new('TextButton')ak.Name=aj.id ak.Size=UDim2.new(1/3,-6,1,0)ak.BackgroundColor3=Color3.fromRGB(24,24,31)ak.BorderSizePixel=0 ak.AutoButtonColor=true ak.Font=Enum.Font.GothamBold ak.Text=aj.text ak.
+.new('TextButton')ak.Name=aj.id ak.Size=UDim2.new(1,0,1,0)ak.BackgroundColor3=Color3.fromRGB(24,24,31)ak.BorderSizePixel=0 ak.AutoButtonColor=true ak.Font=Enum.Font.GothamBold ak.Text=aj.text ak.
 TextColor3=r.TextColor ak.TextSize=14 ak.Parent=U Instance.new('UICorner',ak).CornerRadius=UDim.new(0,12)local al=Instance.new('UIStroke')al.Color=r.SchemeColor al.Transparency=0.18 al.Thickness=1 al.
 Parent=ak table.insert(ag,al)connect(ak.Activated,function()if not gateAlive()then return end if not v then setStatus(
 'O servidor ainda n\u{e3}o foi publicado. Esta build \u{e9} apenas de prepara\u{e7}\u{e3}o.','bad')return end local am=u..'/v1/nothrilo/key/start?provider='..s:UrlEncode(aj.id)..'&userId='..s:

@@ -6,8 +6,6 @@ const READY_ATTEMPTS = 8;
 const READY_DELAY_MS = 3_000;
 
 const providerHosts = {
-  workink: new Set(["work.ink"]),
-  lootlabs: new Set(["loot-link.com"]),
   linkvertise: new Set(["linkvertise.com", "link-to.net", "direct-link.net"]),
 };
 

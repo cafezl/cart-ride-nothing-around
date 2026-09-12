@@ -70,6 +70,12 @@ jobs:
           packageManager: pnpm
           wranglerVersion: 4.123.0
           command: deploy
+          postCommands: |
+            set -euo pipefail
+            legacy_secrets="$(wrangler secret list --format json)"
+            if printf '%s' "$legacy_secrets" | grep -q 'LOOTLABS_POSTBACK_SECRET'; then
+              wrangler secret delete LOOTLABS_POSTBACK_SECRET
+            fi
       - name: Verify production health and provider sessions
         working-directory: key-server
         env:

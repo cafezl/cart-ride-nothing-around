@@ -5,12 +5,7 @@ local function runFixture(source, options)
     local base = getfenv()
     local now, sequence = 0, 0
     local scheduled, failures, warnings = {}, {}, {}
-    local env = setmetatable({}, { __index = function(_, key)
-        if options.inheritedRequest and key == "request" then
-            return function() return { StatusCode = 200, Body = "fixture-response" } end
-        end
-        return base[key]
-    end })
+    local env = setmetatable({}, { __index = base })
     local function schedule(thread, at, args)
         sequence += 1
         table.insert(scheduled, { thread = thread, at = at, args = args or {}, order = sequence })
@@ -275,15 +270,9 @@ local function runFixture(source, options)
         return { Play = function() for key, value in pairs(properties) do target[key] = value end end, Cancel = function() end, Completed = signal() }
     end
     function methods:JSONEncode() return "fixture-json" end
-    function methods:JSONDecode(value)
-        assert(value == "fixture-response", "unexpected fixture JSON")
-        return { ok = true, product = "nothrilo", ttlSeconds = 86400, lease = "NLEASE-" .. string.rep("a", 64) }
-    end
+    function methods:JSONDecode() error("fixture does not decode external JSON") end
     function methods:GenerateGUID() return "00000000-0000-4000-8000-000000000000" end
-    function methods:RequestAsync()
-        if options.networkFailure or options.inheritedRequest then error("fixture client HTTP unavailable") end
-        return { StatusCode = 200, Body = "fixture-response" }
-    end
+    function methods:RequestAsync() error("fixture does not make external requests") end
     function methods:HttpGet(url)
         if options.sdk and url == "https://jnkie.com/sdk/library.lua" then return "fixture-jnkie-sdk" end
         error("fixture does not download files")
@@ -317,7 +306,7 @@ local function runFixture(source, options)
                         env.__CafezlSuiteGeneration = (env.__CafezlSuiteGeneration or 0) + 1
                     elseif input and button then
                         submitted[gate] = true
-                        input.Text = "NOTH-AAAA-AAAA-AAAA-AAAA-AAAA"
+                        input.Text = "fixture-valid-key"
                         env.task.spawn(function() button.Activated:Fire() end)
                     end
                 end

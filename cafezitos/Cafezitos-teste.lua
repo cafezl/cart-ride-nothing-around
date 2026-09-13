@@ -108,7 +108,7 @@ end
 
 local sourcePaths = {
     Cafezitos = "cafezitos/Cafezitos.lua",
-    Nothrilo = "nothrilo/v1/Nothrilo.lua",
+    Nothrilo = "nothrilov2/nothrilov2",
 }
 local sourcePath = sourcePaths[target]
 if not sourcePath then

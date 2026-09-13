@@ -1,11 +1,10 @@
 import { readdir } from "node:fs/promises";
 
 const root = new URL("../", import.meta.url);
-const directories = ["cafezitos", "nothrilo", "nothrilov2"];
+const directories = ["cafezitos", "nothrilov2"];
 const requiredSources = [
   "cafezitos/Cafezitos.lua",
   "cafezitos/Cafezitos-teste.lua",
-  "nothrilo/v1/Nothrilo.lua",
   "nothrilov2/nothrilov2",
 ];
 

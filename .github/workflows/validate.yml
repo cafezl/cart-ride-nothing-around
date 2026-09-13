@@ -1,4 +1,4 @@
-name: Validate menus and API
+name: Validate menus
 
 on:
   push:
@@ -26,20 +26,10 @@ jobs:
         with:
           node-version: '22'
           package-manager-cache: false
-      - name: Enable pinned pnpm
-        run: corepack enable
-      - name: Install key server dependencies
-        working-directory: key-server
-        run: pnpm install --frozen-lockfile
-      - name: Test API and published sources
-        run: node --test tests/source.test.mjs key-server/test/key-store.test.mjs
-      - name: Check JavaScript syntax and aliases
-        run: |
-          pnpm --dir key-server run check
-          node scripts/sync-aliases.mjs
-      - name: Bundle Worker without publishing
-        working-directory: key-server
-        run: pnpm exec wrangler deploy --dry-run
+      - name: Test published sources
+        run: node --test tests/source.test.mjs
+      - name: Check source aliases
+        run: node scripts/sync-aliases.mjs
       - name: Check out pinned Luau source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

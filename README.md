@@ -31,7 +31,6 @@ Link direto configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-ke
 | Menu | Arquivo para executar | Acesso |
 | --- | --- | --- |
 | **Nothrilo V2** | [nothrilov2](nothrilov2/nothrilov2) | Key JNKIE + Linkvertise |
-| **Nothrilo V1 (legado)** | [Nothrilo.lua](nothrilo/v1/Nothrilo.lua) | Versão antiga arquivada |
 | **Cafezitos** | [Cafezitos.lua](cafezitos/Cafezitos.lua) | Direto, sem key |
 
 ### Cafezitos
@@ -59,19 +58,15 @@ O arquivo em INSPIRAÇÃO/ é apenas referência de comportamento. Ele contém h
 
 ~~~
 Nothrilo & Cafezitos
-├── nothrilo/
-│   ├── v1/              # cópias legadas do Nothrilo
-│   └── v2/              # cópia da V2 com key JNKIE
 ├── nothrilov2/          # fonte principal da V2
 ├── cafezitos/           # fontes e diagnóstico do Cafezitos
 ├── INSPIRAÇÃO/          # referências para comparação
 ├── assets/              # artes e recursos visuais
-├── key-server/          # API de keys em JavaScript/Cloudflare
 ├── tests/               # verificações automáticas
 └── docs/                # manutenção e segurança
 ~~~
 
-Os menus ficam dentro das pastas: `nothrilo/v1/`, `cafezitos/` e `nothrilov2/`. A fonte principal da V2 é `nothrilov2/nothrilov2`, com uma cópia sincronizada em `nothrilo/v2/Nothrilo-V2.lua`.
+Os menus mantidos são `nothrilov2/nothrilov2` e `cafezitos/Cafezitos.lua`. A V1, sua API de chaves e as cópias antigas foram retiradas. A V2 valida a key pelo JNKIE.
 
 Os arquivos soltos da raiz foram retirados. Loadstrings que apontavam para `main/Cafezitos.lua`, `main/Nothrilo.lua` ou outras cópias da raiz precisam usar os caminhos das pastas. O loadstring do Nothrilo V2 mostrado acima continua igual.
 
@@ -93,7 +88,7 @@ V voo · L ESP · P pulo infinito · T teleporte por clique · B boost · 1/2/3 
 
 ## Desenvolvimento
 
-Edite as fontes principais: `nothrilov2/nothrilov2` (V2), `nothrilo/v1/Nothrilo.lua` (V1) e `cafezitos/Cafezitos.lua`. A sincronização atualiza apenas as cópias dentro das pastas; ela não recria os arquivos da raiz:
+Edite `nothrilov2/nothrilov2` e `cafezitos/Cafezitos.lua`. A sincronização atualiza apenas as cópias do Cafezitos dentro da pasta:
 
 ~~~
 pnpm run sync:aliases
@@ -101,9 +96,9 @@ pnpm test
 pnpm run test:luau
 ~~~
 
-Os testes Luau exigem luau e luau-compile no PATH ou configurados por LUAU_BIN e LUAU_COMPILE_BIN. Eles verificam sintaxe, aliases, API e inicialização simulada; não substituem um teste dentro do Roblox.
+Os testes Luau exigem luau e luau-compile no PATH ou configurados por LUAU_BIN e LUAU_COMPILE_BIN. Eles verificam sintaxe, aliases, inicialização simulada e a validação JNKIE; não substituem um teste dentro do Roblox.
 
-Nenhum segredo de JNKIE, Linkvertise ou Cloudflare deve ser colocado no código ou no README. As credenciais ficam somente nos painéis oficiais e nos segredos do Worker.
+Nenhum segredo de JNKIE ou Linkvertise deve ser colocado no código ou no README. As credenciais ficam somente nos painéis oficiais.
 
 ## Créditos
 

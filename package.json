@@ -4,10 +4,12 @@
   "type": "module",
   "packageManager": "pnpm@11.19.0",
   "scripts": {
-    "test": "node --test tests/source.test.mjs key-server/test/*.test.mjs",
+    "test": "node --test tests/source.test.mjs",
     "test:luau": "node --test tests/client.test.mjs tests/nothrilo-v2-key.test.mjs",
     "check:aliases": "node scripts/sync-aliases.mjs",
     "sync:aliases": "node scripts/sync-aliases.mjs --write"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

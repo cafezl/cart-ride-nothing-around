@@ -1,6 +1,5 @@
 node_modules/
 /tools/luau/
-key-server/.wrangler/
 .dev.vars*
 .env*
 !.env.example

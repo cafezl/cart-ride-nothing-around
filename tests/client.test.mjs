@@ -33,7 +33,7 @@ async function fixture(name, options, checks, clientChecks = "") {
   try {
     // Appended checks share the chunk's locals without adding production test hooks.
     const source = `${await readFile(join(root, name), "utf8")}\n${clientChecks}\n`;
-    const fields = Object.entries({ name, ...options }).map(([key, value]) => (
+    const fields = Object.entries({ name, sdk: name === "nothrilov2/nothrilov2", ...options }).map(([key, value]) => (
       `${key}=${typeof value === "string" ? longString(value) : String(value)}`
     )).join(",");
     const path = join(directory, "bootstrap.lua");
@@ -49,8 +49,7 @@ async function fixture(name, options, checks, clientChecks = "") {
 
 for (const [name, window] of [
   ["cafezitos/Cafezitos.lua", "CafezitosV2UI"],
-  ["nothrilo/v1/Nothrilo.lua", "NothriloClassicUI"],
-  ["nothrilo/v1/Nothrilo-classico-funcoes-corrigidas.lua", "NothriloClassicUI"],
+  ["nothrilov2/nothrilov2", "NothriloClassicUI"],
 ]) {
   const visible = `
     assert(#result.failures == 0, table.concat(result.failures, "\\n"))
@@ -68,49 +67,7 @@ for (const [name, window] of [
   ));
 }
 
-test("Nothrilo keeps the key gate closed when verification is unavailable", () => fixture(
-  "nothrilo/v1/Nothrilo.lua", { networkFailure: true, maxTime: 1 }, `
-    assert(#result.failures == 0, table.concat(result.failures, "\\n"))
-    assert(not result.finished, "the menu must not skip failed verification")
-    assert(result.core:FindFirstChild("NothriloKeyGate"), "the key UI disappeared")
-    assert(not result.core:FindFirstChild("NothriloClassicUI"), "unverified menu was created")
-  `,
-));
-
-test("Nothrilo discovers an inherited request function when client HttpService is unavailable", () => fixture(
-  "nothrilo/v1/Nothrilo.lua", { inheritedRequest: true }, `
-    assert(#result.failures == 0, table.concat(result.failures, "\\n"))
-    assert(result.finished, "inherited request function was ignored")
-    local gui = result.core:FindFirstChild("NothriloClassicUI")
-    assert(gui and gui.Enabled, "verified menu did not open")
-  `,
-));
-
-test("Nothrilo Classic requires a key and offers all three configured providers", () => fixture(
-  "nothrilo/v1/Nothrilo-classico-funcoes-corrigidas.lua", { authorize: false, maxTime: 1 }, `
-    assert(#result.failures == 0, table.concat(result.failures, "\\n"))
-    assert(not result.finished, "Classic bypassed the key gate")
-    local gate = result.core:FindFirstChild("NothriloKeyGate")
-    assert(gate and not result.core:FindFirstChild("NothriloClassicUI"))
-    for _, provider in ipairs({ "linkvertise", "workink", "lootlabs" }) do
-      assert(gate:FindFirstChild(provider, true), provider .. " button missing")
-    end
-  `,
-));
-
-for (const option of ["closeGate", "replaceSuite"]) {
-  test(`Nothrilo cancels its bootstrap cleanly after ${option}`, () => fixture(
-    "nothrilo/v1/Nothrilo.lua", { authorize: false, [option]: true, maxTime: 1 }, `
-      assert(#result.failures == 0, table.concat(result.failures, "\\n"))
-      assert(result.finished, "cancelled gate kept waiting")
-      assert(not result.core:FindFirstChild("NothriloKeyGate"), "key gate leaked")
-      assert(not result.core:FindFirstChild("NothriloRuntime"), "runtime leaked")
-      assert(not result.core:FindFirstChild("NothriloClassicUI"), "cancelled menu opened")
-    `,
-  ));
-}
-
-for (const name of ["cafezitos/Cafezitos.lua", "nothrilo/v1/Nothrilo.lua"]) {
+for (const name of ["cafezitos/Cafezitos.lua", "nothrilov2/nothrilov2"]) {
   test(`${name}: reports a missing local player after a bounded wait`, () => fixture(name, { noPlayer: true }, `
     assert(result.finished, "missing-player wait did not end")
     assert(#result.failures == 1, "expected one descriptive client-context error")
@@ -140,7 +97,7 @@ for (const scenario of [
   { name: "manual flight on foot", seated: false, inputEnabled: true, platformStand: true },
 ]) {
   test(`Nothrilo ${scenario.name} preserves humanoid flight state`, () => fixture(
-    "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
+    "nothrilov2/nothrilov2", {}, cleanClientRun, `
       do
         local humanoid = getHumanoid()
         humanoid.AutoRotate = false
@@ -168,7 +125,7 @@ for (const scenario of [
 }
 
 test("Nothrilo accepts its current seat and rejects another occupant", () => fixture(
-  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilov2/nothrilov2", {}, cleanClientRun, `
     do
       local humanoid = getHumanoid()
       local seat = Instance.new("VehicleSeat", workspace)
@@ -183,7 +140,7 @@ test("Nothrilo accepts its current seat and rejects another occupant", () => fix
 ));
 
 test("Nothrilo uses Humanoid.Sit after three unsuccessful seat requests", () => fixture(
-  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilov2/nothrilov2", {}, cleanClientRun, `
     do
       local humanoid = getHumanoid()
       local seat = Instance.new("VehicleSeat", workspace)
@@ -207,7 +164,7 @@ test("Nothrilo uses Humanoid.Sit after three unsuccessful seat requests", () => 
 ));
 
 test("Nothrilo ESP restores native nameplate settings and keeps the humanoid", () => fixture(
-  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilov2/nothrilov2", {}, cleanClientRun, `
     do
       local player = Instance.new("Player", game:GetService("Players"))
       player.Name, player.DisplayName = "ESPFixture", "ESP Fixture"
@@ -235,7 +192,7 @@ test("Nothrilo ESP restores native nameplate settings and keeps the humanoid", (
 ));
 
 test("Nothrilo stabilizer retires a force whose attachment was removed", () => fixture(
-  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilov2/nothrilov2", {}, cleanClientRun, `
     do
       local cart = Instance.new("Model", workspace)
       local wheel = Instance.new("Part", cart)

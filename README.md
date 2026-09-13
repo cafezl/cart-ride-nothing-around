@@ -30,14 +30,14 @@ Link direto configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-ke
 
 | Menu | Arquivo para executar | Acesso |
 | --- | --- | --- |
-| **Nothrilo V2** | [Nothrilo-V2.lua](Nothrilo-V2.lua) | Key JNKIE + Linkvertise |
-| **Nothrilo V1 (legado)** | [Nothrilo.lua](nothrilo/v1/Nothrilo.lua) | Mantido para compatibilidade |
+| **Nothrilo V2** | [nothrilov2](nothrilov2/nothrilov2) | Key JNKIE + Linkvertise |
+| **Nothrilo V1 (legado)** | [Nothrilo.lua](nothrilo/v1/Nothrilo.lua) | Versão antiga arquivada |
 | **Cafezitos** | [Cafezitos.lua](cafezitos/Cafezitos.lua) | Direto, sem key |
 
 ### Cafezitos
 
 ~~~
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/Cafezitos.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/Cafezitos.lua"))()
 ~~~
 
 O Cafezitos fica preservado como menu separado, com tema de café e seus próprios atalhos.
@@ -62,7 +62,7 @@ Nothrilo & Cafezitos
 ├── nothrilo/
 │   ├── v1/              # cópias legadas do Nothrilo
 │   └── v2/              # cópia da V2 com key JNKIE
-├── nothrilov2/          # fonte principal da V2 e teste anterior
+├── nothrilov2/          # fonte principal da V2
 ├── cafezitos/           # fontes e diagnóstico do Cafezitos
 ├── INSPIRAÇÃO/          # referências para comparação
 ├── assets/              # artes e recursos visuais
@@ -71,7 +71,9 @@ Nothrilo & Cafezitos
 └── docs/                # manutenção e segurança
 ~~~
 
-Os arquivos na raiz continuam disponíveis para preservar os links antigos. A V1 foi copiada para `nothrilo/v1/` e o Cafezitos para `cafezitos/`. O arquivo principal da V2 é `nothrilov2/nothrilov2`, com cópias em `nothrilo/v2/Nothrilo-V2.lua` e `Nothrilo-V2.lua`.
+Os menus ficam dentro das pastas: `nothrilo/v1/`, `cafezitos/` e `nothrilov2/`. A fonte principal da V2 é `nothrilov2/nothrilov2`, com uma cópia sincronizada em `nothrilo/v2/Nothrilo-V2.lua`.
+
+Os arquivos soltos da raiz foram retirados. Loadstrings que apontavam para `main/Cafezitos.lua`, `main/Nothrilo.lua` ou outras cópias da raiz precisam usar os caminhos das pastas. O loadstring do Nothrilo V2 mostrado acima continua igual.
 
 ## Recursos do menu
 
@@ -91,7 +93,7 @@ V voo · L ESP · P pulo infinito · T teleporte por clique · B boost · 1/2/3 
 
 ## Desenvolvimento
 
-O arquivo principal do Nothrilo é `nothrilov2/nothrilov2`. Os caminhos antigos foram preservados para manter os loaders existentes. Edite os arquivos principais e atualize as cópias antes de publicar:
+Edite as fontes principais: `nothrilov2/nothrilov2` (V2), `nothrilo/v1/Nothrilo.lua` (V1) e `cafezitos/Cafezitos.lua`. A sincronização atualiza apenas as cópias dentro das pastas; ela não recria os arquivos da raiz:
 
 ~~~
 pnpm run sync:aliases

@@ -106,7 +106,12 @@ local function showMessage(title, message)
     body.Parent = box
 end
 
-if target ~= "Cafezitos" and target ~= "Nothrilo" then
+local sourcePaths = {
+    Cafezitos = "cafezitos/Cafezitos.lua",
+    Nothrilo = "nothrilo/v1/Nothrilo.lua",
+}
+local sourcePath = sourcePaths[target]
+if not sourcePath then
     showMessage("Diagnóstico", "CafezlDiagnosticTarget deve ser Cafezitos ou Nothrilo.")
     return
 end
@@ -114,7 +119,7 @@ if type(sourceRef) ~= "string" or #sourceRef > 160 or not sourceRef:match("^[%w%
     showMessage("Diagnóstico", "A referência do GitHub é inválida.")
     return
 end
-local url = "https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/" .. sourceRef .. "/" .. target .. ".lua"
+local url = "https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/" .. sourceRef .. "/" .. sourcePath
 local okHttp, source = pcall(function()
     return game:HttpGet(url)
 end)

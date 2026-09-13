@@ -21,7 +21,7 @@ function longString(value) {
 async function fixture(options, actions, checks) {
   const directory = await mkdtemp(join(tmpdir(), "nothrilo-v2-key-test-"));
   try {
-    const source = await readFile(join(root, "Nothrilo-V2.lua"), "utf8");
+    const source = await readFile(join(root, "nothrilov2/nothrilov2"), "utf8");
     const fields = Object.entries({ authorize: false, maxTime: 8, ...options }).map(([key, value]) => (
       `${key}=${typeof value === "string" ? longString(value) : String(value)}`
     ));

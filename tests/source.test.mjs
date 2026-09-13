@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { aliases, syncAliases } from "../scripts/sync-aliases.mjs";
+import { listPublishedLuaSources } from "../scripts/menu-sources.mjs";
 
 const root = new URL("../", import.meta.url);
 
@@ -15,7 +16,7 @@ test("all compatibility URLs contain the complete maintained source", async () =
 });
 
 test("published Lua files contain code, not terminal transcripts or truncated answers", async () => {
-  for (const path of (await readdir(root)).filter((name) => name.endsWith(".lua"))) {
+  for (const path of await listPublishedLuaSources()) {
     const source = await readFile(new URL(path, root), "utf8");
     assert.doesNotMatch(source, /^(?:Exit code:|Wall time:|Total output lines:|Output:|```)/m, path);
     assert.doesNotMatch(source, /\d+ tokens truncated|output truncated/i, path);
@@ -24,8 +25,10 @@ test("published Lua files contain code, not terminal transcripts or truncated an
 });
 
 test("the diagnostic loader targets maintained sources and bounds its error output", async () => {
-  const source = await readFile(new URL("Cafezitos-teste.lua", root), "utf8");
+  const source = await readFile(new URL("cafezitos/Cafezitos-teste.lua", root), "utf8");
   assert.doesNotMatch(source, /main\/Cafezitos-completo\.lua/);
+  assert.match(source, /Cafezitos = "cafezitos\/Cafezitos\.lua"/);
+  assert.match(source, /Nothrilo = "nothrilo\/v1\/Nothrilo\.lua"/);
   assert.match(source, /CafezlDiagnosticTarget/);
   assert.match(source, /CafezlDiagnosticRef/);
   assert.match(source, /pcall\(loadstring/);

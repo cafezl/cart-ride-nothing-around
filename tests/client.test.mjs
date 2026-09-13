@@ -1,16 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { listPublishedLuaSources } from "../scripts/menu-sources.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const compiler = process.env.LUAU_COMPILE_BIN || "luau-compile";
 const interpreter = process.env.LUAU_BIN || "luau";
 const harness = await readFile(new URL("./client-harness.lua", import.meta.url), "utf8");
-const sources = (await readdir(root)).filter((name) => name.endsWith(".lua"));
+const sources = await listPublishedLuaSources();
 
 function longString(value) {
   let fence = "=";
@@ -47,9 +48,9 @@ async function fixture(name, options, checks, clientChecks = "") {
 }
 
 for (const [name, window] of [
-  ["Cafezitos.lua", "CafezitosV2UI"],
-  ["Nothrilo.lua", "NothriloClassicUI"],
-  ["Nothrilo-classico-funcoes-corrigidas.lua", "NothriloClassicUI"],
+  ["cafezitos/Cafezitos.lua", "CafezitosV2UI"],
+  ["nothrilo/v1/Nothrilo.lua", "NothriloClassicUI"],
+  ["nothrilo/v1/Nothrilo-classico-funcoes-corrigidas.lua", "NothriloClassicUI"],
 ]) {
   const visible = `
     assert(#result.failures == 0, table.concat(result.failures, "\\n"))
@@ -68,7 +69,7 @@ for (const [name, window] of [
 }
 
 test("Nothrilo keeps the key gate closed when verification is unavailable", () => fixture(
-  "Nothrilo.lua", { networkFailure: true, maxTime: 1 }, `
+  "nothrilo/v1/Nothrilo.lua", { networkFailure: true, maxTime: 1 }, `
     assert(#result.failures == 0, table.concat(result.failures, "\\n"))
     assert(not result.finished, "the menu must not skip failed verification")
     assert(result.core:FindFirstChild("NothriloKeyGate"), "the key UI disappeared")
@@ -77,7 +78,7 @@ test("Nothrilo keeps the key gate closed when verification is unavailable", () =
 ));
 
 test("Nothrilo discovers an inherited request function when client HttpService is unavailable", () => fixture(
-  "Nothrilo.lua", { inheritedRequest: true }, `
+  "nothrilo/v1/Nothrilo.lua", { inheritedRequest: true }, `
     assert(#result.failures == 0, table.concat(result.failures, "\\n"))
     assert(result.finished, "inherited request function was ignored")
     local gui = result.core:FindFirstChild("NothriloClassicUI")
@@ -86,7 +87,7 @@ test("Nothrilo discovers an inherited request function when client HttpService i
 ));
 
 test("Nothrilo Classic requires a key and offers all three configured providers", () => fixture(
-  "Nothrilo-classico-funcoes-corrigidas.lua", { authorize: false, maxTime: 1 }, `
+  "nothrilo/v1/Nothrilo-classico-funcoes-corrigidas.lua", { authorize: false, maxTime: 1 }, `
     assert(#result.failures == 0, table.concat(result.failures, "\\n"))
     assert(not result.finished, "Classic bypassed the key gate")
     local gate = result.core:FindFirstChild("NothriloKeyGate")
@@ -99,7 +100,7 @@ test("Nothrilo Classic requires a key and offers all three configured providers"
 
 for (const option of ["closeGate", "replaceSuite"]) {
   test(`Nothrilo cancels its bootstrap cleanly after ${option}`, () => fixture(
-    "Nothrilo.lua", { authorize: false, [option]: true, maxTime: 1 }, `
+    "nothrilo/v1/Nothrilo.lua", { authorize: false, [option]: true, maxTime: 1 }, `
       assert(#result.failures == 0, table.concat(result.failures, "\\n"))
       assert(result.finished, "cancelled gate kept waiting")
       assert(not result.core:FindFirstChild("NothriloKeyGate"), "key gate leaked")
@@ -109,7 +110,7 @@ for (const option of ["closeGate", "replaceSuite"]) {
   ));
 }
 
-for (const name of ["Cafezitos.lua", "Nothrilo.lua"]) {
+for (const name of ["cafezitos/Cafezitos.lua", "nothrilo/v1/Nothrilo.lua"]) {
   test(`${name}: reports a missing local player after a bounded wait`, () => fixture(name, { noPlayer: true }, `
     assert(result.finished, "missing-player wait did not end")
     assert(#result.failures == 1, "expected one descriptive client-context error")
@@ -119,7 +120,7 @@ for (const name of ["Cafezitos.lua", "Nothrilo.lua"]) {
 }
 
 test("diagnostic loader shows a closable error instead of failing silently", () => fixture(
-  "Cafezitos-teste.lua", {}, `
+  "cafezitos/Cafezitos-teste.lua", {}, `
     assert(#result.failures == 0, table.concat(result.failures, "\\n"))
     assert(result.finished)
     local gui = result.core:FindFirstChild("CafezitosDiagnostic")
@@ -139,7 +140,7 @@ for (const scenario of [
   { name: "manual flight on foot", seated: false, inputEnabled: true, platformStand: true },
 ]) {
   test(`Nothrilo ${scenario.name} preserves humanoid flight state`, () => fixture(
-    "Nothrilo.lua", {}, cleanClientRun, `
+    "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
       do
         local humanoid = getHumanoid()
         humanoid.AutoRotate = false
@@ -167,7 +168,7 @@ for (const scenario of [
 }
 
 test("Nothrilo accepts its current seat and rejects another occupant", () => fixture(
-  "Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
     do
       local humanoid = getHumanoid()
       local seat = Instance.new("VehicleSeat", workspace)
@@ -182,7 +183,7 @@ test("Nothrilo accepts its current seat and rejects another occupant", () => fix
 ));
 
 test("Nothrilo uses Humanoid.Sit after three unsuccessful seat requests", () => fixture(
-  "Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
     do
       local humanoid = getHumanoid()
       local seat = Instance.new("VehicleSeat", workspace)
@@ -206,7 +207,7 @@ test("Nothrilo uses Humanoid.Sit after three unsuccessful seat requests", () => 
 ));
 
 test("Nothrilo ESP restores native nameplate settings and keeps the humanoid", () => fixture(
-  "Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
     do
       local player = Instance.new("Player", game:GetService("Players"))
       player.Name, player.DisplayName = "ESPFixture", "ESP Fixture"
@@ -234,7 +235,7 @@ test("Nothrilo ESP restores native nameplate settings and keeps the humanoid", (
 ));
 
 test("Nothrilo stabilizer retires a force whose attachment was removed", () => fixture(
-  "Nothrilo.lua", {}, cleanClientRun, `
+  "nothrilo/v1/Nothrilo.lua", {}, cleanClientRun, `
     do
       local cart = Instance.new("Model", workspace)
       local wheel = Instance.new("Part", cart)

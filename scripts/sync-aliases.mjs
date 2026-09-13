@@ -3,9 +3,9 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 export const aliases = [
-  { source: "nothrilov2/nothrilov2", targets: ["Nothrilo-V2.lua", "nothrilo/v2/Nothrilo-V2.lua"] },
-  { source: "Cafezitos.lua", targets: ["Cafezitos-V2.lua", "Cafezitos-completo.lua"] },
-  { source: "Nothrilo.lua", targets: ["Nothrilo-key-gratis.lua", "Nothrilo-classico-funcoes-corrigidas.lua"] },
+  { source: "nothrilov2/nothrilov2", targets: ["nothrilo/v2/Nothrilo-V2.lua"] },
+  { source: "cafezitos/Cafezitos.lua", targets: ["cafezitos/Cafezitos-V2.lua", "cafezitos/Cafezitos-completo.lua"] },
+  { source: "nothrilo/v1/Nothrilo.lua", targets: ["nothrilo/v1/Nothrilo-key-gratis.lua", "nothrilo/v1/Nothrilo-classico-funcoes-corrigidas.lua"] },
 ];
 
 export async function syncAliases({ write = false } = {}) {

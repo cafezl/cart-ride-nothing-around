@@ -1,109 +1,111 @@
-# 🇧🇷 Nothrilo & Cafezitos
+# 🇧🇷 Nothrilo V2 & Cafezitos
 
 ![Nothrilo V2 — Menu Completo, feito por Cafezl](assets/nothrilo-v2-cover.png)
 
 <p align="center">
-  <strong>Nothrilo V2</strong> · key pelo JNKIE + Linkvertise · menu clássico completo<br>
+  <strong>Nothrilo V2</strong> · key pelo JNKIE + Linkvertise · menu completo<br>
   <strong>Cafezitos</strong> · interface temática · acesso direto
 </p>
 
-Menus em Luau para **Cart Ride Around Nothing**, mantidos por **Cafezl** e com a participação do **Cafezitos**.
+Menus em Luau para **Cart Ride Around Nothing**, criados e mantidos por **Cafezl**.
 
-## Comece pelo Nothrilo V2
+## Nothrilo V2
 
-O **Nothrilo V2** mantém as abas e funções do menu clássico, mostra a tela de carregamento primeiro e abre a nova tela de key JNKIE depois.
+O **Nothrilo V2** possui tela de carregamento, sistema de key pelo JNKIE e menu completo com funções para jogador, carrinho, teleporte, ESP e interface.
 
-~~~
+```lua
 loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download"))()
-~~~
+```
 
-O fluxo da key usa o serviço NothriloV2, slug nothrilov2 e o provedor Linkvertise:
+### Como obter a key
 
-1. Clique em **1. GERAR LINK LINKVERTISE**.
-2. Abra o link exibido no mesmo navegador e conclua o checkpoint.
-3. Se o JNKIE mostrar **Adblock detected**, desative o bloqueador somente para jnkie.com e recarregue.
-4. Cole a key de volta no menu e valide.
+1. Execute o código acima.
+2. Clique em **GERAR LINK LINKVERTISE**.
+3. Abra o link e conclua as etapas.
+4. Copie a key fornecida pelo JNKIE.
+5. Volte ao menu, cole a key e clique em validar.
 
-Link direto configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothrilov2).
+Link configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothrilov2)
+
+## Cafezitos
+
+O **Cafezitos** é um menu separado, com tema próprio e acesso direto, sem sistema de key.
+
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/Cafezitos.lua"))()
+```
 
 ## Versões disponíveis
 
-| Menu | Arquivo para executar | Acesso |
+| Menu | Acesso | Arquivo público |
 | --- | --- | --- |
-| **Nothrilo V2** | [nothrilov2](nothrilov2/nothrilov2) | Key JNKIE + Linkvertise |
-| **Cafezitos** | [Cafezitos.lua](cafezitos/Cafezitos.lua) | Direto, sem key |
+| **Nothrilo V2** | JNKIE + Linkvertise | `nothrilov2/nothrilov2` |
+| **Cafezitos** | Direto, sem key | `cafezitos/Cafezitos.lua` |
 
-### Cafezitos
+## Recursos do Nothrilo V2
 
-~~~
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/Cafezitos.lua"))()
-~~~
-
-O Cafezitos fica preservado como menu separado, com tema de café e seus próprios atalhos.
-
-## O que foi ajustado no V2
-
-- carregamento visual antes da tela de key;
-- tela de key com arte de carrinhos em 3D à esquerda e validação à direita, adaptada ao tamanho da janela;
-- voo do veículo baseado no controle direto do CRAN UI V3, mantendo a restauração segura de PlatformStand, câmera e movers;
-- proteção contra sobreposição de câmeras, voos e conexões de execuções anteriores;
-- fallback de assento e perseguição do killer sem validação rígida do carrinho a cada frame;
-- ESP que restaura as configurações originais do humanoide;
-- estabilizador que remove forças quando o attachment deixa de existir;
-- todas as abas do Nothrilo clássico continuam disponíveis.
-
-O arquivo em INSPIRAÇÃO/ é apenas referência de comportamento. Ele contém helpers repetidos e carregadores externos próprios; esses trechos não são executados pelo V2.
-
-## Organização
-
-~~~
-Nothrilo & Cafezitos
-├── nothrilov2/          # fonte principal da V2
-├── cafezitos/           # fontes e diagnóstico do Cafezitos
-├── INSPIRAÇÃO/          # referências para comparação
-├── assets/              # artes e recursos visuais
-├── tests/               # verificações automáticas
-└── docs/                # manutenção e segurança
-~~~
-
-Os menus mantidos são `nothrilov2/nothrilov2` e `cafezitos/Cafezitos.lua`. A V1, sua API de chaves e as cópias antigas foram retiradas. A V2 valida a key pelo JNKIE.
-
-Os arquivos soltos da raiz foram retirados. Loadstrings que apontavam para `main/Cafezitos.lua`, `main/Nothrilo.lua` ou outras cópias da raiz precisam usar os caminhos das pastas. O loadstring do Nothrilo V2 mostrado acima continua igual.
-
-## Recursos do menu
-
-| Área | Exemplos |
-| --- | --- |
-| Jogador | voo do veículo, ESP, velocidade, pulo infinito e anti-AFK |
-| Teleporte | início, carrinho, checkpoints e sala secreta |
-| Carrinho | boost, estabilizador, anti-flip e freio automático |
-| Extras | noclip, transparência, gravidade e posição salva |
-| Mapa | busca de partes, carrinho próximo e câmera livre |
-| Eliminador / Troll | alvo, spectate, câmera e teleporte aleatório |
-| Interface | minimizar, reabrir, fechar e atalhos |
+- voo do jogador e do carrinho;
+- ESP de jogadores;
+- velocidade e pulo infinito;
+- anti-AFK;
+- teleporte para início, carrinho, checkpoints e sala secreta;
+- boost, estabilizador, anti-flip e freio automático;
+- noclip, gravidade e transparência;
+- posição salva e teleporte por clique;
+- busca de partes do mapa;
+- câmera livre e spectate;
+- recursos de perseguição e teleporte;
+- interface ajustável, minimizável e compatível com diferentes telas.
 
 ### Atalhos principais
 
-V voo · L ESP · P pulo infinito · T teleporte por clique · B boost · 1/2/3 checkpoints · K minimizar · X fechar.
+| Tecla | Função |
+| --- | --- |
+| `V` | Voo |
+| `L` | ESP |
+| `P` | Pulo infinito |
+| `T` | Teleporte por clique |
+| `B` | Boost |
+| `1`, `2` e `3` | Checkpoints |
+| `K` | Minimizar |
+| `X` | Fechar |
 
-## Desenvolvimento
+## Organização do repositório
 
-Edite `nothrilov2/nothrilov2` e `cafezitos/Cafezitos.lua`. A sincronização atualiza apenas as cópias do Cafezitos dentro da pasta:
+```text
+cart-ride-nothing-around
+├── .github/workflows/   # validação automática
+├── assets/              # capa e recursos visuais
+├── cafezitos/           # fonte do Cafezitos
+├── docs/                # documentação complementar
+├── INSPIRAÇÃO/          # referências usadas no desenvolvimento
+├── nothrilov2/          # carregador público do Nothrilo V2
+├── scripts/             # ferramentas de manutenção
+└── tests/               # verificações automáticas
+```
 
-~~~
-pnpm run sync:aliases
+O arquivo `nothrilov2/nothrilov2` é o carregador público do código mantido no JNKIE. O código completo do Cafezitos continua disponível em `cafezitos/Cafezitos.lua`.
+
+As cópias antigas e os arquivos de diagnóstico foram removidos. Eles não são mais necessários para executar os menus.
+
+## Verificações
+
+```bash
 pnpm test
 pnpm run test:luau
-~~~
+```
 
-Os testes Luau exigem luau e luau-compile no PATH ou configurados por LUAU_BIN e LUAU_COMPILE_BIN. Eles verificam sintaxe, aliases, inicialização simulada e a validação JNKIE; não substituem um teste dentro do Roblox.
+O GitHub Actions verifica:
 
-Nenhum segredo de JNKIE ou Linkvertise deve ser colocado no código ou no README. As credenciais ficam somente nos painéis oficiais.
+- os arquivos públicos existentes;
+- a sintaxe dos carregadores;
+- o endereço oficial do código no JNKIE;
+- a compilação Luau;
+- a inicialização simulada do Cafezitos;
+- possíveis arquivos truncados ou conteúdo inválido.
 
 ## Créditos
 
-**Cafezl** · autor do Nothrilo
-**Cafezitos** · menu e identidade complementar
-Referências de voo e estabilização ficam separadas em INSPIRAÇÃO/.
+**Cafezl** · criador e mantenedor do Nothrilo V2 e Cafezitos.
 
-Projeto independente, sem afiliação com Roblox ou com os criadores do jogo. Use somente em ambientes autorizados e respeite as regras da plataforma.
+Projeto independente, sem afiliação com Roblox ou com os criadores de Cart Ride Around Nothing.

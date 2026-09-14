@@ -36,7 +36,7 @@ Link direto configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-ke
 ### Cafezitos
 
 ~~~
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/Cafezitos.lua"))()
+loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download"))()
 ~~~
 
 O Cafezitos fica preservado como menu separado, com tema de café e seus próprios atalhos.

@@ -47,166 +47,30 @@ async function fixture(name, options, checks, clientChecks = "") {
   }
 }
 
-for (const [name, window] of [
-  ["cafezitos/Cafezitos.lua", "CafezitosV2UI"],
-  ["nothrilov2/nothrilov2", "NothriloClassicUI"],
-]) {
-  const visible = `
-    assert(#result.failures == 0, table.concat(result.failures, "\\n"))
-    assert(result.finished, "main bootstrap did not finish")
-    local gui = result.core:FindFirstChild("${window}") or result.playerGui:FindFirstChild("${window}")
-    assert(gui and gui.Enabled, "main window did not become visible")
-    assert(#gui:GetDescendants() > 100, "menu lost its content")
-    assert(gui:FindFirstChild("ComandosTabButton", true), "commands tab was lost")
-  `;
-  test(`${name}: builds a visible menu in the bootstrap model`, () => fixture(name, {}, visible));
-  test(`${name}: waits for the player/GUI and falls back from an unusable gethui/CoreGui`, () => (
-    fixture(name, { playerDelay: 0.2, guiDelay: 0.4, blockCore: true, badHui: true }, `${visible}
-      assert(gui.Parent == result.playerGui, "expected PlayerGui fallback")
-    `)
-  ));
-}
+const visible = `
+  assert(#result.failures == 0, table.concat(result.failures, "\\n"))
+  assert(result.finished, "main bootstrap did not finish")
+  local gui = result.core:FindFirstChild("CafezitosV2UI") or result.playerGui:FindFirstChild("CafezitosV2UI")
+  assert(gui and gui.Enabled, "main window did not become visible")
+  assert(#gui:GetDescendants() > 100, "menu lost its content")
+  assert(gui:FindFirstChild("ComandosTabButton", true), "commands tab was lost")
+`;
 
-for (const name of ["cafezitos/Cafezitos.lua", "nothrilov2/nothrilov2"]) {
-  test(`${name}: reports a missing local player after a bounded wait`, () => fixture(name, { noPlayer: true }, `
+test("Cafezitos builds a visible menu in the bootstrap model", () => (
+  fixture("cafezitos/Cafezitos.lua", {}, visible)
+));
+
+test("Cafezitos waits for the player/GUI and falls back from an unusable gethui/CoreGui", () => (
+  fixture("cafezitos/Cafezitos.lua", { playerDelay: 0.2, guiDelay: 0.4, blockCore: true, badHui: true }, `${visible}
+    assert(gui.Parent == result.playerGui, "expected PlayerGui fallback")
+  `)
+));
+
+test("Cafezitos reports a missing local player after a bounded wait", () => fixture(
+  "cafezitos/Cafezitos.lua", { noPlayer: true }, `
     assert(result.finished, "missing-player wait did not end")
     assert(#result.failures == 1, "expected one descriptive client-context error")
     assert(result.failures[1]:find("jogador local", 1, true), result.failures[1])
     assert(result.elapsed >= 10 and result.elapsed < 10.2, "unexpected wait budget")
-  `));
-}
-
-test("diagnostic loader shows a closable error instead of failing silently", () => fixture(
-  "cafezitos/Cafezitos-teste.lua", {}, `
-    assert(#result.failures == 0, table.concat(result.failures, "\\n"))
-    assert(result.finished)
-    local gui = result.core:FindFirstChild("CafezitosDiagnostic")
-    assert(gui and gui.Enabled, "missing diagnostic UI")
-    assert(#result.warnings == 1, "missing console diagnostic")
-  `,
-));
-
-const cleanClientRun = `
-  assert(#result.failures == 0, table.concat(result.failures, "\\n"))
-  assert(result.finished, "client regression scenario did not complete")
-`;
-
-for (const scenario of [
-  { name: "seated vehicle", seated: true, inputEnabled: true, platformStand: false },
-  { name: "killer flight without a seat", seated: false, inputEnabled: false, platformStand: false },
-  { name: "manual flight on foot", seated: false, inputEnabled: true, platformStand: true },
-]) {
-  test(`Nothrilo ${scenario.name} preserves humanoid flight state`, () => fixture(
-    "nothrilov2/nothrilov2", {}, cleanClientRun, `
-      do
-        local humanoid = getHumanoid()
-        humanoid.AutoRotate = false
-        humanoid.PlatformStand = false
-        humanoid.MoveDirection = Vector3.zero
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-        UserInputService.TouchEnabled = false
-        if ${scenario.seated} then
-          local seat = Instance.new("VehicleSeat", workspace)
-          seat.Occupant = humanoid
-          humanoid.SeatPart = seat
-        end
-        assert(startVehicleFly(${scenario.inputEnabled}), "flight did not start")
-        assert(humanoid.PlatformStand == ${scenario.platformStand}, "incorrect PlatformStand during flight")
-        stopFly()
-        assert(humanoid.PlatformStand == false, "flight changed the original PlatformStand")
-        assert(humanoid.AutoRotate == false, "flight changed a previously false AutoRotate")
-        assert(humanoid:GetStateEnabled(Enum.HumanoidStateType.Freefall) == false, "Freefall state was lost")
-        assert(humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown) == true, "FallingDown state was lost")
-        assert(not getRoot():FindFirstChild("CafezlVehicleFlyVelocity"), "flight mover leaked")
-      end
-    `,
-  ));
-}
-
-test("Nothrilo accepts its current seat and rejects another occupant", () => fixture(
-  "nothrilov2/nothrilov2", {}, cleanClientRun, `
-    do
-      local humanoid = getHumanoid()
-      local seat = Instance.new("VehicleSeat", workspace)
-      seat.Occupant = humanoid
-      humanoid.SeatPart = seat
-      assert(sitOnVehicleSeat(seat), "already seated local player was rejected")
-      humanoid.SeatPart = nil
-      seat.Occupant = Instance.new("Humanoid", workspace)
-      assert(not sitOnVehicleSeat(seat), "another player's seat was accepted")
-    end
-  `,
-));
-
-test("Nothrilo uses Humanoid.Sit after three unsuccessful seat requests", () => fixture(
-  "nothrilov2/nothrilov2", {}, cleanClientRun, `
-    do
-      local humanoid = getHumanoid()
-      local seat = Instance.new("VehicleSeat", workspace)
-      seat.CFrame = CFrame.new()
-      humanoid.Sit = false
-      local sitRequests = 0
-      seat.Sit = function() sitRequests += 1 end
-      task.spawn(function()
-        local deadline = os.clock() + 2
-        repeat task.wait(0.02) until humanoid.Sit or os.clock() >= deadline
-        if humanoid.Sit then
-          seat.Occupant = humanoid
-          humanoid.SeatPart = seat
-        end
-      end)
-      assert(sitOnVehicleSeat(seat), "fallback did not seat the player")
-      assert(sitRequests == 3, "fallback skipped the three direct seating attempts")
-      assert(humanoid.SeatPart == seat, "fallback reported success without the expected seat")
-    end
-  `,
-));
-
-test("Nothrilo ESP restores native nameplate settings and keeps the humanoid", () => fixture(
-  "nothrilov2/nothrilov2", {}, cleanClientRun, `
-    do
-      local player = Instance.new("Player", game:GetService("Players"))
-      player.Name, player.DisplayName = "ESPFixture", "ESP Fixture"
-      local character = Instance.new("Model", workspace)
-      player.Character = character
-      local root = Instance.new("Part", character)
-      root.Name, root.Position = "HumanoidRootPart", Vector3.zero
-      local humanoid = Instance.new("Humanoid", character)
-      humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
-      humanoid.NameOcclusion = Enum.NameOcclusion.OccludeAll
-      humanoid.NameDisplayDistance = 87
-      humanoid.HealthDisplayDistance = 42
-      espEnabled = true
-      addESP(player, character)
-      assert(root:FindFirstChild("NothriloESPName"), "ESP nameplate was not created")
-      assert(humanoid.DisplayDistanceType == Enum.HumanoidDisplayDistanceType.None, "native nameplate was not hidden")
-      removeESP(player)
-      assert(humanoid.Parent == character, "ESP cleanup destroyed the target humanoid")
-      assert(humanoid.DisplayDistanceType == Enum.HumanoidDisplayDistanceType.Viewer, "display type was not restored")
-      assert(humanoid.NameOcclusion == Enum.NameOcclusion.OccludeAll, "occlusion was not restored")
-      assert(humanoid.NameDisplayDistance == 87 and humanoid.HealthDisplayDistance == 42, "display distances were not restored")
-      assert(not root:FindFirstChild("NothriloESPName") and not character:FindFirstChild("NothriloESP"), "ESP objects leaked")
-    end
-  `,
-));
-
-test("Nothrilo stabilizer retires a force whose attachment was removed", () => fixture(
-  "nothrilov2/nothrilov2", {}, cleanClientRun, `
-    do
-      local cart = Instance.new("Model", workspace)
-      local wheel = Instance.new("Part", cart)
-      wheel.Name, wheel.Anchored = "Wheel", false
-      wheel.Position, wheel.AssemblyLinearVelocity, wheel.AssemblyMass = Vector3.zero, Vector3.zero, 100
-      cart.PrimaryPart = wheel
-      stabilizer.enabled = true
-      applyStabilizer(cart)
-      local force = wheel:FindFirstChild("CafezlStabilizerForce")
-      assert(force and force.Attachment0, "stabilizer force was not created")
-      force.Attachment0:Destroy()
-      RunService.Heartbeat:Fire()
-      assert(not force.Parent, "force without a live attachment was left active")
-      cleanupStabilizer()
-    end
   `,
 ));

@@ -4,7 +4,6 @@ const root = new URL("../", import.meta.url);
 const directories = ["cafezitos", "nothrilov2"];
 const requiredSources = [
   "cafezitos/Cafezitos.lua",
-  "cafezitos/Cafezitos-teste.lua",
   "nothrilov2/nothrilov2",
 ];
 

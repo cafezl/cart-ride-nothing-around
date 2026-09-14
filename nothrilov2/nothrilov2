@@ -1,2 +1,2 @@
-ta achando q a vida é um morango❓ 
+-- Nothrilo V2 | carregador público do JNKIE
 loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download"))()

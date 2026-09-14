@@ -28,8 +28,6 @@ jobs:
           package-manager-cache: false
       - name: Test published sources
         run: node --test tests/source.test.mjs
-      - name: Check source aliases
-        run: node scripts/sync-aliases.mjs
       - name: Check out pinned Luau source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -44,4 +42,4 @@ jobs:
         env:
           LUAU_BIN: ${{ github.workspace }}/tools/luau/build/release/luau
           LUAU_COMPILE_BIN: ${{ github.workspace }}/tools/luau/build/release/luau-compile
-        run: node --test tests/client.test.mjs tests/nothrilo-v2-key.test.mjs
+        run: node --test tests/client.test.mjs

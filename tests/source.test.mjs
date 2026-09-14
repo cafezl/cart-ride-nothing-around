@@ -1,19 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { aliases, syncAliases } from "../scripts/sync-aliases.mjs";
 import { listPublishedLuaSources } from "../scripts/menu-sources.mjs";
 
 const root = new URL("../", import.meta.url);
-
-test("all compatibility URLs contain the complete maintained source", async () => {
-  assert.deepEqual(await syncAliases(), [], "Run npm run sync:aliases before committing.");
-  for (const { source, targets } of aliases) {
-    const bytes = await readFile(new URL(source, root));
-    assert.ok(bytes.length > 100000, `${source} unexpectedly lost most of its content`);
-    for (const target of targets) assert.deepEqual(await readFile(new URL(target, root)), bytes);
-  }
-});
 
 test("published Lua files contain code, not terminal transcripts or truncated answers", async () => {
   for (const path of await listPublishedLuaSources()) {
@@ -24,14 +14,9 @@ test("published Lua files contain code, not terminal transcripts or truncated an
   }
 });
 
-test("the diagnostic loader targets maintained sources and bounds its error output", async () => {
-  const source = await readFile(new URL("cafezitos/Cafezitos-teste.lua", root), "utf8");
-  assert.doesNotMatch(source, /main\/Cafezitos-completo\.lua/);
-  assert.match(source, /Cafezitos = "cafezitos\/Cafezitos\.lua"/);
-  assert.match(source, /Nothrilo = "nothrilov2\/nothrilov2"/);
-  assert.match(source, /CafezlDiagnosticTarget/);
-  assert.match(source, /CafezlDiagnosticRef/);
-  assert.match(source, /pcall\(loadstring/);
-  assert.match(source, /:sub\(1, 1600\)/);
+test("the Nothrilo V2 public entrypoint loads the maintained JNKIE source", async () => {
+  const source = await readFile(new URL("nothrilov2/nothrilov2", root), "utf8");
+  const expected = "https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download";
+  assert.match(source, new RegExp(`loadstring\\(game:HttpGet\\(\"${expected}\"\\)\\)\\(\\)`));
+  assert.equal((source.match(/loadstring\s*\(/g) || []).length, 1, "entrypoint must contain exactly one loader");
 });
-

@@ -14,7 +14,7 @@ Menus em Luau para **Cart Ride Around Nothing**, mantidos por **Cafezl** e com a
 O **Nothrilo V2** mantém as abas e funções do menu clássico, mostra a tela de carregamento primeiro e abre a nova tela de key JNKIE depois.
 
 ~~~
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/nothrilov2/nothrilov2"))()
+loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download"))()
 ~~~
 
 O fluxo da key usa o serviço NothriloV2, slug nothrilov2 e o provedor Linkvertise:
@@ -36,7 +36,7 @@ Link direto configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-ke
 ### Cafezitos
 
 ~~~
-loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/Cafezitos.lua"))()
 ~~~
 
 O Cafezitos fica preservado como menu separado, com tema de café e seus próprios atalhos.

@@ -30,7 +30,7 @@ Link configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothr
 ## Cafezitos
 
 O **Cafezitos** é um menu separado, com tema próprio e acesso direto, sem sistema de key.
-
+[![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/Cafezitos.lua"))()
 ```

@@ -34,7 +34,7 @@ O **Cafezitos** é um menu separado, com tema próprio e acesso direto, sem sist
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/Cafezitos.lua"))()
 ```
-
+[![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
 ## Versões disponíveis
 
 | Menu | Acesso | Arquivo público |

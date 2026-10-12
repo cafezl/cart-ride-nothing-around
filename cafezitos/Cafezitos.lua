@@ -2472,7 +2472,7 @@ corner(button, 8)
 return button
 end
 local previous = makePoemButton("PreviousPage", "‹ Anterior", 0)
-local next = makePoemButton("NextPage", "Próxima ›", 0.5)
+local nextButton = makePoemButton("NextPage", "Próxima ›", 0.5)
 local pageStatus = ui("TextLabel", { Name = "PoemPageNumber", Size = UDim2.new(1,0,0,22), BackgroundTransparency = 1, Font = Enum.Font.Code, TextColor3 = Color3.fromRGB(255,209,153), TextSize = 11, TextXAlignment = Enum.TextXAlignment.Center }, poemContent)
 local currentPage = 1
 local function showPoemPage(index)
@@ -2482,7 +2482,7 @@ pageStatus.Text = ("Página %d de %d"):format(currentPage, #poemPages)
 poemTab.page.CanvasPosition = Vector2.zero
 end
 previous.Activated:Connect(function() showPoemPage(currentPage - 1) end)
-next.Activated:Connect(function() showPoemPage(currentPage + 1) end)
+nextButton.Activated:Connect(function() showPoemPage(currentPage + 1) end)
 showPoemPage(1)
 end
 -- Jogador
@@ -2839,7 +2839,6 @@ local protectionTab = Window:NewTab("Proteção")
 local section = protectionTab:NewSection("Anti-fling")
 protectionToggle = regOff(section:NewToggle("Ativar proteção", "Reduz colisões locais de personagens acima dos limites.", function(value) if M.controller then M.controller:SetEnabled(value) end end))
 protectionStatus = section:NewLabel("Iniciando proteção...", 34)
-local limits = section:NewSection and nil or nil
 local listSection = protectionTab:NewSection("Movimento acima do limite")
 playerList = listSection:NewLabel("Nenhum personagem detectado.", 90)
 listSection:NewLabel("Movimento rápido pode ser normal no jogo; a detecção não comprova cheats.", 34)
@@ -3108,8 +3107,8 @@ end
 local sfxToggle, animationButton
 do
 local section = Window:NewTab("Interface"):NewSection("Interface")
-local rgbEnabled = true
-local rgbToggle = section:NewToggle("Cores RGB (pulso caramelo)", "Anima os detalhes da interface.", function(value) rgbEnabled = value if not value then CafeUI:ChangeColor("SchemeColor", Theme.SchemeColor) end end)
+local rgbEnabledGlobal = true
+local rgbToggle = section:NewToggle("Cores RGB (pulso caramelo)", "Anima os detalhes da interface.", function(value) rgbEnabledGlobal = value if not value then CafeUI:ChangeColor("SchemeColor", Theme.SchemeColor) end end)
 rgbToggle:UpdateToggle(nil, true)
 section:NewButton("Minimizar menu", "Mantém funções ativas; botão ☕ reabre.", function() if setMenuVisible then setMenuVisible(false) end end)
 section:NewButton("Fechar Menu", "Tecla X também fecha.", function() if destroyCafezitos then destroyCafezitos() end end)

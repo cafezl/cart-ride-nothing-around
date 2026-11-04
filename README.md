@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Nothrilo V2</strong> · key pelo JNKIE + Linkvertise · menu completo<br>
-  <strong>Cafezitos</strong> · interface temática · acesso direto
+  <strong>Cafezitos V5</strong> · nova capa · publicação em preparação
 </p>
 
 Menus em Luau para **Cart Ride Around Nothing**, criados e mantidos por **Cafezl**.
@@ -29,18 +29,18 @@ Link configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothr
 
 ## Cafezitos
 
-O **Cafezitos** é um menu separado, com tema próprio e acesso direto, sem sistema de key.
+![Cafezitos V5 — Menu Completo, feito por Cafezl](./assets/cafezitos-v5-cover.jpg)
 
-```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-nothing-around/main/cafezitos/CafezitosV3.lua"))()
-```
-[![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
+O **Cafezitos V5** é um menu separado, com tema próprio. O carregador desta versão ainda não está publicado neste repositório; o link será adicionado quando a publicação estiver pronta.
+
+[Ver Cafezitos no ScriptBlox](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
+
 ## Versões disponíveis
 
 | Menu | Acesso | Arquivo público |
 | --- | --- | --- |
 | **Nothrilo V2** | JNKIE + Linkvertise | `nothrilov2/nothrilov2` |
-| **Cafezitos** | Direto, sem key | `cafezitos/Cafezitos.lua` |
+| **Cafezitos V5** | Publicação em preparação | Link será adicionado |
 
 ## Recursos do Nothrilo V2
 
@@ -76,7 +76,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/cafezl/cart-ride-noth
 cart-ride-nothing-around
 ├── .github/workflows/   # validação automática
 ├── assets/              # capa e recursos visuais
-├── cafezitos/           # fonte do Cafezitos
 ├── docs/                # documentação complementar
 ├── INSPIRAÇÃO/          # referências usadas no desenvolvimento
 ├── nothrilov2/          # carregador público do Nothrilo V2
@@ -84,7 +83,7 @@ cart-ride-nothing-around
 └── tests/               # verificações automáticas
 ```
 
-O arquivo `nothrilov2/nothrilov2` é o carregador público do código mantido no JNKIE. O código completo do Cafezitos continua disponível em `cafezitos/Cafezitos.lua`.
+O arquivo `nothrilov2/nothrilov2` é o carregador público do código mantido no JNKIE. O código do Cafezitos não fica neste repositório.
 
 As cópias antigas e os arquivos de diagnóstico foram removidos. Eles não são mais necessários para executar os menus.
 
@@ -101,7 +100,6 @@ O GitHub Actions verifica:
 - a sintaxe dos carregadores;
 - o endereço oficial do código no JNKIE;
 - a compilação Luau;
-- a inicialização simulada do Cafezitos;
 - possíveis arquivos truncados ou conteúdo inválido.
 
 ## Créditos

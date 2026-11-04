@@ -5,7 +5,7 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "test": "node --test tests/source.test.mjs",
-    "test:luau": "node --test tests/client.test.mjs"
+    "test:luau": "node --test tests/luau-compile.test.mjs"
   },
   "engines": {
     "node": ">=22"

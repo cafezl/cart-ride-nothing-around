@@ -4,6 +4,10 @@
   Menus em Luau para <strong>Cart Ride Around Nothing</strong>, criados e mantidos por <strong>Cafezl</strong>.
 </p>
 
+<p align="center">
+  <img src="nothrilov2/NOTHRILO.png" alt="Nothrilo — Menu Completo, feito por Cafezl" />
+</p>
+
 ---
 
 ## 📦 Versões disponíveis
@@ -20,7 +24,7 @@
 > *Cart Ride Around Nothing — Seu carrinho, seus atalhos e muito mais diversão!*
 
 <p align="center">
-  <img src="nothrilov2/NOTHRILO-V5.jfif" alt="Nothrilo V5 — Menu Completo, feito por Cafezl" />
+  <img src="nothrilov2/NOTHRILO V5.png" alt="Nothrilo V5 — Menu Completo, feito por Cafezl" />
 </p>
 
 [![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)](https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)
@@ -75,7 +79,7 @@ loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf494
 > *Cart Ride Around Nothing + Desastres Naturais.*
 
 <p align="center">
-  <img src="nothrilov2/CAFEZITOS.jfif" alt="Cafezitos V5 — Menu Completo, feito por Cafezl" />
+  <img src="nothrilov2/CAFEZITOS.png" alt="Cafezitos V5 — Menu Completo, feito por Cafezl" />
 </p>
 
 [![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
@@ -91,8 +95,6 @@ loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/dbbe8e42
 3. Abra o link e conclua as etapas.
 4. Copie a key fornecida pelo JNKIE.
 5. Volte ao menu, cole a key e clique em validar.
-
-> Link direto: [jnkie.com/get-key/cafezitosv5](https://jnkie.com/get-key/cafezitosv5)
 
 ### ✨ Funções
 

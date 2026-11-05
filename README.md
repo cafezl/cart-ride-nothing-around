@@ -10,8 +10,8 @@
 
 | Menu | Versão | Acesso | Arquivo público |
 |------|--------|--------|-----------------|
-| **Nothrilo** | V5 | 🎉 Grátis dom/seg · 🔑 Key nos outros dias | `nothrilov2/nothrilov2` |
-| **Cafezitos** | V5 | 🔑 Key pelo JNKIE + Linkvertise | Link em breve |
+| **Nothrilo** | V5 | 🎉 Grátis dom/seg · 🔑 Key nos outros dias | `nothrilov2/nothrilov5` |
+| **Cafezitos** | V5 | 🔑 Key pelo JNKIE + Linkvertise | `nothrilov2/CAFEZITOS` |
 
 ---
 
@@ -20,7 +20,7 @@
 > *Cart Ride Around Nothing — Seu carrinho, seus atalhos e muito mais diversão!*
 
 <p align="center">
-  <img src="assets/nothrilo-v2-cover.png" alt="Nothrilo V5 — Menu Completo, feito por Cafezl" />
+  <img src="nothrilov2/NOTHRILO-V5.jfif" alt="Nothrilo V5 — Menu Completo, feito por Cafezl" />
 </p>
 
 [![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)](https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)
@@ -75,7 +75,7 @@ loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf494
 > *Cart Ride Around Nothing + Desastres Naturais.*
 
 <p align="center">
-  <img src="./assets/cafezitos-v5-cover.jpg" alt="Cafezitos V5 — Menu Completo, feito por Cafezl" />
+  <img src="nothrilov2/CAFEZITOS.jfif" alt="Cafezitos V5 — Menu Completo, feito por Cafezl" />
 </p>
 
 [![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
@@ -123,12 +123,10 @@ cart-ride-nothing-around
 ├── assets/              # capas e recursos visuais
 ├── docs/                # documentação complementar
 ├── INSPIRAÇÃO/          # referências usadas no desenvolvimento
-├── nothrilov2/          # carregador público do Nothrilo
+├── nothrilov2/          # carregadores e capas
 ├── scripts/             # ferramentas de manutenção
 └── tests/               # verificações automáticas
 ```
-
-O arquivo `nothrilov2/nothrilov2` é o carregador público do código mantido no JNKIE. O código do Cafezitos não fica neste repositório.
 
 ---
 

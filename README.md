@@ -1,21 +1,7 @@
 # 🎢 Nothrilo & Cafezitos
 
 <p align="center">
-  <img src="assets/nothrilo-v2-cover.png" alt="Nothrilo V2 — Menu Completo, feito por Cafezl" />
-</p>
-
-<p align="center">
   Menus em Luau para <strong>Cart Ride Around Nothing</strong>, criados e mantidos por <strong>Cafezl</strong>.
-</p>
-
-<p align="center">
-  <a href="https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892">
-    <img src="https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892" alt="Reviewed on ScriptBlox" />
-  </a>
-  &nbsp;
-  <a href="https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909">
-    <img src="https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909" alt="Reviewed on ScriptBlox" />
-  </a>
 </p>
 
 ---
@@ -25,7 +11,7 @@
 | Menu | Versão | Acesso | Arquivo público |
 |------|--------|--------|-----------------|
 | **Nothrilo** | V5 | 🎉 Grátis dom/seg · 🔑 Key nos outros dias | `nothrilov2/nothrilov2` |
-| **Cafezitos** | V5 | Publicação em preparação | Link em breve |
+| **Cafezitos** | V5 | 🔑 Key pelo JNKIE + Linkvertise | Link em breve |
 
 ---
 
@@ -34,8 +20,10 @@
 > *Cart Ride Around Nothing — Seu carrinho, seus atalhos e muito mais diversão!*
 
 <p align="center">
-  <img src="assets/nothrilo-v2-cover.png" alt="Nothrilo V5" />
+  <img src="assets/nothrilo-v2-cover.png" alt="Nothrilo V5 — Menu Completo, feito por Cafezl" />
 </p>
+
+[![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)](https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)
 
 ```lua
 loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download"))()
@@ -49,7 +37,7 @@ loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf494
 4. Copie a key fornecida pelo JNKIE.
 5. Volte ao menu, cole a key e clique em validar.
 
-> 🎉 **Domingo e Segunda:** acesso grátis sem key!
+> 🎉 **Domingo e Segunda:** acesso grátis sem key!  
 > Link direto: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothrilov2)
 
 ### ✨ Funções
@@ -90,7 +78,21 @@ loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf494
   <img src="./assets/cafezitos-v5-cover.jpg" alt="Cafezitos V5 — Menu Completo, feito por Cafezl" />
 </p>
 
-O **Cafezitos V5** é um menu separado, com tema próprio. O carregador desta versão ainda não está publicado neste repositório — o link será adicionado quando a publicação estiver pronta.
+[![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
+
+```lua
+loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/dbbe8e42a1a56d28517135e28e189b67cc3e4773f3868ec8ae2de60cbb835b11/download"))()
+```
+
+### 🔑 Como obter a key
+
+1. Execute o código acima no executor.
+2. Clique em **GERAR LINK LINKVERTISE**.
+3. Abra o link e conclua as etapas.
+4. Copie a key fornecida pelo JNKIE.
+5. Volte ao menu, cole a key e clique em validar.
+
+> Link direto: [jnkie.com/get-key/cafezitosv5](https://jnkie.com/get-key/cafezitosv5)
 
 ### ✨ Funções
 

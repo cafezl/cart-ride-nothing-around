@@ -24,7 +24,7 @@
 > *Cart Ride Around Nothing — Seu carrinho, seus atalhos e muito mais diversão!*
 
 <p align="center">
-  <img src="nothrilov2/NOTHRILO V5.png" alt="Nothrilo V5 — Menu Completo, feito por Cafezl" />
+  <img src="nothrilov2/NOTHRILO-V5.png" alt="Nothrilo V5 — Menu Completo, feito por Cafezl" />
 </p>
 
 [![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)](https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)

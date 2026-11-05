@@ -26,7 +26,7 @@ loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf494
 5. Volte ao menu, cole a key e clique em validar.
 
 Link configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothrilov2)
-
+[![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)](https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)
 ## Cafezitos
 
 ![Cafezitos V5 — Menu Completo, feito por Cafezl](./assets/cafezitos-v5-cover.jpg)

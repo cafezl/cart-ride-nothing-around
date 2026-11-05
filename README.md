@@ -1,109 +1,154 @@
-# 🇧🇷 Nothrilo V2 & Cafezitos
-
-![Nothrilo V2 — Menu Completo, feito por Cafezl](assets/nothrilo-v2-cover.png)
+# 🎢 Nothrilo & Cafezitos
 
 <p align="center">
-  <strong>Nothrilo V2</strong> · key pelo JNKIE + Linkvertise · menu completo<br>
-  <strong>Cafezitos V5</strong> · nova capa · publicação em preparação
+  <img src="assets/nothrilo-v2-cover.png" alt="Nothrilo V2 — Menu Completo, feito por Cafezl" />
 </p>
 
-Menus em Luau para **Cart Ride Around Nothing**, criados e mantidos por **Cafezl**.
+<p align="center">
+  Menus em Luau para <strong>Cart Ride Around Nothing</strong>, criados e mantidos por <strong>Cafezl</strong>.
+</p>
 
-## Nothrilo V2
+<p align="center">
+  <a href="https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892">
+    <img src="https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892" alt="Reviewed on ScriptBlox" />
+  </a>
+  &nbsp;
+  <a href="https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909">
+    <img src="https://scriptblox.com/badge/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909" alt="Reviewed on ScriptBlox" />
+  </a>
+</p>
 
-O **Nothrilo V2** possui tela de carregamento, sistema de key pelo JNKIE e menu completo com funções para jogador, carrinho, teleporte, ESP e interface.
+---
+
+## 📦 Versões disponíveis
+
+| Menu | Versão | Acesso | Arquivo público |
+|------|--------|--------|-----------------|
+| **Nothrilo** | V5 | 🎉 Grátis dom/seg · 🔑 Key nos outros dias | `nothrilov2/nothrilov2` |
+| **Cafezitos** | V5 | Publicação em preparação | Link em breve |
+
+---
+
+## 🚀 Nothrilo V5
+
+> *Cart Ride Around Nothing — Seu carrinho, seus atalhos e muito mais diversão!*
+
+<p align="center">
+  <img src="assets/nothrilo-v2-cover.png" alt="Nothrilo V5" />
+</p>
 
 ```lua
 loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/500cf49497956113c8fecf4df89e45df90c17c72f7ca25b13eebac9e39881937/download"))()
 ```
 
-### Como obter a key
+### 🔑 Como obter a key
 
-1. Execute o código acima.
+1. Execute o código acima no executor.
 2. Clique em **GERAR LINK LINKVERTISE**.
 3. Abra o link e conclua as etapas.
 4. Copie a key fornecida pelo JNKIE.
 5. Volte ao menu, cole a key e clique em validar.
 
-Link configurado: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothrilov2)
-[![Reviewed on ScriptBlox](https://scriptblox.com/badge/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)](https://scriptblox.com/script/cart-ride-around-nothing-Nothrilo-V2-Menu-Completo-227892)
-## Cafezitos
+> 🎉 **Domingo e Segunda:** acesso grátis sem key!
+> Link direto: [jnkie.com/get-key/nothrilov2](https://jnkie.com/get-key/nothrilov2)
 
-![Cafezitos V5 — Menu Completo, feito por Cafezl](./assets/cafezitos-v5-cover.jpg)
+### ✨ Funções
 
-O **Cafezitos V5** é um menu separado, com tema próprio. O carregador desta versão ainda não está publicado neste repositório; o link será adicionado quando a publicação estiver pronta.
+| Categoria | Funções |
+|-----------|---------|
+| ✈️ **Voo** | Voo do personagem ou veículo com controles de movimento |
+| 🛒 **Carrinho** | Boost, estabilizador, anti-flip e freio automático |
+| 📍 **Teleporte** | Checkpoints, teleporte por clique, ir até jogador e posição salva |
+| 👁️ **ESP** | ESP de jogadores, pulo infinito e ajustes do personagem |
+| 🌀 **Exploração** | Portal Gun e ferramentas de exploração do mapa |
+| 💃 **Emotes** | Catálogo completo — salve favoritos e controle a reprodução (R15) |
+| 🛡️ **Proteção** | Anti-fling, proteção de queda, abrigo local e anti-void |
+| 🎒 **Itens** | Coleta sem duplicatas, com opção de devolver |
+| 🎥 **Câmera** | Câmera livre, freecam, câmera giratória e ajuste de FOV |
+| ⚙️ **Interface** | Coordenadas na tela, atalhos rápidos, adaptada para PC e mobile |
 
-[Ver Cafezitos no ScriptBlox](https://scriptblox.com/script/cart-ride-around-nothing-Cafezitos-V2-Menu-Completo-224909)
-
-## Versões disponíveis
-
-| Menu | Acesso | Arquivo público |
-| --- | --- | --- |
-| **Nothrilo V2** | JNKIE + Linkvertise | `nothrilov2/nothrilov2` |
-| **Cafezitos V5** | Publicação em preparação | Link será adicionado |
-
-## Recursos do Nothrilo V2
-
-- voo do jogador e do carrinho;
-- ESP de jogadores;
-- velocidade e pulo infinito;
-- anti-AFK;
-- teleporte para início, carrinho, checkpoints e sala secreta;
-- boost, estabilizador, anti-flip e freio automático;
-- noclip, gravidade e transparência;
-- posição salva e teleporte por clique;
-- busca de partes do mapa;
-- câmera livre e spectate;
-- recursos de perseguição e teleporte;
-- interface ajustável, minimizável e compatível com diferentes telas.
-
-### Atalhos principais
+### ⌨️ Atalhos principais
 
 | Tecla | Função |
-| --- | --- |
+|-------|--------|
 | `V` | Voo |
 | `L` | ESP |
 | `P` | Pulo infinito |
 | `T` | Teleporte por clique |
 | `B` | Boost |
-| `1`, `2` e `3` | Checkpoints |
+| `1`, `2`, `3` | Checkpoints |
 | `K` | Minimizar |
 | `X` | Fechar |
 
-## Organização do repositório
+---
+
+## ☕ Cafezitos V5
+
+> *Cart Ride Around Nothing + Desastres Naturais.*
+
+<p align="center">
+  <img src="./assets/cafezitos-v5-cover.jpg" alt="Cafezitos V5 — Menu Completo, feito por Cafezl" />
+</p>
+
+O **Cafezitos V5** é um menu separado, com tema próprio. O carregador desta versão ainda não está publicado neste repositório — o link será adicionado quando a publicação estiver pronta.
+
+### ✨ Funções
+
+| Categoria | Funções |
+|-----------|---------|
+| ✈️ **Fly** | Fly com direção pela câmera, velocidade ajustável e suporte mobile |
+| 🌀 **Portal Gun** | Modos de destino e dimensão de bolso |
+| 👁️ **ESP** | ESP de jogadores, pulo infinito e ajustes de personagem |
+| 🛒 **Carrinho** | Boost, anti-flip, freio automático e estabilizador |
+| 📍 **Teleporte** | Checkpoints, teleporte por clique, ir até jogador e posição salva |
+| 🛡️ **Proteção** | Anti-fling, proteção de queda, abrigo local e anti-void |
+| 🪐 **Peças** | Formações com raio, altura e velocidade ajustáveis |
+| 🎒 **Itens** | Coleta sem duplicatas, com opção de devolver |
+| 🎥 **Câmera** | Câmera livre, FOV, freecam e câmera giratória |
+| ⚙️ **Interface** | Coordenadas, desempenho e UI personalizável |
+| 💃 **Emotes** | Catálogo com favoritos e controle de reprodução |
+| 🗺️ **Mapa** | Teleporte para lobby, mapa e posições salvas |
+| 👻 **Misc** | Noclip, invisibilidade local, God Mode local e Anti-AFK |
+| 💀 **Extras** | Killer e vitória automática |
+
+---
+
+## 🗂️ Organização do repositório
 
 ```text
 cart-ride-nothing-around
 ├── .github/workflows/   # validação automática
-├── assets/              # capa e recursos visuais
+├── assets/              # capas e recursos visuais
 ├── docs/                # documentação complementar
 ├── INSPIRAÇÃO/          # referências usadas no desenvolvimento
-├── nothrilov2/          # carregador público do Nothrilo V2
+├── nothrilov2/          # carregador público do Nothrilo
 ├── scripts/             # ferramentas de manutenção
 └── tests/               # verificações automáticas
 ```
 
 O arquivo `nothrilov2/nothrilov2` é o carregador público do código mantido no JNKIE. O código do Cafezitos não fica neste repositório.
 
-As cópias antigas e os arquivos de diagnóstico foram removidos. Eles não são mais necessários para executar os menus.
+---
 
-## Verificações
+## 🧪 Verificações
 
 ```bash
 pnpm test
 pnpm run test:luau
 ```
 
-O GitHub Actions verifica:
+O GitHub Actions verifica automaticamente:
 
-- os arquivos públicos existentes;
-- a sintaxe dos carregadores;
-- o endereço oficial do código no JNKIE;
-- a compilação Luau;
-- possíveis arquivos truncados ou conteúdo inválido.
+- arquivos públicos existentes;
+- sintaxe dos carregadores;
+- endereço oficial do código no JNKIE;
+- compilação Luau;
+- arquivos truncados ou com conteúdo inválido.
 
-## Créditos
+---
 
-**Cafezl** · criador e mantenedor do Nothrilo V2 e Cafezitos.
+## 👤 Créditos
+
+**Cafezl** · criador e mantenedor do Nothrilo e Cafezitos.
 
 Projeto independente, sem afiliação com Roblox ou com os criadores de Cart Ride Around Nothing.

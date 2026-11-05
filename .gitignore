@@ -1,7 +1,0 @@
-node_modules/
-/tools/luau/
-.dev.vars*
-.env*
-!.env.example
-*.log
-.DS_Store
